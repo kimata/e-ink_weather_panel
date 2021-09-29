@@ -23,7 +23,7 @@ INFLUXDB_PORT = 8086
 INFLUXDB_DB = 'sensor'
 
 INFLUXDB_QUERY = """
-SELECT mean("{param}") FROM "sensor.{sensor_type}" WHERE ("hostname" = \'{hostname}\') AND time >= now() - 60h GROUP BY time(15m) fill(previous) ORDER by time asc
+SELECT mean("{param}") FROM "sensor.{sensor_type}" WHERE ("hostname" = \'{hostname}\') AND time >= now() - 60h GROUP BY time(3m) fill(previous) ORDER by time asc
 """
 
 IMAGE_DPI = 100.0
