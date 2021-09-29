@@ -87,7 +87,7 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, small, face_map):
     if not data['valid']:
         text = '?'
     else:
-        text = fmt.format(next((item for item in y if item), None))
+        text = fmt.format(next((item for item in reversed(y) if item), None))
 
     if small:
         font = face_map['value_small']
