@@ -127,7 +127,7 @@ def get_image(info):
 
     h, w = img.shape[:2]
 
-    # NOTE: 一端4倍の解像度に増やす
+    # NOTE: 一旦4倍の解像度に増やす
     sr = dnn_superres.DnnSuperResImpl_create()
 
     model_path = str(
