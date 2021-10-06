@@ -14,8 +14,9 @@ import hmac
 import hashlib
 import base64
 
-from sensor_graph import create_sensor_graph
 from weather_panel import create_weather_panel
+from power_graph import create_power_graph
+from sensor_graph import create_sensor_graph
 
 CONFIG_PATH = '../config.yml'
 
@@ -67,7 +68,8 @@ def upload(img_stream, server_ip, uuid, api_secret, api_key):
 config = load_config()
 
 weather_panel_img = create_weather_panel(config['WEATHER'], config['FONT'])
-sensor_graph_img = create_sensor_graph(config['GRAPH'], config['FONT'])
+power_graph_img = create_power_graph(config['POWER'], config['FONT'])
+sensor_graph_img = create_sensor_graph(config['SENSOR'], config['FONT'])
 
 img = PIL.Image.new(
     'L',
@@ -75,7 +77,8 @@ img = PIL.Image.new(
     '#FFF'
 )
 img.paste(weather_panel_img, (0, 0))
-img.paste(sensor_graph_img, (0, config['WEATHER']['HEIGHT']))
+img.paste(power_graph_img, (0, config['WEATHER']['HEIGHT']))
+img.paste(sensor_graph_img, (0, config['WEATHER']['HEIGHT']+config['POWER']['HEIGHT']))
 
 
 bytes_io = io.BytesIO()

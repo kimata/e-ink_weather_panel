@@ -10,14 +10,28 @@ PANEL:
 
 WEATHER:
   WIDTH: 1600
-  HEIGHT: 350
+  HEIGHT: 300
   DATA:
     YAHOO:
       URL: https://weather.yahoo.co.jp/weather/jp/13/4410.html
 
-GRAPH:
+POWER:
   WIDTH: 1600
-  HEIGHT: 850
+  HEIGHT: 200
+  DATA:
+    TYPE: raspberrypi
+    HOST: rasp-meter-5
+    PARAM:
+      NAME: power
+      FORMAT: '{:.0f}'
+      UNIT: W
+      RANGE:
+        - 0
+        - 3000
+
+SENSOR:
+  WIDTH: 1600
+  HEIGHT: 800
   ROOM_LIST:
     - LABEL: 屋外
       TYPE: esp32
