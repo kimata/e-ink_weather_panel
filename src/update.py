@@ -68,8 +68,8 @@ def upload(img_stream, server_ip, uuid, api_secret, api_key):
 config = load_config()
 
 weather_panel_img = create_weather_panel(config['WEATHER'], config['FONT'])
-power_graph_img = create_power_graph(config['POWER'], config['FONT'])
-sensor_graph_img = create_sensor_graph(config['SENSOR'], config['FONT'])
+power_graph_img = create_power_graph(config['INFLUXDB'], config['POWER'], config['FONT'])
+sensor_graph_img = create_sensor_graph(config['INFLUXDB'], config['SENSOR'], config['FONT'])
 
 img = PIL.Image.new(
     'L',

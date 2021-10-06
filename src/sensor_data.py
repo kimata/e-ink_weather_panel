@@ -5,18 +5,14 @@ from influxdb import InfluxDBClient
 import datetime
 import dateutil.parser
 
-INFLUXDB_ADDR = '192.168.0.10'
-INFLUXDB_PORT = 8086
-INFLUXDB_DB = 'sensor'
-
 INFLUXDB_QUERY = """
 SELECT mean("{param}") FROM "sensor.{sensor_type}" WHERE ("hostname" = \'{hostname}\') AND time >= now() - {period} GROUP BY time(3m) fill(previous) ORDER by time asc
 """
 
 
-def fetch_data(sensor_type, hostname, param, period='60h'):
+def fetch_data(config, sensor_type, hostname, param, period='60h'):
     client = InfluxDBClient(
-        host=INFLUXDB_ADDR, port=INFLUXDB_PORT, database=INFLUXDB_DB
+        host=config['ADDR'], port=config['PORT'], database=config['DB']
     )
     result = client.query(INFLUXDB_QUERY.format(
         sensor_type=sensor_type, hostname=hostname, param=param, period=period)

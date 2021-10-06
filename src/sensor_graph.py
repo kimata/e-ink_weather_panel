@@ -90,7 +90,7 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, small, face_map):
     ax.label_outer()
 
 
-def create_sensor_graph(config, font_config):
+def create_sensor_graph(db_config, config, font_config):
     face_map = get_face_map(font_config)
     
     room_list = config['ROOM_LIST']
@@ -107,6 +107,7 @@ def create_sensor_graph(config, font_config):
     for row, param in enumerate(config['PARAM_LIST']):
         for col in range(0, len(room_list)):
             data = fetch_data(
+                db_config,
                 room_list[col]['TYPE'],
                 room_list[col]['HOST'],
                 param['NAME'],
@@ -125,6 +126,7 @@ def create_sensor_graph(config, font_config):
     for row, param in enumerate(config['PARAM_LIST']):
         for col in range(0, len(room_list)):
             data = fetch_data(
+                db_config,
                 room_list[col]['TYPE'],
                 room_list[col]['HOST'],
                 param['NAME'],
