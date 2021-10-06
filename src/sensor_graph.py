@@ -111,15 +111,27 @@ def create_sensor_graph(config, font_config):
                 room_list[col]['HOST'],
                 param['NAME'],
             )
-
-            if not data['valid']:
-                data = cache
-            elif cache is None:
+            if cache is None:
                 cache = {
                     'time': data['time'],
                     'value': [-100.0 for x in range(len(data['time']))],
                     'valid': False,
                 }
+                break
+        else:
+            continue
+        break
+
+    for row, param in enumerate(config['PARAM_LIST']):
+        for col in range(0, len(room_list)):
+            data = fetch_data(
+                room_list[col]['TYPE'],
+                room_list[col]['HOST'],
+                param['NAME'],
+            )
+
+            if not data['valid']:
+                data = cache
 
             ax = fig.add_subplot(3, len(room_list), 1 + len(room_list)*row + col)
 
