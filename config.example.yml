@@ -22,7 +22,8 @@ WEATHER:
 
 POWER:
   WIDTH: 1600
-  HEIGHT: 200
+  HEIGHT: 300
+  OVERLAP: 100
   DATA:
     TYPE: raspberrypi
     HOST: rasp-meter-5

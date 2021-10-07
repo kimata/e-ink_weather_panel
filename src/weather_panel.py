@@ -154,7 +154,7 @@ def get_image(info):
     img = cv2.resize(img, (int(w * 1.8), int(h * 1.8)),
                      interpolation=cv2.INTER_CUBIC)
 
-    return PIL.Image.fromarray(img)
+    return PIL.Image.fromarray(img).convert('LA')
 
 
 def draw_icon(img, info, pos_x, pos_y, face_map):
@@ -244,7 +244,7 @@ def draw_panel_weather(img, config, font_config, weather_info):
 
 def create_weather_panel(config, font_config):
     weather_info = get_weather_yahoo(config['DATA']['YAHOO'])
-    img = PIL.Image.new('L', (config['WIDTH'], config['HEIGHT']), '#FFF')
+    img = PIL.Image.new('RGBA', (config['WIDTH'], config['HEIGHT']), (255, 255, 255, 0))
 
     draw_panel_weather(img, config, font_config, weather_info)
 

@@ -72,14 +72,15 @@ power_graph_img = create_power_graph(config['INFLUXDB'], config['POWER'], config
 sensor_graph_img = create_sensor_graph(config['INFLUXDB'], config['SENSOR'], config['FONT'])
 
 img = PIL.Image.new(
-    'L',
+    'RGBA',
     (config['PANEL']['DEVICE']['WIDTH'], config['PANEL']['DEVICE']['HEIGHT']),
-    '#FFF'
+    (255, 255, 255, 255)
 )
-img.paste(weather_panel_img, (0, 0))
-img.paste(power_graph_img, (0, config['WEATHER']['HEIGHT']))
-img.paste(sensor_graph_img, (0, config['WEATHER']['HEIGHT']+config['POWER']['HEIGHT']))
-
+img.paste(power_graph_img, (0, config['WEATHER']['HEIGHT']-config['POWER']['OVERLAP']))
+weather_panel_img.save('weather_panel.png', 'PNG')
+img.alpha_composite(weather_panel_img, (0, 0))
+img.paste(sensor_graph_img,
+          (0, config['WEATHER']['HEIGHT']+config['POWER']['HEIGHT']-config['POWER']['OVERLAP']))
 
 bytes_io = io.BytesIO()
 img.save(bytes_io, 'PNG')
