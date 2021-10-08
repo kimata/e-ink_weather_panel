@@ -85,6 +85,18 @@ SENSOR:
         - 0
         - 1400
       SIZE_SMALL: True
+    - NAME: lux
+      FORMAT: '{:.0f}'
+      UNIT: lux
+      RANGE:
+        - 1
+        - 3000
+      SCALE: log
+      SIZE_SMALL: True
+  ICON:
+    LIGHT:
+      'ON': ../img/light-on.png
+      'OFF': ../img/light-off.png
 
 FONT:
   PATH: ../font/ # スクリプトのフォルダからの相対パス

@@ -12,6 +12,7 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from matplotlib.offsetbox import (AnnotationBbox, OffsetImage)
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 from matplotlib.font_manager import FontProperties
@@ -43,14 +44,19 @@ def get_face_map(font_config):
     }
 
 
-def plot_item(ax, title, unit, data, ylabel, ylim, fmt, small, face_map):
+def plot_item(ax, title, unit, data, ylabel, ylim, fmt, scale, small, face_map):
     x = data['time']
     y = data['value']
 
+    if (scale == 'log'):
+        y = [1 if (i is None or i<1) else i for i in y]
+
     if title is not None:
         ax.set_title(title, fontproperties=face_map['title'], color='#333333')
+
     ax.set_ylim(ylim)
     ax.set_xlim([x[0], x[-1] + datetime.timedelta(hours=3)])
+    ax.set_yscale(scale)
 
     ax.plot(x, y, '.', color='#AAAAAA',
             marker='o', markevery=[len(y)-1],
@@ -73,6 +79,7 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, small, face_map):
         label.set_fontproperties(face_map['axis'])
 
     ax.set_ylabel(unit)
+    ax.set_yscale(scale)
 
     ax.grid(axis='x', color='#000000', alpha=0.1,
             linestyle='-', linewidth=1)
@@ -86,8 +93,37 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, small, face_map):
             transform=ax.transAxes, horizontalalignment='right',
             color='#000000', alpha=0.8,
             fontproperties=face_map['value_unit'])
-    
+
     ax.label_outer()
+
+def draw_light_icon(config, ax, y):
+    lux = next((item for item in reversed(y) if item), None)
+
+    now = datetime.datetime.now()
+    # NOTE: 昼間はアイコンを描画しない
+    if (now.hour > 7) and (now.hour < 18):
+        return
+
+    if (lux == EMPTY_VALUE):
+        return
+    elif (lux < 10):
+        icon_file =config['LIGHT']['OFF']
+    else:
+        icon_file =config['LIGHT']['ON']
+
+    img = plt.imread(str(pathlib.Path(os.path.dirname(__file__), icon_file)))
+
+    imagebox = OffsetImage(img, zoom=0.25)
+    imagebox.image.axes = ax
+
+    ab = AnnotationBbox(
+        offsetbox=imagebox,
+        box_alignment=(0, 1),
+        xycoords='axes fraction',
+        xy=(0, 1),
+        frameon=False,
+    )
+    ax.add_artist(ab)
 
 
 def create_sensor_graph(db_config, config, font_config):
@@ -135,7 +171,8 @@ def create_sensor_graph(db_config, config, font_config):
             if not data['valid']:
                 data = cache
 
-            ax = fig.add_subplot(3, len(room_list), 1 + len(room_list)*row + col)
+            ax = fig.add_subplot(len(config['PARAM_LIST']),
+                                 len(room_list), 1 + len(room_list)*row + col)
 
             if row == 0:
                 title = room_list[col]['LABEL']
@@ -146,9 +183,12 @@ def create_sensor_graph(db_config, config, font_config):
                 ax,
                 title, param['UNIT'], data,
                 param['UNIT'], param['RANGE'], param['FORMAT'],
-                param['SIZE_SMALL'],
+                param['SCALE'], param['SIZE_SMALL'],
                 face_map
             )
+
+            if (param['NAME'] == 'lux'):
+                draw_light_icon(config['ICON'], ax, data['value'])
 
     fig.tight_layout()
     plt.subplots_adjust(hspace=0.1, wspace=0)
