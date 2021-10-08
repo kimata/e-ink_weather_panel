@@ -51,7 +51,7 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, scale, small, face_map):
     if not data['valid']:
         text = '?'
     else:
-        text = fmt.format(next((item for item in reversed(y) if item), None))
+        text = fmt.format(next((item for item in reversed(y) if item is not None), None))
 
     if (scale == 'log'):
         # NOTE: エラーが出ないように値を補正
@@ -98,7 +98,7 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, scale, small, face_map):
     ax.label_outer()
 
 def draw_light_icon(config, ax, y):
-    lux = next((item for item in reversed(y) if item), None)
+    lux = next((item for item in reversed(y) if item is not None), None)
 
     now = datetime.datetime.now()
     # NOTE: 昼間はアイコンを描画しない
