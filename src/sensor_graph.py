@@ -48,7 +48,13 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, scale, small, face_map):
     x = data['time']
     y = data['value']
 
+    if not data['valid']:
+        text = '?'
+    else:
+        text = fmt.format(next((item for item in reversed(y) if item), None))
+
     if (scale == 'log'):
+        # NOTE: エラーが出ないように値を補正
         y = [1 if (i is None or i<1) else i for i in y]
 
     if title is not None:
@@ -62,11 +68,6 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, scale, small, face_map):
             marker='o', markevery=[len(y)-1],
             markersize=5, markerfacecolor='#cccccc', markeredgewidth=3, markeredgecolor='#666666',
             linewidth=3.0, linestyle='solid')
-
-    if not data['valid']:
-        text = '?'
-    else:
-        text = fmt.format(next((item for item in reversed(y) if item), None))
 
     if small:
         font = face_map['value_small']
