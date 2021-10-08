@@ -19,7 +19,7 @@ from matplotlib.font_manager import FontProperties
 from sensor_data import fetch_data
 
 IMAGE_DPI = 100.0
-
+EMPTY_VALUE = -100.0
 
 def get_plot_font(config, font_type, size):
     return FontProperties(
@@ -115,7 +115,7 @@ def create_sensor_graph(db_config, config, font_config):
             if cache is None:
                 cache = {
                     'time': data['time'],
-                    'value': [-100.0 for x in range(len(data['time']))],
+                    'value': [EMPTY_VALUE for x in range(len(data['time']))],
                     'valid': False,
                 }
                 break
