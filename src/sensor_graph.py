@@ -141,7 +141,11 @@ def create_sensor_graph(db_config, config, font_config):
     fig.set_size_inches(width/IMAGE_DPI, height/IMAGE_DPI)
 
     cache = None
+    range_map = {}
     for row, param in enumerate(config['PARAM_LIST']):
+        param_min = float('inf')
+        param_max = -float('inf')
+
         for col in range(0, len(room_list)):
             data = fetch_data(
                 db_config,
@@ -155,10 +159,17 @@ def create_sensor_graph(db_config, config, font_config):
                     'value': [EMPTY_VALUE for x in range(len(data['time']))],
                     'valid': False,
                 }
-                break
-        else:
-            continue
-        break
+            if len(data['value']) == 0:
+                continue
+
+            min_val = min([item for item in data['value'] if item is not None])
+            max_val = max([item for item in data['value'] if item is not None])
+            if (min_val < param_min):
+                param_min = min_val
+            if (max_val > param_max):
+                param_max = max_val
+
+        range_map[param['NAME']] = [param_min, param_max]
 
     for row, param in enumerate(config['PARAM_LIST']):
         for col in range(0, len(room_list)):
@@ -180,10 +191,15 @@ def create_sensor_graph(db_config, config, font_config):
             else:
                 title = None
 
+            if (param['RANGE'] == 'auto'):
+                graph_range = range_map[param['NAME']]
+            else:
+                graph_range = param['RANGE']
+
             plot_item(
                 ax,
                 title, param['UNIT'], data,
-                param['UNIT'], param['RANGE'], param['FORMAT'],
+                param['UNIT'], graph_range, param['FORMAT'],
                 param['SCALE'], param['SIZE_SMALL'],
                 face_map
             )
