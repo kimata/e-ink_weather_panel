@@ -176,7 +176,11 @@ def create_sensor_graph(db_config, config, font_config):
             if (max_val > param_max):
                 param_max = max_val
 
-        range_map[param['NAME']] = [param_min, param_max]
+        # NOTE: 見やすくなるように，ちょっと広げる
+        range_map[param['NAME']] = [
+            max(0, param_min-(param_max-param_min) * 0.3),
+            param_max + (param_max-param_min) * 0.05
+        ]
 
     for row, param in enumerate(config['PARAM_LIST']):
         for col in range(0, len(room_list)):
