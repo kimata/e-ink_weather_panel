@@ -214,7 +214,8 @@ def create_sensor_graph(db_config, config, font_config):
             )
 
             if (param['NAME'] == 'lux'):
-                draw_light_icon(config['ICON'], ax, data['value'])
+                if room_list[col]['ICON']:
+                    draw_light_icon(config['ICON'], ax, data['value'])
 
     fig.tight_layout()
     plt.subplots_adjust(hspace=0.1, wspace=0)
