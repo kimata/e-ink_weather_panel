@@ -39,30 +39,50 @@ SENSOR:
   WIDTH: 1600
   HEIGHT: 700
   ROOM_LIST:
-    - LABEL: 屋外
-      TYPE: esp32
-      HOST: ESP32-outdoor-1
+    - LABEL: 
+      HOST: 屋外
+        - NAME: ESP32-outdoor-1
+          TYPE: esp32
+        - NAME: rasp-meter-8
+          TYPE: raspberrypi
+      ICON: off
     - LABEL: リビング
-      TYPE: raspberrypi
-      HOST: rasp-meter-1
+      HOST:
+        - NAME: rasp-meter-1
+          TYPE: raspberrypi
+      ICON: on
     - LABEL: 和室
       TYPE: raspberrypi
-      HOST: rasp-meter-2
+      HOST:
+        - NAME: rasp-meter-2
+          TYPE: raspberrypi
+      ICON: on
     - LABEL: 洋室A
-      TYPE: raspberrypi
-      HOST: NONE
+      HOST:
+        - NAME: NONE
+          TYPE: raspberrypi
+      ICON: on
     - LABEL: 洋室B
-      TYPE: raspberrypi
-      HOST: NONE
+      HOST:
+        - NAME: rpi-cm4-sensor-1
+          TYPE: raspberrypi
+      ICON: on
     - LABEL: 洋室C
-      TYPE: raspberrypi
-      HOST: NONE
+      HOST:
+        - NAME: rpi-cm4-sensor-2
+          TYPE: raspberrypi
+      ICON: on
     - LABEL: 家事室
-      TYPE: raspberrypi
-      HOST: rasp-meter-4
+      HOST:
+        - NAME: rasp-meter-4
+          TYPE: raspberrypi
+      ICON: on
     - LABEL: 書斎
-      TYPE: raspberrypi
-      HOST: rasp-meter-3
+      HOST:
+        - NAME: rasp-meter-3
+          TYPE: raspberrypi
+      ICON: on
+
   PARAM_LIST:
     - NAME: temp
       FORMAT: '{:.1f}'

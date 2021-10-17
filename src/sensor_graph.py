@@ -127,6 +127,14 @@ def draw_light_icon(config, ax, y):
     ax.add_artist(ab)
 
 
+def sensor_data(config, host_specify_list, param, period='60h'):
+    for host_specify in host_specify_list:
+        data = fetch_data(config, host_specify['TYPE'], host_specify['NAME'], param, period)
+        if data['valid']:
+            return data
+    return data
+
+
 def create_sensor_graph(db_config, config, font_config):
     face_map = get_face_map(font_config)
     
@@ -147,9 +155,8 @@ def create_sensor_graph(db_config, config, font_config):
         param_max = -float('inf')
 
         for col in range(0, len(room_list)):
-            data = fetch_data(
+            data = sensor_data(
                 db_config,
-                room_list[col]['TYPE'],
                 room_list[col]['HOST'],
                 param['NAME'],
             )
@@ -173,13 +180,11 @@ def create_sensor_graph(db_config, config, font_config):
 
     for row, param in enumerate(config['PARAM_LIST']):
         for col in range(0, len(room_list)):
-            data = fetch_data(
+            data = sensor_data(
                 db_config,
-                room_list[col]['TYPE'],
                 room_list[col]['HOST'],
                 param['NAME'],
             )
-
             if not data['valid']:
                 data = cache
 
