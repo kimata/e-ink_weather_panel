@@ -64,7 +64,7 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, scale, small, face_map):
     ax.set_xlim([x[0], x[-1] + datetime.timedelta(hours=3)])
     ax.set_yscale(scale)
 
-    ax.plot(x, y, '.', color='#AAAAAA',
+    ax.plot(x, y, '.', color='#BBBBBB',
             marker='o', markevery=[len(y)-1],
             markersize=5, markerfacecolor='#cccccc', markeredgewidth=3, markeredgecolor='#666666',
             linewidth=3.0, linestyle='solid')
