@@ -57,7 +57,7 @@ def get_face_map(font_config):
         },
         'weather': {
             'day': get_font(font_config, 'EN_BOLD', 30),
-            'value': get_font(font_config, 'JP_BOLD', 40),
+            'value': get_font(font_config, 'JP_REGULAR', 40),
         },
     }
 
@@ -162,7 +162,7 @@ def draw_icon(img, info, pos_x, pos_y, face_map):
     img.paste(icon, (int(pos_x), pos_y))
 
     next_pos_y = pos_y
-    next_pos_y += icon.size[1]
+    next_pos_y += icon.size[1] * 1.1
     next_pos_y = draw_text(
         img, info['summary'],
         [pos_x + icon.size[0]/2, next_pos_y],
@@ -182,7 +182,7 @@ def draw_temp(img, info, pos_x, pos_y, face_map):
         draw_text(img, info['temp'][item[0]], [value_pos_x, pos_y], face['value'], 'right')
         next_pos_x = draw_text(img, '℃', [ value_pos_x, unit_pos_y], face['unit'])[0]
 
-        pos_y += int(face['value'].getsize('0')[1] * 1.5)
+        pos_y += int(face['value'].getsize('0')[1] * 1.4)
 
     return next_pos_x
 
@@ -223,7 +223,7 @@ def draw_date(img, pos_x, pos_y, face_map):
     now = datetime.datetime.now()
 
     pos_x = pos_x + face['day'].getsize('31')[0] / 2
-    day_pos_y = pos_y + int(face['month'].getsize('D')[1] * 1.5)
+    day_pos_y = pos_y + int(face['month'].getsize('D')[1] * 0.3)
     wday_pos_y = day_pos_y + int(face['day'].getsize('D')[1] * 1.2)
 
     locale.setlocale(locale.LC_TIME, 'en_US.UTF-8')

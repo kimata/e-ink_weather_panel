@@ -100,11 +100,11 @@ SENSOR:
       RANGE: auto
       SIZE_SMALL: True
     - NAME: lux
-      FORMAT: '{:.0f}'
-      UNIT: lux
+      FORMAT: '{:,.0f}'
+      UNIT: LUX
       RANGE:
         - 1
-        - 3000
+        - 40000
       SCALE: log
       SIZE_SMALL: True
   ICON:

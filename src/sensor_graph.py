@@ -36,11 +36,12 @@ def get_plot_font(config, font_type, size):
 
 def get_face_map(font_config):
     return {
-        'title': get_plot_font(font_config, 'JP_BOLD', 30),
+        'title': get_plot_font(font_config, 'JP_BOLD', 34),
         'value': get_plot_font(font_config, 'EN_COND_BOLD', 60),
-        'value_small': get_plot_font(font_config, 'EN_COND_BOLD', 40),
+        'value_small': get_plot_font(font_config, 'EN_COND_BOLD', 50),
         'value_unit': get_plot_font(font_config, 'JP_REGULAR', 18),
-        'axis': get_plot_font(font_config, 'EN_COND', 16),
+        'yaxis': get_plot_font(font_config, 'EN_MEDIUM', 20),
+        'xaxis': get_plot_font(font_config, 'JP_REGULAR', 20),
     }
 
 
@@ -62,7 +63,6 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, scale, small, face_map):
 
     ax.set_ylim(ylim)
     ax.set_xlim([x[0], x[-1] + datetime.timedelta(hours=3)])
-    ax.set_yscale(scale)
 
     ax.plot(x, y, '.', color='#BBBBBB',
             marker='o', markevery=[len(y)-1],
@@ -77,23 +77,28 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, scale, small, face_map):
     ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%-d'))
     for label in ax.get_xticklabels():
-        label.set_fontproperties(face_map['axis'])
+        label.set_fontproperties(face_map['xaxis'])
 
-    ax.set_ylabel(unit)
+    ax.set_ylabel(unit, fontproperties=face_map['yaxis'])
     ax.set_yscale(scale)
 
     ax.grid(axis='x', color='#000000', alpha=0.1,
             linestyle='-', linewidth=1)
 
-    ax.text(0.90-len(unit)*0.1, 0.05, text,
+    ax.text(0.92, 0.05, text,
             transform=ax.transAxes, horizontalalignment='right',
             color='#000000', alpha=0.8,
             fontproperties=font)
 
-    ax.text(0.96, 0.05, unit,
-            transform=ax.transAxes, horizontalalignment='right',
-            color='#000000', alpha=0.8,
-            fontproperties=face_map['value_unit'])
+    # ax.text(0.92-len(unit)*0.09, 0.05, text,
+    #         transform=ax.transAxes, horizontalalignment='right',
+    #         color='#000000', alpha=0.8,
+    #         fontproperties=font)
+
+    # ax.text(0.98, 0.05, unit,
+    #         transform=ax.transAxes, horizontalalignment='right',
+    #         color='#000000', alpha=0.8,
+    #         fontproperties=face_map['value_unit'])
 
     ax.label_outer()
 
