@@ -23,6 +23,14 @@ def fetch_data(config, sensor_type, hostname, param, period='60h'):
     localtime_offset = datetime.timedelta(hours=9)
     time = list(map(lambda x: dateutil.parser.parse(x['time'])+localtime_offset, result.get_points()))
 
+    while True:
+        if len(data) == 0:
+            break
+        if data[0] is not None:
+            break
+        data.pop(0)
+        time.pop(0)
+
     return {
         'value': data,
         'time': time,

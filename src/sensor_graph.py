@@ -69,6 +69,8 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, scale, small, face_map):
             markersize=5, markerfacecolor='#DDDDDD', markeredgewidth=3, markeredgecolor='#BBBBBB',
             linewidth=3.0, linestyle='solid')
 
+    ax.fill_between(x, y, 0, facecolor='#DDDDDD', alpha=0.5)
+
     if small:
         font = face_map['value_small']
     else:
