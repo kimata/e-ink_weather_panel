@@ -80,7 +80,7 @@ img.paste(power_graph_img, (0, config['WEATHER']['HEIGHT']-config['POWER']['OVER
 weather_panel_img.save('weather_panel.png', 'PNG')
 img.alpha_composite(weather_panel_img, (0, 0))
 img.paste(sensor_graph_img,
-          (0, config['WEATHER']['HEIGHT']+config['POWER']['HEIGHT']-config['POWER']['OVERLAP']))
+          (0, config['WEATHER']['HEIGHT']+config['POWER']['HEIGHT']-config['POWER']['OVERLAP']-config['SENSOR']['OVERLAP']))
 
 bytes_io = io.BytesIO()
 img.save(bytes_io, 'PNG')

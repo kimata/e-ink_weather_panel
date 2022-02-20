@@ -15,15 +15,15 @@ INFLUXDB:
 
 WEATHER:
   WIDTH: 1600
-  HEIGHT: 300
+  HEIGHT: 400
   DATA:
     YAHOO:
       URL: https://weather.yahoo.co.jp/weather/jp/13/4410.html
 
 POWER:
   WIDTH: 1600
-  HEIGHT: 300
-  OVERLAP: 100
+  HEIGHT: 350
+  OVERLAP: 230
   DATA:
     TYPE: raspberrypi
     HOST: rasp-meter-5
@@ -38,6 +38,7 @@ POWER:
 SENSOR:
   WIDTH: 1600
   HEIGHT: 700
+  OVERLAP: 20
   ROOM_LIST:
     - LABEL: 
       HOST: 屋外
