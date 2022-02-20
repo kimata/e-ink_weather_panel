@@ -37,11 +37,11 @@ def get_plot_font(config, font_type, size):
 def get_face_map(font_config):
     return {
         'title': get_plot_font(font_config, 'JP_BOLD', 34),
-        'value': get_plot_font(font_config, 'EN_COND_BOLD', 60),
-        'value_small': get_plot_font(font_config, 'EN_COND_BOLD', 50),
+        'value': get_plot_font(font_config, 'EN_COND', 65),
+        'value_small': get_plot_font(font_config, 'EN_COND', 55),
         'value_unit': get_plot_font(font_config, 'JP_REGULAR', 18),
-        'yaxis': get_plot_font(font_config, 'EN_MEDIUM', 20),
-        'xaxis': get_plot_font(font_config, 'JP_REGULAR', 20),
+        'yaxis': get_plot_font(font_config, 'JP_REGULAR', 20),
+        'xaxis': get_plot_font(font_config, 'EN_MEDIUM', 20),
     }
 
 
@@ -64,9 +64,9 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, scale, small, face_map):
     ax.set_ylim(ylim)
     ax.set_xlim([x[0], x[-1] + datetime.timedelta(hours=3)])
 
-    ax.plot(x, y, '.', color='#BBBBBB',
+    ax.plot(x, y, '.', color='#CCCCCC',
             marker='o', markevery=[len(y)-1],
-            markersize=5, markerfacecolor='#cccccc', markeredgewidth=3, markeredgecolor='#666666',
+            markersize=5, markerfacecolor='#DDDDDD', markeredgewidth=3, markeredgecolor='#BBBBBB',
             linewidth=3.0, linestyle='solid')
 
     if small:
@@ -107,7 +107,7 @@ def draw_light_icon(config, ax, y):
 
     now = datetime.datetime.now()
     # NOTE: 昼間はアイコンを描画しない
-    if (now.hour > 7) and (now.hour < 18):
+    if (now.hour > 7) and (now.hour < 17):
         return
 
     if (lux == EMPTY_VALUE):

@@ -52,7 +52,7 @@ def get_face_map(font_config):
         },
         'precip': {
             'label': get_font(font_config, 'JP_REGULAR', 40),
-            'value': get_font(font_config, 'EN_COND_BOLD', 80),
+            'value': get_font(font_config, 'EN_COND_BOLD', 86),
             'unit': get_font(font_config, 'JP_REGULAR', 30),
         },
         'weather': {
@@ -177,10 +177,11 @@ def draw_temp(img, info, pos_x, pos_y, face_map):
         label_pos_y = pos_y + face['value'].getsize('0')[1] - face['label'].getsize(item[1])[1]
         value_pos_x = pos_x + face['label'].getsize(item[1])[0] + face['value'].getsize('-10')[0]
         unit_pos_y = pos_y + face['value'].getsize('0')[1] - face['unit'].getsize('℃')[1]
+        unit_pos_x = value_pos_x + 5
 
         draw_text(img, item[1], [pos_x, label_pos_y], face['label'], color='#333')
         draw_text(img, info['temp'][item[0]], [value_pos_x, pos_y], face['value'], 'right')
-        next_pos_x = draw_text(img, '℃', [ value_pos_x, unit_pos_y], face['unit'])[0]
+        next_pos_x = draw_text(img, '℃', [unit_pos_x, unit_pos_y], face['unit'])[0]
 
         pos_y += int(face['value'].getsize('0')[1] * 1.4)
 
@@ -197,10 +198,11 @@ def draw_precip(img, info, pos_x, pos_y, face_map):
         label_pos_y = pos_y + face['value'].getsize('0')[1] - face['label'].getsize('午前')[1]
         value_pos_x = pos_x + face['label'].getsize('午前　')[0] + face['value'].getsize('---')[0]
         unit_pos_y = pos_y + face['value'].getsize('0')[1] - face['unit'].getsize('%')[1]
+        unit_pos_x = value_pos_x + 5
 
         draw_text(img, label, [pos_x, label_pos_y], face['label'], color='#333')
         draw_text(img, info['precip'][i], [value_pos_x, pos_y], face['value'], 'right')
-        next_pos_x = draw_text(img, '%', [ value_pos_x, unit_pos_y], face['unit'])[0]
+        next_pos_x = draw_text(img, '%', [ unit_pos_x, unit_pos_y], face['unit'])[0]
 
         pos_y += int(face['value'].getsize('0')[1] * 1.2)
 
@@ -223,7 +225,7 @@ def draw_date(img, pos_x, pos_y, face_map):
     now = datetime.datetime.now()
 
     pos_x = pos_x + face['day'].getsize('31')[0] / 2
-    day_pos_y = pos_y + int(face['month'].getsize('D')[1] * 0.3)
+    day_pos_y = pos_y + int(face['month'].getsize('D')[1] * 1.2)
     wday_pos_y = day_pos_y + int(face['day'].getsize('D')[1] * 1.2)
 
     locale.setlocale(locale.LC_TIME, 'en_US.UTF-8')
@@ -238,7 +240,7 @@ def draw_date(img, pos_x, pos_y, face_map):
 def draw_panel_weather(img, config, font_config, weather_info):
     face_map = get_face_map(font_config)
     draw_date(img, 5, 5, face_map)
-    next_pos_x = draw_weather(img, 'Today', weather_info['today'], 220, 5, face_map)
+    next_pos_x = draw_weather(img, 'Today', weather_info['today'], 210, 5, face_map)
     next_pos_x = draw_weather(img, 'Tommorow', weather_info['tommorow'], next_pos_x + 30, 5, face_map)
 
 
