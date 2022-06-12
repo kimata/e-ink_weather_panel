@@ -10,18 +10,25 @@ SELECT mean("{param}") FROM "sensor.{sensor_type}" WHERE ("hostname" = \'{hostna
 """
 
 
-def fetch_data(config, sensor_type, hostname, param, period='60h'):
+def fetch_data(config, sensor_type, hostname, param, period="60h"):
     client = InfluxDBClient(
-        host=config['ADDR'], port=config['PORT'], database=config['DB']
+        host=config["ADDR"], port=config["PORT"], database=config["DB"]
     )
-    result = client.query(INFLUXDB_QUERY.format(
-        sensor_type=sensor_type, hostname=hostname, param=param, period=period)
+    result = client.query(
+        INFLUXDB_QUERY.format(
+            sensor_type=sensor_type, hostname=hostname, param=param, period=period
+        )
     )
 
-    data = list(map(lambda x: x['mean'], result.get_points()))
+    data = list(map(lambda x: x["mean"], result.get_points()))
 
     localtime_offset = datetime.timedelta(hours=9)
-    time = list(map(lambda x: dateutil.parser.parse(x['time'])+localtime_offset, result.get_points()))
+    time = list(
+        map(
+            lambda x: dateutil.parser.parse(x["time"]) + localtime_offset,
+            result.get_points(),
+        )
+    )
 
     while True:
         if len(data) == 0:
@@ -31,8 +38,4 @@ def fetch_data(config, sensor_type, hostname, param, period='60h'):
         data.pop(0)
         time.pop(0)
 
-    return {
-        'value': data,
-        'time': time,
-        'valid': len(time) != 0
-    }
+    return {"value": data, "time": time, "valid": len(time) != 0}
