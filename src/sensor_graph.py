@@ -45,7 +45,7 @@ def get_face_map(font_config):
     }
 
 
-def plot_item(ax, title, unit, data, ylabel, ylim, fmt, scale, small, face_map):
+def plot_item(ax, title, unit, data, xbegin, ylabel, ylim, fmt, scale, small, face_map):
     x = data['time']
     y = data['value']
 
@@ -62,7 +62,7 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, scale, small, face_map):
         ax.set_title(title, fontproperties=face_map['title'], color='#333333')
 
     ax.set_ylim(ylim)
-    ax.set_xlim([x[0], x[-1] + datetime.timedelta(hours=3)])
+    ax.set_xlim([xbegin, x[-1] + datetime.timedelta(hours=3)])
 
     ax.plot(x, y, '.', color='#CCCCCC',
             marker='o', markevery=[len(y)-1],
@@ -157,6 +157,7 @@ def create_sensor_graph(db_config, config, font_config):
 
     cache = None
     range_map = {}
+    time_begin = datetime.datetime.now(datetime.timezone.utc)
     for row, param in enumerate(config['PARAM_LIST']):
         param_min = float('inf')
         param_max = -float('inf')
@@ -167,6 +168,8 @@ def create_sensor_graph(db_config, config, font_config):
                 room_list[col]['HOST'],
                 param['NAME'],
             )
+            if data['time'][0] < time_begin:
+                time_begin = data['time'][0]
             if cache is None:
                 cache = {
                     'time': data['time'],
@@ -214,7 +217,7 @@ def create_sensor_graph(db_config, config, font_config):
 
             plot_item(
                 ax,
-                title, param['UNIT'], data,
+                title, param['UNIT'], data, time_begin,
                 param['UNIT'], graph_range, param['FORMAT'],
                 param['SCALE'], param['SIZE_SMALL'],
                 face_map
