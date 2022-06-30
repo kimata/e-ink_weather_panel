@@ -44,6 +44,7 @@ def get_face_map(font_config):
             "month": get_font(font_config, "EN_COND_BOLD", 40),
             "day": get_font(font_config, "EN_BOLD", 150),
             "wday": get_font(font_config, "JP_BOLD", 100),
+            "time": get_font(font_config, "EN_COND_BOLD", 28),
         },
         "temp": {
             "label": get_font(font_config, "JP_REGULAR", 24),
@@ -261,9 +262,23 @@ def draw_date(img, pos_x, pos_y, face_map):
     return next_pos_x
 
 
+def draw_time(img, pos_x, pos_y, face_map):
+    face = face_map["date"]
+
+    now = datetime.datetime.now()
+
+    locale.setlocale(locale.LC_TIME, "en_US.UTF-8")
+    next_pos_x = draw_text(
+        img, now.strftime("%H:%M"), [pos_x, pos_y], face["time"], "right", "#666"
+    )
+
+    return next_pos_x
+
+
 def draw_panel_weather(img, config, font_config, weather_info):
     face_map = get_face_map(font_config)
     draw_date(img, 5, 5, face_map)
+    draw_time(img, config["WIDTH"] - 5, 5, face_map)
     next_pos_x = draw_weather(img, "Today", weather_info["today"], 210, 5, face_map)
     next_pos_x = draw_weather(
         img, "Tommorow", weather_info["tommorow"], next_pos_x + 30, 5, face_map
