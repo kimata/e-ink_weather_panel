@@ -160,6 +160,10 @@ def get_image(info):
     # NOTE: 最終的に欲しい解像度にする
     img = cv2.resize(img, (int(w * 1.8), int(h * 1.8)), interpolation=cv2.INTER_CUBIC)
 
+    # NOTE: 白色を透明にする
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2RGBA)
+    img[:, :, 3] = np.where(np.all(img == 255, axis=-1), 0, 255)
+
     return PIL.Image.fromarray(img).convert("LA")
 
 
