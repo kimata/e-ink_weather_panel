@@ -18,6 +18,7 @@ Visionect の 13 インチ電子ペーパディスプレイ Joan 13 に，下記
 -   Yahoo から天気予報の情報を取得
 -   Influx DB からセンサー情報を取得
 -   センサ情報を Matplotlib で描画
+-   夜間，照度に応じてライトのアイコンを描画
 -   Visionect の Software Suite に画像をアップロード
 
 動かすための設定は，config.yaml に記述します．サンプルを config.example.yaml として登録してありますので参考にしてください．
