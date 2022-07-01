@@ -11,7 +11,7 @@ Visionect の 13 インチ電子ペーパディスプレイ Joan 13 に，下記
 
 ![表示サンプル](img/example.png)
 
-## 仕組み
+## 詳細
 
 大きく次の処理を行います．
 
@@ -21,9 +21,11 @@ Visionect の 13 インチ電子ペーパディスプレイ Joan 13 に，下記
 -   夜間，照度に応じてライトのアイコンを描画
 -   Visionect の Software Suite に画像をアップロード
 
-動かすための設定は，config.yaml に記述します．サンプルを config.example.yaml として登録してありますので参考にしてください．
+## 設定
 
-Influx DB からセンサー情報を取得する部分( sensor_data.py の fetch_data はお手元の環境に合わせて修正が必要かもしれません．
+`config.yaml` に記述します．サンプルを `config.example.yaml` として登録してありますので参考にしてください．
+
+Influx DB からセンサー情報を取得する部分( `sensor_data.py` の `fetch_data` )はお手元の環境に合わせて修正が必要かもしれません．
 
 ## ちょっと頑張った点
 
