@@ -33,7 +33,7 @@ POWER:
       UNIT: W
       RANGE:
         - 0
-        - 4200
+        - 5000
 
 SENSOR:
   WIDTH: 1600
