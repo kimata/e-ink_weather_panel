@@ -33,7 +33,7 @@ apt-get install -y python3-pil python3-opencv python3-matplotlib python3-pandas
 apt-get install -y python3-requests
 ```
 
-インストールをしたくない場合，後述する Docker を使った方法で実行をお願いします．
+後述する Docker を使った方法で実行する場合は，インストール不要です．
 
 ## 設定
 
