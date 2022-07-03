@@ -4,7 +4,6 @@
 import yaml
 import os
 import pathlib
-import pprint
 import PIL.Image
 import io
 import wsgiref.handlers

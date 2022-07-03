@@ -5,7 +5,6 @@ import os
 import datetime
 import io
 import matplotlib
-import pprint
 import PIL.Image
 
 matplotlib.use("Agg")
@@ -55,7 +54,6 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, face_map):
     ax.plot(
         x,
         y,
-        ".",
         color="#CCCCCC",
         marker="o",
         markevery=[len(y) - 1],

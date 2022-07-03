@@ -10,21 +10,11 @@ import PIL.ImageDraw
 import PIL.ImageFont
 import cv2
 import datetime
-import json
 import locale
 import math
 import numpy as np
 import os
-import io
-import yaml
-import time
-import wsgiref.handlers
 import pathlib
-import pprint
-from requests import Request, Session
-import hmac
-import hashlib
-import base64
 
 
 def get_font(config, font_type, size):
