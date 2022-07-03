@@ -21,11 +21,38 @@ Visionect の 13 インチ電子ペーパディスプレイ Joan 13 に，下記
 -   夜間，照度に応じてライトのアイコンを描画
 -   Visionect の Software Suite に画像をアップロード
 
+
+## 準備
+
+### ライブラリのインストール
+
+```bash:bash
+apt-get install -y python3-yaml python3-lxml
+apt-get install -y python3-influxdb
+apt-get install -y python3-pil python3-opencv python3-matplotlib python3-pandas
+apt-get install -y python3-requests
+```
+
+インストールをしたくない場合，後述する Docker を使った方法で実行をお願いします．
+
 ## 設定
 
 `config.yaml` に記述します．サンプルを `config.example.yaml` として登録してありますので参考にしてください．
 
 Influx DB からセンサー情報を取得する部分( `sensor_data.py` の `fetch_data` )はお手元の環境に合わせて修正が必要かもしれません．
+
+## 実行方法
+
+```bash:bash
+./src/update.py
+```
+
+Docker で実行する場合，下記のようにします．
+
+```bash:bash
+docker build . -t visionect-display
+docker run -it visionect-display
+```
 
 ## ちょっと頑張った点
 
