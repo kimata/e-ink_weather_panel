@@ -25,11 +25,12 @@ POWER:
   HEIGHT: 500
   OVERLAP: 380
   DATA:
-    TYPE: raspberrypi
-    HOST: rasp-meter-5
+    HOST:
+      NAME: rasp-meter-5
+      TYPE: raspberrypi
     PARAM:
       NAME: power
-      FORMAT: '{:.0f}'
+      FORMAT: '{:,.0f}'
       UNIT: W
       RANGE:
         - 0

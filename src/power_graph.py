@@ -127,8 +127,8 @@ def create_power_graph(db_config, config, font_config):
 
     data = fetch_data(
         db_config,
-        config["DATA"]["TYPE"],
-        config["DATA"]["HOST"],
+        config["DATA"]["HOST"]["TYPE"],
+        config["DATA"]["HOST"]["NAME"],
         config["DATA"]["PARAM"]["NAME"],
     )
 
