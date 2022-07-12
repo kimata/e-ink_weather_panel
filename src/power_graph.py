@@ -37,7 +37,7 @@ def get_face_map(font_config):
         "title": get_plot_font(font_config, "JP_BOLD", 30),
         "value": get_plot_font(font_config, "EN_COND_BOLD", 60),
         "value_unit": get_plot_font(font_config, "JP_REGULAR", 18),
-        "axis_minor": get_plot_font(font_config, "JP_REGULAR", 26),
+        "axis_minor": get_plot_font(font_config, "JP_REGULAR", 20),
         "axis_major": get_plot_font(font_config, "JP_REGULAR", 30),
     }
 

@@ -230,7 +230,7 @@ def draw_weather(img, label, info, pos_x, pos_y, face_map):
         img, label, [pos_x, pos_y], face_map["weather"]["day"], color="#999"
     )[1]
     draw_icon(img, info, pos_x, next_pos_y, face_map)
-    next_pos_x = draw_temp(img, info, pos_x + 270, pos_y + 45, face_map)
+    next_pos_x = draw_temp(img, info, pos_x + 265, pos_y + 45, face_map)
     next_pos_x = draw_precip(img, info, next_pos_x + 30, pos_y + 45, face_map)
 
     return next_pos_x
