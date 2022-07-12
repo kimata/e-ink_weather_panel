@@ -4,7 +4,6 @@
 import influxdb_client
 
 import datetime
-import dateutil.parser
 
 INFLUXDB_QUERY = """
 SELECT mean("{param}") FROM "sensor.{sensor_type}" WHERE ("hostname" = \'{hostname}\') AND time >= now() - {period} GROUP BY time(1m) fill(previous) ORDER by time asc
