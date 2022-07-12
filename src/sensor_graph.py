@@ -187,6 +187,8 @@ def create_sensor_graph(db_config, config, font_config):
                 room_list[col]["HOST"],
                 param["NAME"],
             )
+            if not data["valid"]:
+                continue
             if data["time"][0] < time_begin:
                 time_begin = data["time"][0]
             if cache is None:
