@@ -271,11 +271,11 @@ def draw_time(img, pos_x, pos_y, face_map):
 
 def draw_panel_weather(img, config, font_config, weather_info):
     face_map = get_face_map(font_config)
-    draw_date(img, 5, 5, face_map)
-    draw_time(img, config["WIDTH"] - 5, 5, face_map)
-    next_pos_x = draw_weather(img, "Today", weather_info["today"], 210, 5, face_map)
+    draw_date(img, 5, 15, face_map)
+    draw_time(img, config["WIDTH"] - 5, 15, face_map)
+    next_pos_x = draw_weather(img, "Today", weather_info["today"], 210, 15, face_map)
     next_pos_x = draw_weather(
-        img, "Tommorow", weather_info["tommorow"], next_pos_x + 30, 5, face_map
+        img, "Tommorow", weather_info["tommorow"], next_pos_x + 30, 15, face_map
     )
 
 
