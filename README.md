@@ -37,7 +37,7 @@ apt-get install -y python3-requests
 
 ## 設定
 
-`config.yaml` に記述します．サンプルを `config.example.yaml` として登録してありますので参考にしてください．
+`config.yml` に記述します．サンプルを `config.example.yml` として登録してありますので参考にしてください．
 
 Influx DB からセンサー情報を取得する部分( `sensor_data.py` の `fetch_data` )はお手元の環境に合わせて修正が必要かもしれません．
 

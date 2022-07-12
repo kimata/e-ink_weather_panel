@@ -17,7 +17,7 @@ from weather_panel import create_weather_panel
 from power_graph import create_power_graph
 from sensor_graph import create_sensor_graph
 
-CONFIG_PATH = "../config.yaml"
+CONFIG_PATH = "../config.yml"
 
 
 def load_config():
