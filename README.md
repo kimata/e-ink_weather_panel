@@ -1,4 +1,4 @@
-# e-Ink Weather Panel
+# E-Ink Weather Panel
 
 ## 概要
 
