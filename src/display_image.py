@@ -51,25 +51,30 @@ fail = 0
 while True:
     ssh_stdin = None
     try:
-        ssh_stdin = ssh.exec_command(
-            "cat - > /dev/shm/display.png && sudo fbi -1 -T 1 -d /dev/fb0 --noverbose /dev/shm/display.png"
-        )[0]
+        ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(
+            "cat - > /dev/shm/display.png && sudo fbi -1 -T 1 -d /dev/fb0 --noverbose /dev/shm/display.png; echo $?"
+        )
 
         proc = subprocess.Popen(["python3", CREATE_IMAGE], stdout=subprocess.PIPE)
         ssh_stdin.write(proc.communicate()[0])
         ssh_stdin.close()
+
+        ret_code = int(ssh_stdout.read().decode("utf-8").strip())
+        if ret_code != 0:
+            raise RuntimeError(ssh_stderr.read().decode("utf-8"))
+
         fail = 0
         print(".", end="")
         sys.stdout.flush()
     except:
         import traceback
 
+        print("")
         print(traceback.format_exc(), file=sys.stderr)
-        print("x")
         sys.stdout.flush()
         fail += 1
         time.sleep(10)
-        ssh = ssh_connect()
+        ssh = ssh_connect(rasp_hostname, key_filename)
 
     # close だけだと，SSH 側がしばらく待っていることがあったので，念のため
     del ssh_stdin
