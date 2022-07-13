@@ -10,7 +10,6 @@ import os
 import gc
 
 UPDATE_SEC = 60
-REFRESH = 60
 FAIL_MAX = 5
 
 CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
@@ -46,7 +45,6 @@ print("Raspberry Pi hostname: %s" % (rasp_hostname))
 
 ssh = ssh_connect(rasp_hostname, key_filename)
 
-i = 0
 fail = 0
 while True:
     ssh_stdin = None
@@ -89,5 +87,3 @@ while True:
     # (例えば，1分間隔更新だとして，1分40秒に更新されると，2分40秒まで更新されないので
     # 2分45秒くらいに表示を見た人は本当に1分間隔で更新されているのか心配になる)
     time.sleep(UPDATE_SEC - datetime.datetime.now().second)
-
-    i += 1
