@@ -9,7 +9,7 @@ import sys
 import os
 import gc
 
-UPDATE_SEC = 60
+UPDATE_SEC = 120
 FAIL_MAX = 5
 
 CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
