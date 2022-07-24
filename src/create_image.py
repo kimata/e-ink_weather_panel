@@ -7,6 +7,9 @@ import os
 import textwrap
 import pathlib
 import PIL.Image
+import logging
+
+import logger
 
 from weather_panel import create_weather_panel, get_font, draw_text
 from power_graph import create_power_graph
@@ -50,6 +53,10 @@ def draw_panel(config, img):
 
 
 ######################################################################
+logger.init("E-Ink Weather Panel")
+
+logging.info("start to create image")
+
 config = load_config()
 img = PIL.Image.new(
     "RGBA",

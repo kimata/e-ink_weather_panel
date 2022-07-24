@@ -15,6 +15,7 @@ import math
 import numpy as np
 import os
 import pathlib
+import logging
 
 
 def get_font(config, font_type, size):
@@ -280,6 +281,8 @@ def draw_panel_weather(img, config, font_config, weather_info):
 
 
 def create_weather_panel(config, font_config):
+    logging.info("draw weather panel")
+
     weather_info = get_weather_yahoo(config["DATA"]["YAHOO"])
     img = PIL.Image.new("RGBA", (config["WIDTH"], config["HEIGHT"]), (255, 255, 255, 0))
 

@@ -6,6 +6,7 @@ import datetime
 import io
 import matplotlib
 import PIL.Image
+import logging
 
 matplotlib.use("Agg")
 
@@ -114,6 +115,8 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, face_map):
 
 
 def create_power_graph(db_config, config, font_config):
+    logging.info("draw power graph")
+
     face_map = get_face_map(font_config)
 
     width = config["WIDTH"]

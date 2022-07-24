@@ -6,6 +6,7 @@ import datetime
 import io
 import matplotlib
 import PIL.Image
+import logging
 
 matplotlib.use("Agg")
 
@@ -162,6 +163,8 @@ def sensor_data(config, host_specify_list, param, period="60h"):
 
 
 def create_sensor_graph(db_config, config, font_config):
+    logging.info("draw sensor graph")
+
     face_map = get_face_map(font_config)
 
     room_list = config["ROOM_LIST"]

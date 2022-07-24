@@ -7,6 +7,9 @@ import subprocess
 import time
 import sys
 import os
+import logging
+
+import logger
 
 UPDATE_SEC = 120
 
@@ -26,6 +29,8 @@ def ssh_connect(hostname, key_filename):
     return ssh
 
 
+logger.init("E-Ink Weather Panel")
+
 if len(sys.argv) == 1:
     rasp_hostname = os.environ["RASP_HOSTNAME"]
 else:
@@ -36,10 +41,10 @@ if "SSH_KEY" in os.environ:
 else:
     key_filename = (
         os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        + "/key/panel.id_dsa"
+        + "/key/panel.id_rsa"
     )
 
-print("Raspberry Pi hostname: %s" % (rasp_hostname))
+logging.info("Raspberry Pi hostname: %s" % (rasp_hostname))
 
 while True:
     ssh = ssh_connect(rasp_hostname, key_filename)
@@ -53,18 +58,15 @@ while True:
     proc.wait()
     ssh_stdin.close()
 
-    print(
-        "{time}".format(
-            time=datetime.datetime.now(),
-        )
-    )
     sys.stdout.flush()
 
     # 更新されていることが直感的に理解しやすくなるように，更新タイミングを 0 秒
     # に合わせる
     # (例えば，1分間隔更新だとして，1分40秒に更新されると，2分40秒まで更新されないので
     # 2分45秒くらいに表示を見た人は本当に1分間隔で更新されているのか心配になる)
-    time.sleep(UPDATE_SEC - datetime.datetime.now().second)
+    sleep_time = UPDATE_SEC - datetime.datetime.now().second
+    logging.info("sleep {sleep_time} sec...".format(sleep_time=sleep_time))
+    time.sleep(sleep_time)
 
     # NOTE: fbi コマンドのプロセスが残るので強制終了させる
     ssh.exec_command("sudo killall -9 fbi")
