@@ -4,6 +4,8 @@
 import influxdb_client
 
 import datetime
+import logging
+import traceback
 
 FLUX_QUERY = """
 from(bucket: "{bucket}")
@@ -17,29 +19,33 @@ from(bucket: "{bucket}")
 
 
 def fetch_data(config, sensor_type, hostname, param, period="60h"):
-    client = influxdb_client.InfluxDBClient(
-        url=config["URL"], token=config["TOKEN"], org=config["ORG"]
+    query = FLUX_QUERY.format(
+        bucket=config["BUCKET"],
+        sensor_type=sensor_type,
+        hostname=hostname,
+        param=param,
+        period=period,
     )
-
-    query_api = client.query_api()
-
-    table_list = query_api.query(
-        query=FLUX_QUERY.format(
-            bucket=config["BUCKET"],
-            sensor_type=sensor_type,
-            hostname=hostname,
-            param=param,
-            period=period,
+    try:
+        client = influxdb_client.InfluxDBClient(
+            url=config["URL"], token=config["TOKEN"], org=config["ORG"]
         )
-    )
 
-    data = []
-    time = []
-    localtime_offset = datetime.timedelta(hours=9)
+        query_api = client.query_api()
 
-    if len(table_list) != 0:
-        for record in table_list[0].records:
-            data.append(record.get_value())
-            time.append(record.get_time() + localtime_offset)
+        table_list = query_api.query(query=query)
 
-    return {"value": data, "time": time, "valid": len(time) != 0}
+        data = []
+        time = []
+        localtime_offset = datetime.timedelta(hours=9)
+
+        if len(table_list) != 0:
+            for record in table_list[0].records:
+                data.append(record.get_value())
+                time.append(record.get_time() + localtime_offset)
+
+        return {"value": data, "time": time, "valid": len(time) != 0}
+    except:
+        logging.error(traceback.format_exc())
+        logging.error("Flux query = {query}".format(query=query))
+        raise
