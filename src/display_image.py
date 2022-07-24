@@ -19,8 +19,8 @@ def ssh_connect(hostname, key_filename):
     ssh.connect(
         hostname,
         username="ubuntu",
-        pkey=paramiko.DSSKey.from_private_key(open(key_filename)),
-        allow_agent=True,
+        pkey=paramiko.RSAKey.from_private_key(open(key_filename)),
+        allow_agent=False,
         look_for_keys=False,
     )
     return ssh
