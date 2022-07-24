@@ -74,9 +74,9 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, face_map):
         text = fmt.format(next((item for item in reversed(y) if item), None))
 
     ax.xaxis.set_minor_locator(mdates.HourLocator(byhour=range(0, 24, 6)))
-    ax.xaxis.set_minor_formatter(mdates.DateFormatter("%-H"))
+    ax.xaxis.set_minor_formatter(mdates.DateFormatter("\n%-H"))
     ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%-H\n%-d日"))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%-d日"))
 
     for label in ax.get_xticklabels():
         label.set_fontproperties(face_map["axis_major"])
