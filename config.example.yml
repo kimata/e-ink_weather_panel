@@ -99,7 +99,7 @@ SENSOR:
       SCALE: linear
       SIZE_SMALL: False
     - NAME: co2
-      FORMAT: '{:.0f}'
+      FORMAT: '{:,.0f}'
       UNIT: ppm
       RANGE: auto
       SCALE: linear
