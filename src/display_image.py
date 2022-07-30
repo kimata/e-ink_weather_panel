@@ -58,14 +58,13 @@ while True:
     proc.wait()
     ssh_stdin.close()
 
-    sys.stdout.flush()
-
     # 更新されていることが直感的に理解しやすくなるように，更新タイミングを 0 秒
     # に合わせる
     # (例えば，1分間隔更新だとして，1分40秒に更新されると，2分40秒まで更新されないので
     # 2分45秒くらいに表示を見た人は本当に1分間隔で更新されているのか心配になる)
     sleep_time = UPDATE_SEC - datetime.datetime.now().second
     logging.info("sleep {sleep_time} sec...".format(sleep_time=sleep_time))
+    sys.stderr.flush()
     time.sleep(sleep_time)
 
     # NOTE: fbi コマンドのプロセスが残るので強制終了させる
