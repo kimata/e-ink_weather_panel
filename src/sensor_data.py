@@ -48,4 +48,4 @@ def fetch_data(config, sensor_type, hostname, param, period="60h"):
     except:
         logging.error(traceback.format_exc())
         logging.error("Flux query = {query}".format(query=query))
-        raise
+        return {"value": [], "time": [], "valid": False}
