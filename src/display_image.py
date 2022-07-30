@@ -8,12 +8,15 @@ import time
 import sys
 import os
 import logging
+import pathlib
 
 import logger
 
 UPDATE_SEC = 120
 
 CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
+
+LIVENESS_FILE = pathlib.Path("/dev/shm") / "liveness"
 
 
 def ssh_connect(hostname, key_filename):
@@ -59,6 +62,7 @@ while True:
     ssh_stdin.close()
 
     logging.info("Finish.")
+    LIVENESS_FILE.touch()
 
     # 更新されていることが直感的に理解しやすくなるように，更新タイミングを 0 秒
     # に合わせる
