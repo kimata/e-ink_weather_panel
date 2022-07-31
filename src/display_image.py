@@ -12,11 +12,10 @@ import pathlib
 
 import logger
 
-UPDATE_SEC = 120
+from config import load_config
+
 
 CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
-
-LIVENESS_FILE = pathlib.Path("/dev/shm") / "liveness"
 
 
 def ssh_connect(hostname, key_filename):
@@ -49,6 +48,8 @@ else:
 
 logging.info("Raspberry Pi hostname: %s" % (rasp_hostname))
 
+config = load_config()
+
 while True:
     ssh = ssh_connect(rasp_hostname, key_filename)
 
@@ -62,13 +63,14 @@ while True:
     ssh_stdin.close()
 
     logging.info("Finish.")
-    LIVENESS_FILE.touch()
+
+    pathlib.Path(config["LIVENESS"]["FILE"]).touch()
 
     # 更新されていることが直感的に理解しやすくなるように，更新タイミングを 0 秒
     # に合わせる
     # (例えば，1分間隔更新だとして，1分40秒に更新されると，2分40秒まで更新されないので
     # 2分45秒くらいに表示を見た人は本当に1分間隔で更新されているのか心配になる)
-    sleep_time = UPDATE_SEC - datetime.datetime.now().second
+    sleep_time = config["PANEL"]["UPDATE"]["INTERVAL"] - datetime.datetime.now().second
     logging.info("sleep {sleep_time} sec...".format(sleep_time=sleep_time))
     sys.stderr.flush()
     time.sleep(sleep_time)

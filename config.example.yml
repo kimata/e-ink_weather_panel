@@ -1,3 +1,6 @@
+LIVENESS:
+  FILE: /dev/shm/healthz
+
 PANEL:
   SERVER:
     IP: 192.168.0.10
@@ -7,6 +10,8 @@ PANEL:
     UUID: 10003300-0007-0030-0003-000000000000
     WIDTH: 1600
     HEIGHT: 1200
+  UPDATE:
+    INTERVAL: 120
 
 INFLUXDB:
   URL: http://tanzania.green-rabbit.net:8086

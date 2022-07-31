@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import yaml
 import sys
-import os
 import textwrap
-import pathlib
 import PIL.Image
 import logging
 
@@ -14,15 +11,7 @@ import logger
 from weather_panel import create_weather_panel, get_font, draw_text
 from power_graph import create_power_graph
 from sensor_graph import create_sensor_graph
-
-
-CONFIG_PATH = "../config.yml"
-
-
-def load_config():
-    path = str(pathlib.Path(os.path.dirname(__file__), CONFIG_PATH))
-    with open(path, "r") as file:
-        return yaml.load(file, Loader=yaml.SafeLoader)
+from config import load_config
 
 
 def draw_panel(config, img):
