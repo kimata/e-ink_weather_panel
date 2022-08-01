@@ -61,6 +61,10 @@ while True:
     proc.wait()
     ssh_stdin.close()
 
+    if proc.returncode != 0:
+        logging.error("Failed to create image. (code: {code})".format(proc.returncode))
+        break
+
     logging.info("Finish.")
 
     pathlib.Path(config["LIVENESS"]["FILE"]).touch()
