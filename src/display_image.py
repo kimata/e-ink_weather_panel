@@ -65,7 +65,7 @@ while True:
         logging.error(
             "Failed to create image. (code: {code})".format(code=proc.returncode)
         )
-        break
+        sys.exit(proc.returncode)
 
     logging.info("Finish.")
 
