@@ -62,7 +62,9 @@ while True:
     ssh_stdin.close()
 
     if proc.returncode != 0:
-        logging.error("Failed to create image. (code: {code})".format(proc.returncode))
+        logging.error(
+            "Failed to create image. (code: {code})".format(code=proc.returncode)
+        )
         break
 
     logging.info("Finish.")
