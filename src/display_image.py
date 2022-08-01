@@ -11,7 +11,6 @@ import logging
 import pathlib
 
 import logger
-
 from config import load_config
 
 

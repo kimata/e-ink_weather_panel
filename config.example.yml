@@ -14,7 +14,7 @@ PANEL:
     INTERVAL: 120
 
 INFLUXDB:
-  URL: http://tanzania.green-rabbit.net:8086
+  URL: http://proxy.green-rabbit.net:8086
   TOKEN: fffjkjkgfklhjglkjiojtroijojhkljhklghklfjklhhlnklhnklfgnhklgnhgfdlhfgnhlkngdfnfnhgdkfnh==
   ORG: home
   BUCKET: sensor
