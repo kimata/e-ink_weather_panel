@@ -3,6 +3,7 @@
 
 import influxdb_client
 
+import os
 import datetime
 import logging
 import traceback
@@ -19,6 +20,7 @@ from(bucket: "{bucket}")
 
 
 def fetch_data(config, sensor_type, hostname, param, period="60h"):
+    token = os.environ.get("INFLUXDB_TOKEN", config["TOKEN"])
     query = FLUX_QUERY.format(
         bucket=config["BUCKET"],
         sensor_type=sensor_type,
@@ -28,7 +30,7 @@ def fetch_data(config, sensor_type, hostname, param, period="60h"):
     )
     try:
         client = influxdb_client.InfluxDBClient(
-            url=config["URL"], token=config["TOKEN"], org=config["ORG"]
+            url=config["URL"], token=token, org=config["ORG"]
         )
 
         query_api = client.query_api()
