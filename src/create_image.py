@@ -47,6 +47,7 @@ logger.init("E-Ink Weather Panel")
 logging.info("start to create image")
 
 config = load_config()
+
 img = PIL.Image.new(
     "RGBA",
     (config["PANEL"]["DEVICE"]["WIDTH"], config["PANEL"]["DEVICE"]["HEIGHT"]),
