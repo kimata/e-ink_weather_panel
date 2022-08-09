@@ -17,7 +17,7 @@ if not liveness_file.exists():
 elapsed = datetime.datetime.now() - datetime.datetime.fromtimestamp(
     liveness_file.stat().st_mtime
 )
-if elapsed.seconds > (config["PANEL"]["UPDATE"]["INTERVAL"] * 3):
+if elapsed.seconds > config["PANEL"]["UPDATE"]["INTERVAL"]:
     print(
         "Execution interval is too long. ({elapsed:,} sec)".format(
             elapsed=elapsed.seconds
