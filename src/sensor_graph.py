@@ -181,6 +181,8 @@ def create_sensor_graph(db_config, config, font_config):
     range_map = {}
     time_begin = datetime.datetime.now(datetime.timezone.utc)
     for row, param in enumerate(config["PARAM_LIST"]):
+        logging.info("fetch {name} data".format(name=param["NAME"]))
+
         param_min = float("inf")
         param_max = -float("inf")
 
@@ -217,6 +219,8 @@ def create_sensor_graph(db_config, config, font_config):
         ]
 
     for row, param in enumerate(config["PARAM_LIST"]):
+        logging.info("draw {name} graph".format(name=param["NAME"]))
+
         for col in range(0, len(room_list)):
             data = sensor_data(
                 db_config,
