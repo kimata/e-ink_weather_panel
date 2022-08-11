@@ -32,25 +32,20 @@ def ssh_connect(hostname, key_filename):
 
 logger.init("E-Ink Weather Panel")
 
-if len(sys.argv) == 1:
-    rasp_hostname = os.environ["RASP_HOSTNAME"]
-else:
-    rasp_hostname = sys.argv[1]
-
-if "SSH_KEY" in os.environ:
-    key_filename = os.environ["SSH_KEY"]
-else:
-    key_filename = (
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        + "/key/panel.id_rsa"
-    )
+rasp_hostname = os.environ.get(
+    "RASP_HOSTNAME", sys.argv[1] if len(sys.argv) != 1 else None
+)
+key_file_path = os.environ.get(
+    "SSH_KEY",
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/key/panel.id_rsa",
+)
 
 logging.info("Raspberry Pi hostname: %s" % (rasp_hostname))
 
 config = load_config()
 
 while True:
-    ssh = ssh_connect(rasp_hostname, key_filename)
+    ssh = ssh_connect(rasp_hostname, key_file_path)
 
     ssh_stdin = ssh.exec_command(
         "cat - > /dev/shm/display.png && sudo fbi -1 -T 1 -d /dev/fb0 --noverbose /dev/shm/display.png; echo $?"
