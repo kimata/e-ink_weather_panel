@@ -15,17 +15,13 @@ from config import load_config
 
 
 def draw_panel(config, img):
-    power_graph_img = create_power_graph(
-        config["INFLUXDB"], config["POWER"], config["FONT"]
-    )
-    sensor_graph_img = create_sensor_graph(
-        config["INFLUXDB"], config["SENSOR"], config["FONT"]
-    )
-
-    weather_panel_img = create_weather_panel(config["WEATHER"], config["FONT"])
+    power_graph_img = create_power_graph(config)
+    sensor_graph_img = create_sensor_graph(config)
+    weather_panel_img = create_weather_panel(config)
 
     img.paste(
-        power_graph_img, (0, config["WEATHER"]["HEIGHT"] - config["POWER"]["OVERLAP"])
+        power_graph_img,
+        (0, config["WEATHER"]["GRAPH"]["HEIGHT"] - config["POWER"]["GRAPH"]["OVERLAP"]),
     )
 
     img.alpha_composite(weather_panel_img, (0, 0))
@@ -33,10 +29,10 @@ def draw_panel(config, img):
         sensor_graph_img,
         (
             0,
-            config["WEATHER"]["HEIGHT"]
-            + config["POWER"]["HEIGHT"]
-            - config["POWER"]["OVERLAP"]
-            - config["SENSOR"]["OVERLAP"],
+            config["WEATHER"]["GRAPH"]["HEIGHT"]
+            + config["POWER"]["GRAPH"]["HEIGHT"]
+            - config["POWER"]["GRAPH"]["OVERLAP"]
+            - config["SENSOR"]["GRAPH"]["OVERLAP"],
         ),
     )
 

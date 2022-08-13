@@ -114,13 +114,17 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, face_map):
     ax.label_outer()
 
 
-def create_power_graph(db_config, config, font_config):
+def create_power_graph(config):
     logging.info("draw power graph")
+
+    db_config = config["INFLUXDB"]
+    panel_config = config["POWER"]
+    font_config = config["FONT"]
 
     face_map = get_face_map(font_config)
 
-    width = config["WIDTH"]
-    height = config["HEIGHT"]
+    width = panel_config["GRAPH"]["WIDTH"]
+    height = panel_config["GRAPH"]["HEIGHT"]
 
     plt.style.use("grayscale")
 
@@ -130,20 +134,20 @@ def create_power_graph(db_config, config, font_config):
 
     data = fetch_data(
         db_config,
-        config["DATA"]["HOST"]["TYPE"],
-        config["DATA"]["HOST"]["NAME"],
-        config["DATA"]["PARAM"]["NAME"],
+        panel_config["DATA"]["HOST"]["TYPE"],
+        panel_config["DATA"]["HOST"]["NAME"],
+        panel_config["DATA"]["PARAM"]["NAME"],
     )
 
     ax = fig.add_subplot()
     plot_item(
         ax,
         None,
-        config["DATA"]["PARAM"]["UNIT"],
+        panel_config["DATA"]["PARAM"]["UNIT"],
         data,
-        config["DATA"]["PARAM"]["UNIT"],
-        config["DATA"]["PARAM"]["RANGE"],
-        config["DATA"]["PARAM"]["FORMAT"],
+        panel_config["DATA"]["PARAM"]["UNIT"],
+        panel_config["DATA"]["PARAM"]["RANGE"],
+        panel_config["DATA"]["PARAM"]["FORMAT"],
         face_map,
     )
 

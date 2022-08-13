@@ -162,14 +162,14 @@ def sensor_data(config, host_specify_list, param, period="60h"):
     return data
 
 
-def create_sensor_graph(db_config, config, font_config):
+def create_sensor_graph(config):
     logging.info("draw sensor graph")
 
-    face_map = get_face_map(font_config)
+    face_map = get_face_map(config["FONT"])
 
-    room_list = config["ROOM_LIST"]
-    width = config["WIDTH"]
-    height = config["HEIGHT"]
+    room_list = config["SENSOR"]["ROOM_LIST"]
+    width = config["SENSOR"]["GRAPH"]["WIDTH"]
+    height = config["SENSOR"]["GRAPH"]["HEIGHT"]
 
     plt.style.use("grayscale")
 
@@ -180,7 +180,7 @@ def create_sensor_graph(db_config, config, font_config):
     cache = None
     range_map = {}
     time_begin = datetime.datetime.now(datetime.timezone.utc)
-    for row, param in enumerate(config["PARAM_LIST"]):
+    for row, param in enumerate(config["SENSOR"]["PARAM_LIST"]):
         logging.info("fetch {name} data".format(name=param["NAME"]))
 
         param_min = float("inf")
@@ -188,7 +188,7 @@ def create_sensor_graph(db_config, config, font_config):
 
         for col in range(0, len(room_list)):
             data = sensor_data(
-                db_config,
+                config["INFLUXDB"],
                 room_list[col]["HOST"],
                 param["NAME"],
             )
@@ -218,12 +218,12 @@ def create_sensor_graph(db_config, config, font_config):
             param_max + (param_max - param_min) * 0.05,
         ]
 
-    for row, param in enumerate(config["PARAM_LIST"]):
+    for row, param in enumerate(config["SENSOR"]["PARAM_LIST"]):
         logging.info("draw {name} graph".format(name=param["NAME"]))
 
         for col in range(0, len(room_list)):
             data = sensor_data(
-                db_config,
+                config["INFLUXDB"],
                 room_list[col]["HOST"],
                 param["NAME"],
             )
@@ -231,7 +231,7 @@ def create_sensor_graph(db_config, config, font_config):
                 data = cache
 
             ax = fig.add_subplot(
-                len(config["PARAM_LIST"]),
+                len(config["SENSOR"]["PARAM_LIST"]),
                 len(room_list),
                 1 + len(room_list) * row + col,
             )
@@ -262,7 +262,7 @@ def create_sensor_graph(db_config, config, font_config):
 
             if param["NAME"] == "lux":
                 if room_list[col]["ICON"]:
-                    draw_light_icon(config["ICON"], ax, data["value"])
+                    draw_light_icon(config["SENSOR"]["ICON"], ax, data["value"])
 
     fig.tight_layout()
     plt.subplots_adjust(hspace=0.1, wspace=0)

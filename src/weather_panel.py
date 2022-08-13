@@ -270,22 +270,30 @@ def draw_time(img, pos_x, pos_y, face_map):
     return next_pos_x
 
 
-def draw_panel_weather(img, config, font_config, weather_info):
+def draw_panel_weather(img, config, weather_info):
+    db_config = config["INFLUXDB"]
+    panel_config = config["WEATHER"]
+    font_config = config["FONT"]
+
     face_map = get_face_map(font_config)
     draw_date(img, 5, 15, face_map)
-    draw_time(img, config["WIDTH"] - 5, 15, face_map)
+    draw_time(img, panel_config["GRAPH"]["WIDTH"] - 5, 15, face_map)
     next_pos_x = draw_weather(img, "Today", weather_info["today"], 210, 15, face_map)
     next_pos_x = draw_weather(
         img, "Tommorow", weather_info["tommorow"], next_pos_x + 30, 15, face_map
     )
 
 
-def create_weather_panel(config, font_config):
+def create_weather_panel(config):
     logging.info("draw weather panel")
 
-    weather_info = get_weather_yahoo(config["DATA"]["YAHOO"])
-    img = PIL.Image.new("RGBA", (config["WIDTH"], config["HEIGHT"]), (255, 255, 255, 0))
+    weather_info = get_weather_yahoo(config["WEATHER"]["DATA"]["YAHOO"])
+    img = PIL.Image.new(
+        "RGBA",
+        (config["WEATHER"]["GRAPH"]["WIDTH"], config["WEATHER"]["GRAPH"]["HEIGHT"]),
+        (255, 255, 255, 0),
+    )
 
-    draw_panel_weather(img, config, font_config, weather_info)
+    draw_panel_weather(img, config, weather_info)
 
     return img
