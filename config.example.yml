@@ -125,7 +125,6 @@ SENSOR:
       'ON': ../img/light-on.png
       'OFF': ../img/light-off.png
 
-        
 FONT:
   PATH: ../font/ # スクリプトのフォルダからの相対パス
   MAP:
