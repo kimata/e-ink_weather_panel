@@ -30,7 +30,7 @@ def ssh_connect(hostname, key_filename):
     return ssh
 
 
-logger.init("E-Ink Weather Panel")
+logger.init("panel.e-ink.weather")
 
 rasp_hostname = os.environ.get(
     "RASP_HOSTNAME", sys.argv[1] if len(sys.argv) != 1 else None

@@ -38,7 +38,7 @@ def draw_panel(config, img):
 
 
 ######################################################################
-logger.init("E-Ink Weather Panel")
+logger.init("panel.e-ink.weather")
 
 logging.info("start to create image")
 
