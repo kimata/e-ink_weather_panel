@@ -271,7 +271,6 @@ def draw_time(img, pos_x, pos_y, face_map):
 
 
 def draw_panel_weather(img, config, weather_info):
-    db_config = config["INFLUXDB"]
     panel_config = config["WEATHER"]
     font_config = config["FONT"]
 
