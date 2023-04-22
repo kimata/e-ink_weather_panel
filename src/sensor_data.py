@@ -18,6 +18,29 @@ from(bucket: "{bucket}")
     |> exponentialMovingAverage(n: 3)
 """
 
+RETRY_COUNT = 2
+
+
+def fetch_data_impl(config, token, query):
+    client = influxdb_client.InfluxDBClient(
+        url=config["URL"], token=token, org=config["ORG"]
+    )
+
+    query_api = client.query_api()
+
+    table_list = query_api.query(query=query)
+
+    data = []
+    time = []
+    localtime_offset = datetime.timedelta(hours=9)
+
+    if len(table_list) != 0:
+        for record in table_list[0].records:
+            data.append(record.get_value())
+            time.append(record.get_time() + localtime_offset)
+
+    return {"value": data, "time": time, "valid": len(time) != 0}
+
 
 def fetch_data(config, sensor_type, hostname, param, period="60h"):
     token = os.environ.get("INFLUXDB_TOKEN", config["TOKEN"])
@@ -28,26 +51,13 @@ def fetch_data(config, sensor_type, hostname, param, period="60h"):
         param=param,
         period=period,
     )
-    try:
-        client = influxdb_client.InfluxDBClient(
-            url=config["URL"], token=token, org=config["ORG"]
-        )
-
-        query_api = client.query_api()
-
-        table_list = query_api.query(query=query)
-
-        data = []
-        time = []
-        localtime_offset = datetime.timedelta(hours=9)
-
-        if len(table_list) != 0:
-            for record in table_list[0].records:
-                data.append(record.get_value())
-                time.append(record.get_time() + localtime_offset)
-
-        return {"value": data, "time": time, "valid": len(time) != 0}
-    except:
-        logging.error("Flux query = {query}".format(query=query))
-        logging.error(traceback.format_exc())
-        return {"value": [], "time": [], "valid": False}
+    for i in range(RETRY_COUNT):
+        try:
+            return fetch_data_impl(config, token, query)
+        except:
+            if i != RETRY_COUNT - 1:
+                pass
+            else:
+                logging.error("Flux query = {query}".format(query=query))
+                logging.error(traceback.format_exc())
+                return {"value": [], "time": [], "valid": False}
