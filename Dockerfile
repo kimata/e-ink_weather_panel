@@ -12,11 +12,14 @@ RUN apt-get install -y python3-pil python3-matplotlib python3-pandas
 RUN apt-get install -y python3-opencv
 RUN apt-get install -y python3-paramiko
 
+RUN apt-get clean
+
 RUN pip3 install 'influxdb-client[ciso]'
 
 RUN locale-gen en_US.UTF-8
 
-WORKDIR /opt/weather_panel
+WORKDIR /opt/e-ink_weather
+
 COPY . .
 
 CMD ["./src/display_image.py"]
