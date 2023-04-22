@@ -35,11 +35,11 @@ def get_plot_font(config, font_type, size):
 
 def get_face_map(font_config):
     return {
-        "title": get_plot_font(font_config, "JP_BOLD", 30),
-        "value": get_plot_font(font_config, "EN_COND_BOLD", 60),
+        "title": get_plot_font(font_config, "JP_BOLD", 60),
+        "value": get_plot_font(font_config, "EN_COND_BOLD", 80),
         "value_unit": get_plot_font(font_config, "JP_REGULAR", 18),
-        "axis_minor": get_plot_font(font_config, "JP_REGULAR", 20),
-        "axis_major": get_plot_font(font_config, "JP_REGULAR", 30),
+        "axis_minor": get_plot_font(font_config, "JP_REGULAR", 30),
+        "axis_major": get_plot_font(font_config, "JP_REGULAR", 40),
     }
 
 
@@ -82,6 +82,9 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, face_map):
         label.set_fontproperties(face_map["axis_major"])
     for label in ax.get_xminorticklabels():
         label.set_fontproperties(face_map["axis_minor"])
+
+    ax.yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(4))
+    ax.yaxis.set_major_formatter(matplotlib.ticker.StrMethodFormatter("{x:,.0f}"))
 
     ax.grid(axis="x", color="#000000", alpha=0.1, linestyle="-", linewidth=1)
 
