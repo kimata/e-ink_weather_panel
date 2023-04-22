@@ -55,9 +55,11 @@ def fetch_data(config, sensor_type, hostname, param, period="60h"):
         try:
             return fetch_data_impl(config, token, query)
         except:
+            logging.error("Flux query = {query}".format(query=query))
+            logging.error(traceback.format_exc())
+
             if i != RETRY_COUNT - 1:
+                logging.info("Retry")
                 pass
             else:
-                logging.error("Flux query = {query}".format(query=query))
-                logging.error(traceback.format_exc())
                 return {"value": [], "time": [], "valid": False}
