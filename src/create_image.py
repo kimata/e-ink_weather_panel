@@ -81,7 +81,7 @@ except:
 
     draw_text(
         img,
-        "\n".join(textwrap.wrap(traceback.format_exc(), 45)),
+        "\n".join(textwrap.wrap(traceback.format_exc(), 100)),
         [20, 200],
         get_font(config["FONT"], "EN_MEDIUM", 40),
         "left" "#333",
