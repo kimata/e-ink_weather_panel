@@ -283,8 +283,6 @@ def draw_caption(img, title, face):
 
 
 def create_rain_cloud_panel(config):
-    logging.info("draw rain cloud panel")
-
     panel_config = config["RAIN_CLOUD"]
     font_config = config["FONT"]
 
