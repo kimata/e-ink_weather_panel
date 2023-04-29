@@ -200,7 +200,7 @@ def draw_wind(img, wind, pos_x, pos_y, width, arrow_icon, face_map):
     img.paste(
         arrow_icon,
         (
-            int(pos_x + width / 2 - arrow_icon.size[0] / 2),
+            int(pos_x + width * 1.4 / 2 - arrow_icon.size[0] / 2),
             int(pos_y + (icon_orig_height - arrow_icon.size[1]) / 2),
         ),
     )
@@ -295,7 +295,7 @@ def draw_date(img, pos_x, pos_y, date, face_map):
     locale.setlocale(locale.LC_TIME, "ja_JP.UTF-8")
     draw_text(
         img,
-        date.strftime("%a"),
+        date.strftime("(%a)"),
         [text_pos_x, wday_pos_y],
         face["wday"],
         "center",
