@@ -11,17 +11,19 @@ import logger
 from weather_panel import create_weather_panel, get_font, draw_text
 from power_graph import create_power_graph
 from sensor_graph import create_sensor_graph
+from rain_cloud_panel import create_rain_cloud_panel
 from config import load_config
 
 
 def draw_panel(config, img):
+    weather_panel_img = create_weather_panel(config)
     power_graph_img = create_power_graph(config)
     sensor_graph_img = create_sensor_graph(config)
-    weather_panel_img = create_weather_panel(config)
+    rain_cloud_img = create_rain_cloud_panel(config)
 
     img.paste(
         power_graph_img,
-        (0, config["WEATHER"]["GRAPH"]["HEIGHT"] - config["POWER"]["GRAPH"]["OVERLAP"]),
+        (0, config["WEATHER"]["PANEL"]["HEIGHT"] - config["POWER"]["PANEL"]["OVERLAP"]),
     )
 
     img.alpha_composite(weather_panel_img, (0, 0))
@@ -29,10 +31,17 @@ def draw_panel(config, img):
         sensor_graph_img,
         (
             0,
-            config["WEATHER"]["GRAPH"]["HEIGHT"]
-            + config["POWER"]["GRAPH"]["HEIGHT"]
-            - config["POWER"]["GRAPH"]["OVERLAP"]
-            - config["SENSOR"]["GRAPH"]["OVERLAP"],
+            config["WEATHER"]["PANEL"]["HEIGHT"]
+            + config["POWER"]["PANEL"]["HEIGHT"]
+            - config["POWER"]["PANEL"]["OVERLAP"]
+            - config["SENSOR"]["PANEL"]["OVERLAP"],
+        ),
+    )
+    img.paste(
+        rain_cloud_img,
+        (
+            config["RAIN_CLOUD"]["PANEL"]["OFFSET_X"],
+            config["RAIN_CLOUD"]["PANEL"]["OFFSET_Y"],
         ),
     )
 

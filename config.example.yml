@@ -20,7 +20,7 @@ INFLUXDB:
   BUCKET: sensor
 
 WEATHER:
-  GRAPH:
+  PANEL:
     WIDTH: 3200
     HEIGHT: 1000
   DATA:
@@ -30,7 +30,7 @@ WEATHER:
     ARROW: ../img/arrow.png
       
 POWER:
-  GRAPH:
+  PANEL:
     WIDTH: 1600
     HEIGHT: 510
     OVERLAP: 380
@@ -47,7 +47,7 @@ POWER:
         - 5000
 
 SENSOR:
-  GRAPH:
+  PANEL:
     WIDTH: 1600
     HEIGHT: 690
     OVERLAP: 10
@@ -127,6 +127,16 @@ SENSOR:
       'ON': ../img/light-on.png
       'OFF': ../img/light-off.png
 
+RAIN_CLOUD:
+  PANEL:
+    OFFSET_X: 1650
+    OFFSET_Y: 900
+    WIDTH: 1550
+    HEIGHT: 900
+  DATA:
+    JMA:
+      URL: https://www.jma.go.jp/bosai/nowc/#zoom:12/lat:35.682677/lon:139.762230/colordepth:deep/elements:hrpns&slmcs
+      
 FONT:
   PATH: ../font/ # スクリプトのフォルダからの相対パス
   MAP:

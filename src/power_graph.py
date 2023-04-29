@@ -126,8 +126,8 @@ def create_power_graph(config):
 
     face_map = get_face_map(font_config)
 
-    width = panel_config["GRAPH"]["WIDTH"]
-    height = panel_config["GRAPH"]["HEIGHT"]
+    width = panel_config["PANEL"]["WIDTH"]
+    height = panel_config["PANEL"]["HEIGHT"]
 
     plt.style.use("grayscale")
 

@@ -168,8 +168,8 @@ def create_sensor_graph(config):
     face_map = get_face_map(config["FONT"])
 
     room_list = config["SENSOR"]["ROOM_LIST"]
-    width = config["SENSOR"]["GRAPH"]["WIDTH"]
-    height = config["SENSOR"]["GRAPH"]["HEIGHT"]
+    width = config["SENSOR"]["PANEL"]["WIDTH"]
+    height = config["SENSOR"]["PANEL"]["HEIGHT"]
 
     plt.style.use("grayscale")
 

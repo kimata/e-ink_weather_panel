@@ -364,7 +364,7 @@ def draw_panel_weather(img, config, weather_info):
     )
     draw_panel_weather_day(
         img,
-        pos_x + panel_config["GRAPH"]["WIDTH"] / 2,
+        pos_x + panel_config["PANEL"]["WIDTH"] / 2,
         pos_y,
         weather_info["tommorow"],
         False,
@@ -372,7 +372,7 @@ def draw_panel_weather(img, config, weather_info):
         face_map,
     )
 
-    draw_time(img, panel_config["GRAPH"]["WIDTH"] - 5, 15, face_map)
+    # draw_time(img, panel_config["PANEL"]["WIDTH"] - 5, 15, face_map)
 
 
 def create_weather_panel(config):
@@ -381,7 +381,7 @@ def create_weather_panel(config):
     weather_info = get_weather_yahoo(config["WEATHER"]["DATA"]["YAHOO"])
     img = PIL.Image.new(
         "RGBA",
-        (config["WEATHER"]["GRAPH"]["WIDTH"], config["WEATHER"]["GRAPH"]["HEIGHT"]),
+        (config["WEATHER"]["PANEL"]["WIDTH"], config["WEATHER"]["PANEL"]["HEIGHT"]),
         (255, 255, 255, 0),
     )
 

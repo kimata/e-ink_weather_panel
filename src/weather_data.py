@@ -61,9 +61,15 @@ def get_weather_yahoo(config):
 
 
 if __name__ == "__main__":
-    import pprint
+    import logger
     from config import load_config
 
+    import logging
+
+    logger.init("test")
+    
     config = load_config()
 
-    pprint.pprint(get_weather_yahoo(config["WEATHER"]["DATA"]["YAHOO"]))
+    logging.info(get_weather_yahoo(config["WEATHER"]["DATA"]["YAHOO"]))
+    
+    logging.info("Fnish.")
