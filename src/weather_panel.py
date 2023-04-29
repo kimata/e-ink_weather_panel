@@ -196,14 +196,15 @@ def draw_wind(img, wind, pos_x, pos_y, width, arrow_icon, face_map):
     pos_y += face["value"].getsize("-10")[1] * 0.2  # NOTE: 上にマージンを設ける
 
     icon_orig_height = arrow_icon.size[1]
-    arrow_icon = arrow_icon.rotate(ROTATION_MAP[wind["dir"]])
-    img.paste(
-        arrow_icon,
-        (
-            int(pos_x + width * 1.4 / 2 - arrow_icon.size[0] / 2),
-            int(pos_y + (icon_orig_height - arrow_icon.size[1]) / 2),
-        ),
-    )
+    if ROTATION_MAP[wind["dir"]] is not None:
+        arrow_icon = arrow_icon.rotate(ROTATION_MAP[wind["dir"]])
+        img.paste(
+            arrow_icon,
+            (
+                int(pos_x + width * 1.4 / 2 - arrow_icon.size[0] / 2),
+                int(pos_y + (icon_orig_height - arrow_icon.size[1]) / 2),
+            ),
+        )
 
     pos_y += icon_orig_height
 
