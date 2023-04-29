@@ -22,9 +22,9 @@ DRIVER_LOG_PATH = str(LOG_PATH / "webdriver.log")
 
 
 def create_driver():
-    pathlib.Path(CHROME_DATA_PATH).mkdir(exist_ok=True)
-    pathlib.Path(LOG_PATH).mkdir(exist_ok=True)
-    pathlib.Path(DUMP_PATH).mkdir(exist_ok=True)
+    pathlib.Path(CHROME_DATA_PATH).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(LOG_PATH).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(DUMP_PATH).mkdir(parents=True, exist_ok=True)
 
     options = Options()
     options.add_argument("--headless")
