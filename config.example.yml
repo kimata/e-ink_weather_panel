@@ -8,8 +8,8 @@ PANEL:
     API_SECRET: gfklgjdgskjfsgfdgsdhfgfgsfdgfsgsdffdsgfgsdg
   DEVICE:
     UUID: 10003300-0007-0030-0003-000000000000
-    WIDTH: 1600
-    HEIGHT: 1200
+    WIDTH: 3200
+    HEIGHT: 1800
   UPDATE:
     INTERVAL: 120
 
@@ -21,12 +21,14 @@ INFLUXDB:
 
 WEATHER:
   GRAPH:
-    WIDTH: 1600
-    HEIGHT: 400
+    WIDTH: 3200
+    HEIGHT: 1000
   DATA:
     YAHOO:
-      URL: https://weather.yahoo.co.jp/weather/jp/13/4410.html
-
+      URL: https://weather.yahoo.co.jp/weather/jp/13/4410/13113.html
+  ICON:
+    ARROW: ../img/arrow.png
+      
 POWER:
   GRAPH:
     WIDTH: 1600

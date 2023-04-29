@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from cv2 import dnn_superres
-from lxml import html
 from urllib import request
 from urllib.parse import urlparse
 import PIL.Image
@@ -16,6 +15,31 @@ import numpy as np
 import os
 import pathlib
 import logging
+
+from weather_data import get_weather_yahoo
+
+# NOTE: 現在の時間に対応する時間帯に描画する円の大きさ比率
+HOUR_CIRCLE_RATIO = 1.4
+
+ROTATION_MAP = {
+    "静穏": None,
+    "東": 90,
+    "西": 270,
+    "南": 0,
+    "北": 180,
+    "北東": 135,
+    "北西": 225,
+    "南東": 45,
+    "南西": 315,
+    "北北東": 158,
+    "北北西": 203,
+    "南南東": 23,
+    "南南西": 337,
+    "東北東": 113,
+    "東南東": 67,
+    "西北西": 247,
+    "西南西": 293,
+}
 
 
 def get_font(config, font_type, size):
@@ -32,61 +56,31 @@ def get_font(config, font_type, size):
 def get_face_map(font_config):
     return {
         "date": {
-            "month": get_font(font_config, "EN_COND_BOLD", 40),
-            "day": get_font(font_config, "EN_BOLD", 150),
+            "month": get_font(font_config, "EN_COND_BOLD", 60),
+            "day": get_font(font_config, "EN_BOLD", 160),
             "wday": get_font(font_config, "JP_BOLD", 100),
-            "time": get_font(font_config, "EN_COND_BOLD", 28),
+            "time": get_font(font_config, "EN_COND_BOLD", 40),
+        },
+        "hour": {
+            "value": get_font(font_config, "EN_MEDIUM", 60),
         },
         "temp": {
-            "label": get_font(font_config, "JP_REGULAR", 24),
-            "value": get_font(font_config, "EN_COND_BOLD", 86),
+            "value": get_font(font_config, "EN_COND_BOLD", 110),
             "unit": get_font(font_config, "JP_REGULAR", 30),
         },
         "precip": {
-            "label": get_font(font_config, "JP_REGULAR", 40),
-            "value": get_font(font_config, "EN_COND_BOLD", 86),
+            "value": get_font(font_config, "EN_COND_BOLD", 110),
             "unit": get_font(font_config, "JP_REGULAR", 30),
         },
+        "wind": {
+            "value": get_font(font_config, "EN_COND_BOLD", 110),
+            "unit": get_font(font_config, "JP_REGULAR", 30),
+            "dir": get_font(font_config, "JP_REGULAR", 42),
+        },
         "weather": {
-            "day": get_font(font_config, "EN_BOLD", 30),
-            "value": get_font(font_config, "JP_REGULAR", 40),
+            "value": get_font(font_config, "JP_REGULAR", 30),
         },
     }
-
-
-def get_weather_yahoo(config):
-    info = {
-        "today": {},
-        "tommorow": {},
-    }
-    data = request.urlopen(config["URL"])
-    content = html.fromstring(data.read().decode("UTF-8"))
-
-    for i, key in enumerate(info.keys()):
-        parent_xpath = '//div[@class="forecastCity"]//td[{}]'.format(1 + i)
-
-        text = content.xpath(parent_xpath + '//p[@class="date"]/text()')[0]
-        info[key]["date"] = text
-
-        img = content.xpath(parent_xpath + '//p[@class="pict"]/img')[0]
-        info[key]["summary"] = img.attrib["alt"]
-        info[key]["icon"] = img.attrib["src"]
-
-        info[key]["temp"] = {}
-        for item in ["high", "low"]:
-            text = content.xpath(
-                parent_xpath + '//li[@class="' + item + '"]/em/text()'
-            )[0]
-            info[key]["temp"][item] = text
-
-        info[key]["precip"] = content.xpath(
-            parent_xpath + '//tr[@class="precip"]/td/text()'
-        )
-        info[key]["precip"] = list(
-            map(lambda s: s.replace("％", ""), info[key]["precip"])
-        )
-
-    return info
 
 
 def draw_text(img, text, pos, font, align="left", color="#000"):
@@ -102,12 +96,12 @@ def draw_text(img, text, pos, font, align="left", color="#000"):
     return (pos[0] + font.getsize(text)[0], pos[1] + font.getsize(text)[1])
 
 
-def get_image(info):
+def get_image(weather_info):
     tone = 32
     gamma = 0.24
 
     file_bytes = np.asarray(
-        bytearray(request.urlopen(info["icon"]).read()), dtype=np.uint8
+        bytearray(request.urlopen(weather_info["icon_url"]).read()), dtype=np.uint8
     )
     img = cv2.imdecode(file_bytes, cv2.IMREAD_UNCHANGED)
 
@@ -119,7 +113,9 @@ def get_image(info):
         pathlib.Path(
             os.path.dirname(__file__),
             "img",
-            info["summary"] + "_" + os.path.basename(urlparse(info["icon"]).path),
+            weather_info["text"]
+            + "_"
+            + os.path.basename(urlparse(weather_info["icon_url"]).path),
         )
     )
 
@@ -149,7 +145,7 @@ def get_image(info):
     img = cv2.LUT(img, gamma_table)
 
     # NOTE: 最終的に欲しい解像度にする
-    img = cv2.resize(img, (int(w * 1.8), int(h * 1.8)), interpolation=cv2.INTER_CUBIC)
+    img = cv2.resize(img, (int(w * 1.9), int(h * 1.9)), interpolation=cv2.INTER_CUBIC)
 
     # NOTE: 白色を透明にする
     img = cv2.cvtColor(img, cv2.COLOR_RGB2RGBA)
@@ -158,100 +154,152 @@ def get_image(info):
     return PIL.Image.fromarray(img).convert("LA")
 
 
-def draw_icon(img, info, pos_x, pos_y, face_map):
-    icon = get_image(info)
-    img.paste(icon, (int(pos_x), pos_y))
+def draw_weather(img, weather, pos_x, pos_y, face_map):
+    icon = get_image(weather)
+    img.paste(icon, (int(pos_x), int(pos_y)))
 
     next_pos_y = pos_y
     next_pos_y += icon.size[1] * 1.1
     next_pos_y = draw_text(
         img,
-        info["summary"],
+        weather["text"],
         [pos_x + icon.size[0] / 2, next_pos_y],
         face_map["weather"]["value"],
         "center",
     )[1]
 
-
-def draw_temp(img, info, pos_x, pos_y, face_map):
-    face = face_map["temp"]
-
-    for item in [("high", "最高"), ("low", "最低")]:
-        label_pos_y = (
-            pos_y + face["value"].getsize("0")[1] - face["label"].getsize(item[1])[1]
-        )
-        value_pos_x = (
-            pos_x + face["label"].getsize(item[1])[0] + face["value"].getsize("-10")[0]
-        )
-        unit_pos_y = (
-            pos_y + face["value"].getsize("0")[1] - face["unit"].getsize("℃")[1]
-        )
-        unit_pos_x = value_pos_x + 5
-
-        draw_text(img, item[1], [pos_x, label_pos_y], face["label"], color="#333")
-        draw_text(
-            img, info["temp"][item[0]], [value_pos_x, pos_y], face["value"], "right"
-        )
-        next_pos_x = draw_text(img, "℃", [unit_pos_x, unit_pos_y], face["unit"])[0]
-
-        pos_y += int(face["value"].getsize("0")[1] * 1.4)
-
-    return next_pos_x
+    return [pos_x + icon.size[0], next_pos_y]
 
 
-def draw_precip(img, info, pos_x, pos_y, face_map):
-    face = face_map["temp"]
+def draw_text_info(img, value, unit, pos_x, pos_y, face):
+    pos_y += face["value"].getsize("-10")[1] * 0.4  # NOTE: 上にマージンを設ける
+    value_pos_x = pos_x + face["value"].getsize("-10")[0]
+    unit_pos_y = pos_y + face["value"].getsize("0")[1] - face["unit"].getsize("℃")[1]
+    unit_pos_x = value_pos_x + 5
 
-    for i, label in enumerate(["早朝", "午前", "午後", "夜"]):
-        if i == 0:
-            continue
+    draw_text(img, str(value), [value_pos_x, pos_y], face["value"], "right")
+    draw_text(img, unit, [unit_pos_x, unit_pos_y], face["unit"])[0]
 
-        label_pos_y = (
-            pos_y + face["value"].getsize("0")[1] - face["label"].getsize("午前")[1]
-        )
-        value_pos_x = (
-            pos_x + face["label"].getsize("午前　")[0] + face["value"].getsize("---")[0]
-        )
-        unit_pos_y = (
-            pos_y + face["value"].getsize("0")[1] - face["unit"].getsize("%")[1]
-        )
-        unit_pos_x = value_pos_x + 5
-
-        draw_text(img, label, [pos_x, label_pos_y], face["label"], color="#333")
-        draw_text(img, info["precip"][i], [value_pos_x, pos_y], face["value"], "right")
-        next_pos_x = draw_text(img, "%", [unit_pos_x, unit_pos_y], face["unit"])[0]
-
-        pos_y += int(face["value"].getsize("0")[1] * 1.2)
-
-    return next_pos_x
+    return pos_y + int(face["value"].getsize("0")[1])
 
 
-def draw_weather(img, label, info, pos_x, pos_y, face_map):
+def draw_temp(img, temp, pos_x, pos_y, face_map):
+    return draw_text_info(img, temp, "℃", pos_x, pos_y, face_map["temp"])
+
+
+def draw_precip(img, precip, pos_x, pos_y, face_map):
+    return draw_text_info(img, precip, "mm", pos_x, pos_y, face_map["precip"])
+
+
+def draw_wind(img, wind, pos_x, pos_y, width, arrow_icon, face_map):
+    face = face_map["wind"]
+    pos_y += face["value"].getsize("-10")[1] * 0.2  # NOTE: 上にマージンを設ける
+
+    icon_orig_height = arrow_icon.size[1]
+    arrow_icon = arrow_icon.rotate(ROTATION_MAP[wind["dir"]])
+    img.paste(
+        arrow_icon,
+        (
+            int(pos_x + width / 2 - arrow_icon.size[0] / 2),
+            int(pos_y + (icon_orig_height - arrow_icon.size[1]) / 2),
+        ),
+    )
+
+    pos_y += icon_orig_height
+
+    value_pos_x = pos_x + face["value"].getsize("-10")[0]
+    unit_pos_y = pos_y + face["value"].getsize("0")[1] - face["unit"].getsize("℃")[1]
+    unit_pos_x = value_pos_x + 5
+
     next_pos_y = draw_text(
-        img, label, [pos_x, pos_y], face_map["weather"]["day"], color="#999"
+        img, str(wind["speed"]), [value_pos_x, pos_y], face["value"], "right"
     )[1]
-    draw_icon(img, info, pos_x, next_pos_y, face_map)
-    next_pos_x = draw_temp(img, info, pos_x + 265, pos_y + 45, face_map)
-    next_pos_x = draw_precip(img, info, next_pos_x + 30, pos_y + 45, face_map)
+    draw_text(img, "m/s", [unit_pos_x, unit_pos_y], face["unit"])[0]
 
-    return next_pos_x
+    next_pos_y += face["dir"].getsize("南")[1] * 0.2
+    next_pos_y = draw_text(
+        img, wind["dir"], [value_pos_x, next_pos_y], face["dir"], "right"
+    )[1]
+
+    return next_pos_y + int(face["value"].getsize("南")[1])
 
 
-def draw_date(img, pos_x, pos_y, face_map):
+def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
+    face = face_map["hour"]
+
+    cur_hour = datetime.datetime.now().hour
+    if is_today and (
+        (hour <= cur_hour and cur_hour < hour + 3)
+        or (cur_hour < 6 and hour == 6)
+        or (21 <= cur_hour and hour == 21)
+    ):
+        draw = PIL.ImageDraw.Draw(img)
+        circle_height = int(face["value"].getsize(str(21))[1])
+
+        draw.ellipse(
+            (
+                pos_x - circle_height * HOUR_CIRCLE_RATIO / 2,
+                pos_y - circle_height * (HOUR_CIRCLE_RATIO - 1) / 2,
+                pos_x + circle_height * HOUR_CIRCLE_RATIO / 2,
+                pos_y + circle_height * (1 + HOUR_CIRCLE_RATIO) / 2,
+            ),
+            fill=(128, 128, 128),
+        )
+        draw_text(img, str(hour), [pos_x, pos_y], face["value"], "center", "#FFF")
+    else:
+        draw_text(img, str(hour), [pos_x, pos_y], face["value"], "center")
+
+    return pos_y + int(face["value"].getsize("0")[1])
+
+
+def draw_weather_info(img, info, is_today, pos_x, pos_y, arrow_icon, face_map):
+    next_pos_y = (
+        pos_y + int(face_map["hour"]["value"].getsize("0")[1]) * HOUR_CIRCLE_RATIO
+    )
+    next_pos_x, next_pos_y = draw_weather(
+        img, info["weather"], pos_x, next_pos_y, face_map
+    )
+    draw_hour(img, info["hour"], is_today, (pos_x + next_pos_x) / 2, pos_y, face_map)
+    next_pos_y = draw_temp(img, info["temp"], pos_x, next_pos_y, face_map)
+    next_pos_y = draw_precip(img, info["precip"], pos_x, next_pos_y, face_map)
+    next_pos_y = draw_wind(
+        img, info["wind"], pos_x, next_pos_y, next_pos_x - pos_x, arrow_icon, face_map
+    )
+
+    return pos_x + (next_pos_x - pos_x) * 1.4
+
+
+def draw_day_weather(img, info, is_today, pos_x, pos_y, arrow_icon, face_map):
+    next_pos_x = pos_x
+    for hour_index in range(2, 8):
+        next_pos_x = draw_weather_info(
+            img, info[hour_index], is_today, next_pos_x, pos_y, arrow_icon, face_map
+        )
+
+
+def draw_date(img, pos_x, pos_y, date, face_map):
     face = face_map["date"]
 
-    now = datetime.datetime.now()
-
-    pos_x = pos_x + face["day"].getsize("31")[0] / 2
+    next_pos_x = pos_x + face["day"].getsize("31")[0]
+    text_pos_x = (pos_x + next_pos_x) / 2
     day_pos_y = pos_y + int(face["month"].getsize("D")[1] * 1.2)
     wday_pos_y = day_pos_y + int(face["day"].getsize("D")[1] * 1.2)
 
     locale.setlocale(locale.LC_TIME, "en_US.UTF-8")
-    draw_text(img, now.strftime("%B"), [pos_x, pos_y], face["month"], "center", "#666")
-    draw_text(img, str(now.day), [pos_x, day_pos_y], face["day"], "center", "#666")
+    draw_text(
+        img, date.strftime("%B"), [text_pos_x, pos_y], face["month"], "center", "#666"
+    )
+    draw_text(
+        img, str(date.day), [text_pos_x, day_pos_y], face["day"], "center", "#666"
+    )
     locale.setlocale(locale.LC_TIME, "ja_JP.UTF-8")
-    next_pos_x = draw_text(
-        img, now.strftime("%a"), [pos_x, wday_pos_y], face["wday"], "center", "#666"
+    draw_text(
+        img,
+        date.strftime("%a"),
+        [text_pos_x, wday_pos_y],
+        face["wday"],
+        "center",
+        "#666",
     )[0]
 
     return next_pos_x
@@ -270,17 +318,61 @@ def draw_time(img, pos_x, pos_y, face_map):
     return next_pos_x
 
 
+def draw_panel_weather_day(
+    img, pos_x, pos_y, weather_day_info, is_today, arrow_icon, face_map
+):
+    next_pos_x = draw_date(
+        img,
+        pos_x,
+        pos_y,
+        datetime.datetime.now()
+        if is_today
+        else datetime.datetime.now() + datetime.timedelta(days=1),
+        face_map,
+    )
+    draw_day_weather(
+        img,
+        weather_day_info,
+        is_today,
+        next_pos_x + 50,
+        pos_y + 10,
+        arrow_icon,
+        face_map,
+    )
+
+
 def draw_panel_weather(img, config, weather_info):
     panel_config = config["WEATHER"]
     font_config = config["FONT"]
 
-    face_map = get_face_map(font_config)
-    draw_date(img, 5, 15, face_map)
-    draw_time(img, panel_config["GRAPH"]["WIDTH"] - 5, 15, face_map)
-    next_pos_x = draw_weather(img, "Today", weather_info["today"], 210, 15, face_map)
-    next_pos_x = draw_weather(
-        img, "Tommorow", weather_info["tommorow"], next_pos_x + 30, 15, face_map
+    arrow_icon = PIL.Image.open(
+        str(pathlib.Path(os.path.dirname(__file__), panel_config["ICON"]["ARROW"]))
     )
+
+    face_map = get_face_map(font_config)
+
+    pos_x = 10
+    pos_y = 20
+    draw_panel_weather_day(
+        img,
+        pos_x,
+        pos_y,
+        weather_info["today"],
+        True,
+        arrow_icon,
+        face_map,
+    )
+    draw_panel_weather_day(
+        img,
+        pos_x + panel_config["GRAPH"]["WIDTH"] / 2,
+        pos_y,
+        weather_info["tommorow"],
+        False,
+        arrow_icon,
+        face_map,
+    )
+
+    draw_time(img, panel_config["GRAPH"]["WIDTH"] - 5, 15, face_map)
 
 
 def create_weather_panel(config):
