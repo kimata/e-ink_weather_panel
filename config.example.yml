@@ -24,7 +24,12 @@ WALL:
     BRIGHTNESS: 3
     OFFSET_X: 1550
     OFFSET_Y: 580
-  
+
+TIME:
+  PANEL:
+    MARGIN_X: 20
+    MARGIN_Y: 20
+    
 WEATHER:
   PANEL:
     WIDTH: 3200

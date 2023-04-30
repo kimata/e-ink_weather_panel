@@ -14,6 +14,8 @@ from weather_panel import create_weather_panel, get_font, draw_text
 from power_graph import create_power_graph
 from sensor_graph import create_sensor_graph
 from rain_cloud_panel import create_rain_cloud_panel
+from time_panel import create_time_panel
+
 from config import load_config
 
 
@@ -60,6 +62,7 @@ def draw_panel(config, img):
     power_graph_img = create_power_graph(config)
     sensor_graph_img = create_sensor_graph(config)
     rain_cloud_img = create_rain_cloud_panel(config)
+    time_panel_img = create_time_panel(config)
 
     draw_wall(config, img, overlay)
 
@@ -90,6 +93,12 @@ def draw_panel(config, img):
             config["RAIN_CLOUD"]["PANEL"]["OFFSET_X"],
             config["RAIN_CLOUD"]["PANEL"]["OFFSET_Y"],
         ),
+        overlay,
+    )
+    alpha_paste(
+        img,
+        time_panel_img,
+        (0, 0),
         overlay,
     )
 
