@@ -133,7 +133,7 @@ def change_window_size(driver, url, width, height):
         "size is {status}".format(
             status="OK"
             if (element_size["width"], element_size["height"]) == (width, height)
-            else "NG"
+            else "unmatch"
         )
     )
 
