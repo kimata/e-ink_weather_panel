@@ -7,7 +7,6 @@ from selenium.webdriver.support import expected_conditions as EC
 import PIL.Image
 import PIL.ImageDraw
 
-import datetime
 import cv2
 import numpy as np
 import time
@@ -286,10 +285,8 @@ def create_rain_cloud_panel_impl(config):
     panel_config = config["RAIN_CLOUD"]
     font_config = config["FONT"]
 
-    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9), "JST"))
-
     SUB_PANEL_CONFIG_LIST = [
-        {"is_future": False, "title": now.strftime("現在 (%H:%M)"), "offset_x": 0},
+        {"is_future": False, "title": "現在", "offset_x": 0},
         {
             "is_future": True,
             "title": "１時間後",
