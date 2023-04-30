@@ -23,7 +23,7 @@ HOUR_CIRCLE_RATIO = 1.4
 
 # NOTE: 詳細追えてないものの，英語フォントでボディサイズがおかしいものがあったので，
 # 補正できるようにする．
-EN_FONT_HEIGHT_FACTOR = 0.78
+EN_FONT_HEIGHT_FACTOR = 0.75
 
 
 ROTATION_MAP = {
@@ -70,15 +70,15 @@ def get_face_map(font_config):
             "value": get_font(font_config, "EN_MEDIUM", 60),
         },
         "temp": {
-            "value": get_font(font_config, "EN_BOLD", 110),
+            "value": get_font(font_config, "EN_BOLD", 120),
             "unit": get_font(font_config, "JP_REGULAR", 30),
         },
         "precip": {
-            "value": get_font(font_config, "EN_BOLD", 110),
+            "value": get_font(font_config, "EN_BOLD", 120),
             "unit": get_font(font_config, "JP_REGULAR", 30),
         },
         "wind": {
-            "value": get_font(font_config, "EN_BOLD", 110),
+            "value": get_font(font_config, "EN_BOLD", 120),
             "unit": get_font(font_config, "JP_REGULAR", 30),
             "dir": get_font(font_config, "JP_REGULAR", 42),
         },
@@ -88,16 +88,18 @@ def get_face_map(font_config):
     }
 
 
-def text_size(font, text, is_en_font=True):
+def text_size(font, text, need_padding_change=True):
     size = font.getsize(text)
 
-    if is_en_font:
+    if need_padding_change:
         return (size[0], size[1] * EN_FONT_HEIGHT_FACTOR)
     else:
         return size
 
 
-def draw_text(img, text, pos, font, align="left", color="#000", is_en_font=True):
+def draw_text(
+    img, text, pos, font, align="left", color="#000", need_padding_change=True
+):
     draw = PIL.ImageDraw.Draw(img)
 
     if align == "center":
@@ -105,7 +107,7 @@ def draw_text(img, text, pos, font, align="left", color="#000", is_en_font=True)
     elif align == "right":
         pos = (pos[0] - text_size(font, text)[0], pos[1])
 
-    if is_en_font:
+    if need_padding_change:
         pos = (pos[0], pos[1] - font.getsize(text)[1] * (1 - EN_FONT_HEIGHT_FACTOR))
 
     draw.text(pos, text, color, font, None, text_size(font, text)[1] * 0.4)
@@ -268,7 +270,7 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, icon, face_map):
         text_size(
             face["dir"],
             "南",
-            is_en_font=False,
+            need_padding_change=False,
         )[1]
         * (0.2 + EN_FONT_HEIGHT_FACTOR)
     )
@@ -278,7 +280,7 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, icon, face_map):
         [value_pos_x, next_pos_y],
         face["dir"],
         "right",
-        is_en_font=False,
+        need_padding_change=False,
     )[1]
 
     return next_pos_y + int(text_size(face["value"], "南")[1])
@@ -365,7 +367,13 @@ def draw_date(img, pos_x, pos_y, date, face_map):
 
     locale.setlocale(locale.LC_TIME, "en_US.UTF-8")
     draw_text(
-        img, date.strftime("%B"), [text_pos_x, pos_y], face["month"], "center", "#666"
+        img,
+        date.strftime("%B"),
+        [text_pos_x, pos_y],
+        face["month"],
+        "center",
+        "#666",
+        need_padding_change=False,
     )
     draw_text(
         img, str(date.day), [text_pos_x, day_pos_y], face["day"], "center", "#666"
