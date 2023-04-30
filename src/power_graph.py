@@ -158,6 +158,6 @@ def create_power_graph(config):
     fig.tight_layout()
 
     buf = io.BytesIO()
-    plt.savefig(buf, format="png", dpi=IMAGE_DPI)
+    plt.savefig(buf, format="png", dpi=IMAGE_DPI, transparent=True)
 
     return PIL.Image.open(buf)

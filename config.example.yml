@@ -19,6 +19,11 @@ INFLUXDB:
   ORG: home
   BUCKET: sensor
 
+WALL:
+  IMAGE: ../img/mascot.png
+  OFFSET_X: 1200
+  OFFSET_Y: 200
+  
 WEATHER:
   PANEL:
     WIDTH: 3200

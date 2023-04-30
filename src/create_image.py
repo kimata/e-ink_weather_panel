@@ -4,6 +4,8 @@
 import sys
 import textwrap
 import PIL.Image
+import os
+import pathlib
 import logging
 
 import logger
@@ -15,19 +17,44 @@ from rain_cloud_panel import create_rain_cloud_panel
 from config import load_config
 
 
+def alpha_paste(img, paint_img, pos, overlay):
+    canvas = overlay.copy()
+    canvas.paste(paint_img, pos)
+    img.alpha_composite(canvas, (0, 0))
+
+
 def draw_panel(config, img):
+    overlay = PIL.Image.new(
+        "RGBA",
+        (config["PANEL"]["DEVICE"]["WIDTH"], config["PANEL"]["DEVICE"]["HEIGHT"]),
+        (255, 255, 255, 0),
+    )
+
     weather_panel_img = create_weather_panel(config)
     power_graph_img = create_power_graph(config)
     sensor_graph_img = create_sensor_graph(config)
     rain_cloud_img = create_rain_cloud_panel(config)
 
-    img.paste(
+    mascot = PIL.Image.open(
+        str(pathlib.Path(os.path.dirname(__file__), config["WALL"]["IMAGE"]))
+    )
+    mascot = mascot.resize((int(mascot.size[0] * 5), int(mascot.size[1] * 5)))
+    mascot = PIL.ImageEnhance.Brightness(mascot).enhance(4)
+
+    alpha_paste(
+        img, mascot, (config["WALL"]["OFFSET_X"], config["WALL"]["OFFSET_Y"]), overlay
+    )
+
+    alpha_paste(
+        img,
         power_graph_img,
         (0, config["WEATHER"]["PANEL"]["HEIGHT"] - config["POWER"]["PANEL"]["OVERLAP"]),
+        overlay,
     )
 
     img.alpha_composite(weather_panel_img, (0, 0))
-    img.paste(
+    alpha_paste(
+        img,
         sensor_graph_img,
         (
             0,
@@ -36,13 +63,16 @@ def draw_panel(config, img):
             - config["POWER"]["PANEL"]["OVERLAP"]
             - config["SENSOR"]["PANEL"]["OVERLAP"],
         ),
+        overlay,
     )
-    img.paste(
+    alpha_paste(
+        img,
         rain_cloud_img,
         (
             config["RAIN_CLOUD"]["PANEL"]["OFFSET_X"],
             config["RAIN_CLOUD"]["PANEL"]["OFFSET_Y"],
         ),
+        overlay,
     )
 
 

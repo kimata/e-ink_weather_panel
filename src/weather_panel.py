@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 import PIL.Image
 import PIL.ImageDraw
 import PIL.ImageFont
+import PIL.ImageEnhance
 import cv2
 import datetime
 import locale
@@ -176,9 +177,12 @@ def get_image(weather_info):
     return PIL.Image.fromarray(img).convert("LA")
 
 
-def draw_weather(img, weather, pos_x, pos_y, face_map):
+def draw_weather(img, weather, overlay, pos_x, pos_y, face_map):
     icon = get_image(weather)
-    img.paste(icon, (int(pos_x), int(pos_y)))
+
+    canvas = overlay.copy()
+    canvas.paste(icon, (int(pos_x), int(pos_y)))
+    img.alpha_composite(canvas, (0, 0))
 
     next_pos_y = pos_y
     next_pos_y += icon.size[1] * 1.1
@@ -229,20 +233,22 @@ def draw_precip(img, precip, is_first, pos_x, pos_y, precip_icon, face_map):
     )
 
 
-def draw_wind(img, wind, is_first, pos_x, pos_y, width, icon, face_map):
+def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face_map):
     face = face_map["wind"]
     pos_y += text_size(face["value"], "-10")[1] * 0.2  # NOTE: 上にマージンを設ける
 
     icon_orig_height = icon["arrow"].size[1]
     if ROTATION_MAP[wind["dir"]] is not None:
         arrow_icon = icon["arrow"].rotate(ROTATION_MAP[wind["dir"]])
-        img.paste(
+        canvas = overlay.copy()
+        canvas.paste(
             arrow_icon,
             (
                 int(pos_x + width * 1.4 / 2 - arrow_icon.size[0] / 2),
                 int(pos_y + (icon_orig_height - icon["arrow"].size[1]) / 2),
             ),
         )
+        img.alpha_composite(canvas, (0, 0))
 
     pos_y += icon_orig_height
 
@@ -317,12 +323,14 @@ def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
     return pos_y + text_size(face["value"], "0")[1]
 
 
-def draw_weather_info(img, info, is_today, is_first, pos_x, pos_y, icon, face_map):
+def draw_weather_info(
+    img, info, is_today, is_first, pos_x, pos_y, overlay, icon, face_map
+):
     next_pos_y = (
         pos_y + text_size(face_map["hour"]["value"], "0")[1] * HOUR_CIRCLE_RATIO
     )
     next_pos_x, next_pos_y = draw_weather(
-        img, info["weather"], pos_x, next_pos_y, face_map
+        img, info["weather"], overlay, pos_x, next_pos_y, face_map
     )
     draw_hour(img, info["hour"], is_today, (pos_x + next_pos_x) / 2, pos_y, face_map)
     next_pos_y = draw_temp(
@@ -338,6 +346,7 @@ def draw_weather_info(img, info, is_today, is_first, pos_x, pos_y, icon, face_ma
         pos_x,
         next_pos_y,
         next_pos_x - pos_x,
+        overlay,
         icon,
         face_map,
     )
@@ -345,7 +354,7 @@ def draw_weather_info(img, info, is_today, is_first, pos_x, pos_y, icon, face_ma
     return pos_x + (next_pos_x - pos_x) * 1.4
 
 
-def draw_day_weather(img, info, is_today, pos_x, pos_y, icon, face_map):
+def draw_day_weather(img, info, is_today, pos_x, pos_y, overlay, icon, face_map):
     next_pos_x = pos_x
     for hour_index in range(2, 8):
         next_pos_x = draw_weather_info(
@@ -355,6 +364,7 @@ def draw_day_weather(img, info, is_today, pos_x, pos_y, icon, face_map):
             hour_index == 2,
             next_pos_x,
             pos_y,
+            overlay,
             icon,
             face_map,
         )
@@ -412,7 +422,7 @@ def draw_time(img, pos_x, pos_y, face_map):
 
 
 def draw_panel_weather_day(
-    img, pos_x, pos_y, weather_day_info, is_today, icon, face_map
+    img, pos_x, pos_y, weather_day_info, is_today, overlay, icon, face_map
 ):
     next_pos_x = draw_date(
         img,
@@ -429,6 +439,7 @@ def draw_panel_weather_day(
         is_today,
         next_pos_x + 50,
         pos_y + 10,
+        overlay,
         icon,
         face_map,
     )
@@ -458,6 +469,7 @@ def draw_panel_weather(img, config, weather_info):
         pos_y,
         weather_info["today"],
         True,
+        img.copy(),
         icon,
         face_map,
     )
@@ -467,6 +479,7 @@ def draw_panel_weather(img, config, weather_info):
         pos_y,
         weather_info["tommorow"],
         False,
+        img.copy(),
         icon,
         face_map,
     )
