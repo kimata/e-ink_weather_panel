@@ -282,7 +282,7 @@ def draw_caption(img, title, face):
     return img
 
 
-def create_rain_cloud_panel(config):
+def create_rain_cloud_panel_impl(config):
     panel_config = config["RAIN_CLOUD"]
     font_config = config["FONT"]
 
@@ -330,6 +330,21 @@ def create_rain_cloud_panel(config):
     driver.quit()
 
     return img.convert("L")
+
+
+def create_rain_cloud_panel(config):
+    for i in range(3):
+        try:
+            return create_rain_cloud_panel_impl(config)
+        except:
+            pass
+
+    panel_config = config["RAIN_CLOUD"]
+    return PIL.Image.new(
+        "RGBA",
+        (panel_config["PANEL"]["WIDTH"], panel_config["PANEL"]["HEIGHT"]),
+        (255, 255, 255, 255),
+    )
 
 
 if __name__ == "__main__":
