@@ -103,12 +103,15 @@ def draw_text(
     draw = PIL.ImageDraw.Draw(img)
 
     if align == "center":
-        pos = (pos[0] - text_size(font, text)[0] / 2, pos[1])
+        pos = (int(pos[0] - text_size(font, text)[0] / 2), int(pos[1]))
     elif align == "right":
-        pos = (pos[0] - text_size(font, text)[0], pos[1])
+        pos = (int(pos[0] - text_size(font, text)[0]), int(pos[1]))
 
     if need_padding_change:
-        pos = (pos[0], pos[1] - font.getsize(text)[1] * (1 - EN_FONT_HEIGHT_FACTOR))
+        pos = (
+            pos[0],
+            int(pos[1] - font.getsize(text)[1] * (1 - EN_FONT_HEIGHT_FACTOR)),
+        )
 
     draw.text(pos, text, color, font, None, text_size(font, text)[1] * 0.4)
 
@@ -211,7 +214,7 @@ def draw_text_info(img, value, unit, is_first, pos_x, pos_y, icon, face):
     draw_text(img, str(value), [value_pos_x, pos_y], face["value"], "right")
     draw_text(img, unit, [unit_pos_x, unit_pos_y], face["unit"])[0]
 
-    return pos_y + int(text_size(face["value"], "0")[1])
+    return pos_y + text_size(face["value"], "0")[1]
 
 
 def draw_temp(img, temp, is_first, pos_x, pos_y, thermo_icon, face_map):
@@ -283,7 +286,7 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, icon, face_map):
         need_padding_change=False,
     )[1]
 
-    return next_pos_y + int(text_size(face["value"], "南")[1])
+    return next_pos_y + text_size(face["value"], "南")[1]
 
 
 def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
@@ -296,7 +299,7 @@ def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
         or (21 <= cur_hour and hour == 21)
     ):
         draw = PIL.ImageDraw.Draw(img)
-        circle_height = int(text_size(face["value"], str(21))[1])
+        circle_height = text_size(face["value"], str(21))[1]
 
         draw.ellipse(
             (
@@ -311,12 +314,12 @@ def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
     else:
         draw_text(img, str(hour), [pos_x, pos_y], face["value"], "center")
 
-    return pos_y + int(text_size(face["value"], "0")[1])
+    return pos_y + text_size(face["value"], "0")[1]
 
 
 def draw_weather_info(img, info, is_today, is_first, pos_x, pos_y, icon, face_map):
     next_pos_y = (
-        pos_y + int(text_size(face_map["hour"]["value"], "0")[1]) * HOUR_CIRCLE_RATIO
+        pos_y + text_size(face_map["hour"]["value"], "0")[1] * HOUR_CIRCLE_RATIO
     )
     next_pos_x, next_pos_y = draw_weather(
         img, info["weather"], pos_x, next_pos_y, face_map
@@ -362,11 +365,9 @@ def draw_date(img, pos_x, pos_y, date, face_map):
 
     next_pos_x = pos_x + text_size(face["day"], "31")[0]
     text_pos_x = (pos_x + next_pos_x) / 2
-    day_pos_y = pos_y + int(text_size(face["month"], "D")[1] * 1.2)
-    wday_pos_y = day_pos_y + int(text_size(face["day"], "D")[1] * 1.2)
 
     locale.setlocale(locale.LC_TIME, "en_US.UTF-8")
-    draw_text(
+    next_pos_y = draw_text(
         img,
         date.strftime("%B"),
         [text_pos_x, pos_y],
@@ -374,18 +375,24 @@ def draw_date(img, pos_x, pos_y, date, face_map):
         "center",
         "#666",
         need_padding_change=False,
-    )
-    draw_text(
-        img, str(date.day), [text_pos_x, day_pos_y], face["day"], "center", "#666"
-    )
+    )[1]
+    next_pos_y = draw_text(
+        img,
+        str(date.day),
+        [text_pos_x, next_pos_y],
+        face["day"],
+        "center",
+        "#666",
+    )[1]
     locale.setlocale(locale.LC_TIME, "ja_JP.UTF-8")
     draw_text(
         img,
         date.strftime("(%a)"),
-        [text_pos_x, wday_pos_y],
+        [text_pos_x, next_pos_y + text_size(face["day"], "31")[1] * 0.4],
         face["wday"],
         "center",
         "#666",
+        need_padding_change=False,
     )[0]
 
     return next_pos_x
