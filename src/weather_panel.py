@@ -19,6 +19,9 @@ import logging
 
 from weather_data import get_weather_yahoo
 
+# NOTE: 天気アイコンの周りにアイコンサイズの何倍の空きを確保するか
+ICON_MARGIN = 0.19
+
 # NOTE: 現在の時間に対応する時間帯に描画する円の大きさ比率
 HOUR_CIRCLE_RATIO = 1.5
 
@@ -71,15 +74,15 @@ def get_face_map(font_config):
             "value": get_font(font_config, "EN_MEDIUM", 60),
         },
         "temp": {
-            "value": get_font(font_config, "EN_BOLD", 120),
+            "value": get_font(font_config, "EN_BOLD", 110),
             "unit": get_font(font_config, "JP_REGULAR", 30),
         },
         "precip": {
-            "value": get_font(font_config, "EN_BOLD", 120),
+            "value": get_font(font_config, "EN_BOLD", 110),
             "unit": get_font(font_config, "JP_REGULAR", 30),
         },
         "wind": {
-            "value": get_font(font_config, "EN_BOLD", 120),
+            "value": get_font(font_config, "EN_BOLD", 110),
             "unit": get_font(font_config, "JP_REGULAR", 30),
             "dir": get_font(font_config, "JP_REGULAR", 42),
         },
@@ -104,7 +107,7 @@ def draw_text(
     draw = PIL.ImageDraw.Draw(img)
 
     if align == "center":
-        pos = (int(pos[0] - text_size(font, text)[0] / 2), int(pos[1]))
+        pos = (int(pos[0] - text_size(font, text)[0] / 2.0), int(pos[1]))
     elif align == "right":
         pos = (int(pos[0] - text_size(font, text)[0]), int(pos[1]))
 
@@ -177,8 +180,10 @@ def get_image(weather_info):
     return PIL.Image.fromarray(img).convert("LA")
 
 
-def draw_weather(img, weather, overlay, pos_x, pos_y, face_map):
+def draw_weather(img, weather, overlay, pos_x, pos_y, icon_margin, face_map):
     icon = get_image(weather)
+
+    pos_x += icon.size[0] * icon_margin / 2.0
 
     canvas = overlay.copy()
     canvas.paste(icon, (int(pos_x), int(pos_y)))
@@ -189,12 +194,12 @@ def draw_weather(img, weather, overlay, pos_x, pos_y, face_map):
     next_pos_y = draw_text(
         img,
         weather["text"],
-        [pos_x + icon.size[0] / 2, next_pos_y],
+        [pos_x + icon.size[0] / 2.0, next_pos_y],
         face_map["weather"]["value"],
         "center",
     )[1]
 
-    return [pos_x + icon.size[0], next_pos_y]
+    return [pos_x + icon.size[0] * (1 + icon_margin), next_pos_y]
 
 
 def draw_text_info(img, value, unit, is_first, pos_x, pos_y, icon, face):
@@ -205,7 +210,7 @@ def draw_text_info(img, value, unit, is_first, pos_x, pos_y, icon, face):
             icon,
             (
                 int(pos_x - text_size(face["value"], "0")[0] * 1.5),
-                int(pos_y + (text_size(face["value"], "-10")[1] - icon.size[1]) / 2),
+                int(pos_y + (text_size(face["value"], "-10")[1] - icon.size[1]) / 2.0),
             ),
         )
 
@@ -244,8 +249,8 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face_map)
         canvas.paste(
             arrow_icon,
             (
-                int(pos_x + width * 1.4 / 2 - arrow_icon.size[0] / 2),
-                int(pos_y + (icon_orig_height - icon["arrow"].size[1]) / 2),
+                int(pos_x + width * 1.4 / 2.0 - arrow_icon.size[0] / 2.0),
+                int(pos_y + (icon_orig_height - icon["arrow"].size[1]) / 2.0),
             ),
         )
         img.alpha_composite(canvas, (0, 0))
@@ -265,7 +270,7 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face_map)
                 int(pos_x - text_size(face["value"], "0")[0] * 1.5),
                 int(
                     pos_y
-                    + (text_size(face["value"], "-10")[1] - icon["wind"].size[1]) / 2
+                    + (text_size(face["value"], "-10")[1] - icon["wind"].size[1]) / 2.0
                 ),
             ),
         )
@@ -309,10 +314,10 @@ def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
 
         draw.ellipse(
             (
-                pos_x - circle_height * HOUR_CIRCLE_RATIO / 2,
-                pos_y - circle_height * (HOUR_CIRCLE_RATIO - 1 - 0.2) / 2,
-                pos_x + circle_height * HOUR_CIRCLE_RATIO / 2,
-                pos_y + circle_height * (1 + HOUR_CIRCLE_RATIO + 0.2) / 2,
+                pos_x - circle_height * HOUR_CIRCLE_RATIO / 2.0,
+                pos_y - circle_height * (HOUR_CIRCLE_RATIO - 1 - 0.2) / 2.0,
+                pos_x + circle_height * HOUR_CIRCLE_RATIO / 2.0,
+                pos_y + circle_height * (1 + HOUR_CIRCLE_RATIO + 0.2) / 2.0,
             ),
             fill=(128, 128, 128),
         )
@@ -330,9 +335,9 @@ def draw_weather_info(
         pos_y + text_size(face_map["hour"]["value"], "0")[1] * HOUR_CIRCLE_RATIO
     )
     next_pos_x, next_pos_y = draw_weather(
-        img, info["weather"], overlay, pos_x, next_pos_y, face_map
+        img, info["weather"], overlay, pos_x, next_pos_y, ICON_MARGIN, face_map
     )
-    draw_hour(img, info["hour"], is_today, (pos_x + next_pos_x) / 2, pos_y, face_map)
+    draw_hour(img, info["hour"], is_today, (pos_x + next_pos_x) / 2.0, pos_y, face_map)
     next_pos_y = draw_temp(
         img, info["temp"], is_first, pos_x, next_pos_y, icon["thermo"], face_map
     )
@@ -351,7 +356,7 @@ def draw_weather_info(
         face_map,
     )
 
-    return pos_x + (next_pos_x - pos_x) * 1.4
+    return pos_x + (next_pos_x - pos_x) * 1.0
 
 
 def draw_day_weather(img, info, is_today, pos_x, pos_y, overlay, icon, face_map):
@@ -374,7 +379,7 @@ def draw_date(img, pos_x, pos_y, date, face_map):
     face = face_map["date"]
 
     next_pos_x = pos_x + text_size(face["day"], "31")[0]
-    text_pos_x = (pos_x + next_pos_x) / 2
+    text_pos_x = (pos_x + next_pos_x) / 2.0
 
     locale.setlocale(locale.LC_TIME, "en_US.UTF-8")
     next_pos_y = draw_text(
@@ -475,7 +480,7 @@ def draw_panel_weather(img, config, weather_info):
     )
     draw_panel_weather_day(
         img,
-        pos_x + panel_config["PANEL"]["WIDTH"] / 2,
+        pos_x + panel_config["PANEL"]["WIDTH"] / 2.0,
         pos_y,
         weather_info["tommorow"],
         False,
