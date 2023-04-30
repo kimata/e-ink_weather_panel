@@ -65,15 +65,15 @@ def get_face_map(font_config):
             "value": get_font(font_config, "EN_MEDIUM", 60),
         },
         "temp": {
-            "value": get_font(font_config, "EN_COND_BOLD", 110),
+            "value": get_font(font_config, "EN_BOLD", 110),
             "unit": get_font(font_config, "JP_REGULAR", 30),
         },
         "precip": {
-            "value": get_font(font_config, "EN_COND_BOLD", 110),
+            "value": get_font(font_config, "EN_BOLD", 110),
             "unit": get_font(font_config, "JP_REGULAR", 30),
         },
         "wind": {
-            "value": get_font(font_config, "EN_COND_BOLD", 110),
+            "value": get_font(font_config, "EN_BOLD", 110),
             "unit": get_font(font_config, "JP_REGULAR", 30),
             "dir": get_font(font_config, "JP_REGULAR", 42),
         },
@@ -83,17 +83,34 @@ def get_face_map(font_config):
     }
 
 
-def draw_text(img, text, pos, font, align="left", color="#000"):
+# NOTE: 詳細追えてないものの，英語フォントでボディサイズがおかしいものがあったので，
+# 補正できるようにする．
+EN_FONT_HEIGHT_FACTOR = 0.78
+
+
+def text_size(font, text, is_en_font=True):
+    size = font.getsize(text)
+
+    if is_en_font:
+        return (size[0], size[1] * EN_FONT_HEIGHT_FACTOR)
+    else:
+        return size
+
+
+def draw_text(img, text, pos, font, align="left", color="#000", is_en_font=True):
     draw = PIL.ImageDraw.Draw(img)
 
     if align == "center":
-        pos = (pos[0] - font.getsize(text)[0] / 2, pos[1])
+        pos = (pos[0] - text_size(font, text)[0] / 2, pos[1])
     elif align == "right":
-        pos = (pos[0] - font.getsize(text)[0], pos[1])
+        pos = (pos[0] - text_size(font, text)[0], pos[1])
 
-    draw.text(pos, text, color, font, None, font.getsize(text)[1] * 0.4)
+    if is_en_font:
+        pos = (pos[0], pos[1] - font.getsize(text)[1] * (1 - EN_FONT_HEIGHT_FACTOR))
 
-    return (pos[0] + font.getsize(text)[0], pos[1] + font.getsize(text)[1])
+    draw.text(pos, text, color, font, None, text_size(font, text)[1] * 0.4)
+
+    return (pos[0] + text_size(font, text)[0], pos[1] + text_size(font, text)[1])
 
 
 def get_image(weather_info):
@@ -172,25 +189,27 @@ def draw_weather(img, weather, pos_x, pos_y, face_map):
 
 
 def draw_text_info(img, value, unit, is_first, pos_x, pos_y, icon, face):
-    pos_y += face["value"].getsize("-10")[1] * 0.4  # NOTE: 上にマージンを設ける
+    pos_y += text_size(face["value"], "-10")[1] * 0.4  # NOTE: 上にマージンを設ける
 
     if is_first:
         img.paste(
             icon,
             (
-                int(pos_x - face["value"].getsize("0")[0] * 1.5),
-                int(pos_y + (face["value"].getsize("-10")[1] - icon.size[1]) / 2),
+                int(pos_x - text_size(face["value"], "0")[0] * 1.5),
+                int(pos_y + (text_size(face["value"], "-10")[1] - icon.size[1]) / 2),
             ),
         )
 
-    value_pos_x = pos_x + face["value"].getsize("-10")[0]
-    unit_pos_y = pos_y + face["value"].getsize("0")[1] - face["unit"].getsize("℃")[1]
+    value_pos_x = pos_x + text_size(face["value"], "-10")[0]
+    unit_pos_y = (
+        pos_y + text_size(face["value"], "0")[1] - text_size(face["unit"], "℃")[1]
+    )
     unit_pos_x = value_pos_x + 5
 
     draw_text(img, str(value), [value_pos_x, pos_y], face["value"], "right")
     draw_text(img, unit, [unit_pos_x, unit_pos_y], face["unit"])[0]
 
-    return pos_y + int(face["value"].getsize("0")[1])
+    return pos_y + int(text_size(face["value"], "0")[1])
 
 
 def draw_temp(img, temp, is_first, pos_x, pos_y, thermo_icon, face_map):
@@ -207,7 +226,7 @@ def draw_precip(img, precip, is_first, pos_x, pos_y, precip_icon, face_map):
 
 def draw_wind(img, wind, is_first, pos_x, pos_y, width, icon, face_map):
     face = face_map["wind"]
-    pos_y += face["value"].getsize("-10")[1] * 0.2  # NOTE: 上にマージンを設ける
+    pos_y += text_size(face["value"], "-10")[1] * 0.2  # NOTE: 上にマージンを設ける
 
     icon_orig_height = icon["arrow"].size[1]
     if ROTATION_MAP[wind["dir"]] is not None:
@@ -222,17 +241,20 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, icon, face_map):
 
     pos_y += icon_orig_height
 
-    value_pos_x = pos_x + face["value"].getsize("-10")[0]
-    unit_pos_y = pos_y + face["value"].getsize("0")[1] - face["unit"].getsize("m/s")[1]
+    value_pos_x = pos_x + text_size(face["value"], "-10")[0]
+    unit_pos_y = (
+        pos_y + text_size(face["value"], "0")[1] - text_size(face["unit"], "m/s")[1]
+    )
     unit_pos_x = value_pos_x + 5
 
     if is_first:
         img.paste(
             icon["wind"],
             (
-                int(pos_x - face["value"].getsize("0")[0] * 1.5),
+                int(pos_x - text_size(face["value"], "0")[0] * 1.5),
                 int(
-                    pos_y + (face["value"].getsize("-10")[1] - icon["wind"].size[1]) / 2
+                    pos_y
+                    + (text_size(face["value"], "-10")[1] - icon["wind"].size[1]) / 2
                 ),
             ),
         )
@@ -242,12 +264,24 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, icon, face_map):
     )[1]
     draw_text(img, "m/s", [unit_pos_x, unit_pos_y], face["unit"])[0]
 
-    next_pos_y += face["dir"].getsize("南")[1] * 0.2
+    next_pos_y += (
+        text_size(
+            face["dir"],
+            "南",
+            is_en_font=False,
+        )[1]
+        * (0.2 + EN_FONT_HEIGHT_FACTOR)
+    )
     next_pos_y = draw_text(
-        img, wind["dir"], [value_pos_x, next_pos_y], face["dir"], "right"
+        img,
+        wind["dir"],
+        [value_pos_x, next_pos_y],
+        face["dir"],
+        "right",
+        is_en_font=False,
     )[1]
 
-    return next_pos_y + int(face["value"].getsize("南")[1])
+    return next_pos_y + int(text_size(face["value"], "南")[1])
 
 
 def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
@@ -260,7 +294,7 @@ def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
         or (21 <= cur_hour and hour == 21)
     ):
         draw = PIL.ImageDraw.Draw(img)
-        circle_height = int(face["value"].getsize(str(21))[1])
+        circle_height = int(text_size(face["value"], str(21))[1])
 
         draw.ellipse(
             (
@@ -275,12 +309,12 @@ def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
     else:
         draw_text(img, str(hour), [pos_x, pos_y], face["value"], "center")
 
-    return pos_y + int(face["value"].getsize("0")[1])
+    return pos_y + int(text_size(face["value"], "0")[1])
 
 
 def draw_weather_info(img, info, is_today, is_first, pos_x, pos_y, icon, face_map):
     next_pos_y = (
-        pos_y + int(face_map["hour"]["value"].getsize("0")[1]) * HOUR_CIRCLE_RATIO
+        pos_y + int(text_size(face_map["hour"]["value"], "0")[1]) * HOUR_CIRCLE_RATIO
     )
     next_pos_x, next_pos_y = draw_weather(
         img, info["weather"], pos_x, next_pos_y, face_map
@@ -324,10 +358,10 @@ def draw_day_weather(img, info, is_today, pos_x, pos_y, icon, face_map):
 def draw_date(img, pos_x, pos_y, date, face_map):
     face = face_map["date"]
 
-    next_pos_x = pos_x + face["day"].getsize("31")[0]
+    next_pos_x = pos_x + text_size(face["day"], "31")[0]
     text_pos_x = (pos_x + next_pos_x) / 2
-    day_pos_y = pos_y + int(face["month"].getsize("D")[1] * 1.2)
-    wday_pos_y = day_pos_y + int(face["day"].getsize("D")[1] * 1.2)
+    day_pos_y = pos_y + int(text_size(face["month"], "D")[1] * 1.2)
+    wday_pos_y = day_pos_y + int(text_size(face["day"], "D")[1] * 1.2)
 
     locale.setlocale(locale.LC_TIME, "en_US.UTF-8")
     draw_text(

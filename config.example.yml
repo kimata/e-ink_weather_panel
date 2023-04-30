@@ -149,5 +149,7 @@ FONT:
 
     EN_COND_BOLD: FuturaStd-CondensedBold.otf
     EN_COND: FuturaStd-Condensed.otf
+    
     EN_MEDIUM: FuturaStd-Medium.otf
-    EN_BOLD: FuturaStd-Bold.otf
+    EN_BOLD: FrutigerNeueLTW1G-Bold.otf
+
