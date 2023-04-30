@@ -20,9 +20,10 @@ INFLUXDB:
   BUCKET: sensor
 
 WALL:
-  IMAGE: ../img/mascot.png
-  OFFSET_X: 1200
-  OFFSET_Y: 200
+  - IMAGE: ../img/mascot.png
+    BRIGHTNESS: 3
+    OFFSET_X: 1550
+    OFFSET_Y: 580
   
 WEATHER:
   PANEL:

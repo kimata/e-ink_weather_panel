@@ -23,6 +23,32 @@ def alpha_paste(img, paint_img, pos, overlay):
     img.alpha_composite(canvas, (0, 0))
 
 
+def draw_wall(config, img, overlay):
+    for wall_config in config["WALL"]:
+        mascot = PIL.Image.open(
+            str(pathlib.Path(os.path.dirname(__file__), wall_config["IMAGE"]))
+        )
+
+        if "RESIZE" in wall_config:
+            mascot = mascot.resize(
+                (
+                    int(mascot.size[0] * wall_config["SCALE"]),
+                    int(mascot.size[1] * wall_config["SCALE"]),
+                )
+            )
+        if "BRIGHTNESS" in wall_config:
+            mascot = PIL.ImageEnhance.Brightness(mascot).enhance(
+                wall_config["BRIGHTNESS"]
+            )
+
+        alpha_paste(
+            img,
+            mascot,
+            (wall_config["OFFSET_X"], wall_config["OFFSET_Y"]),
+            overlay,
+        )
+
+
 def draw_panel(config, img):
     overlay = PIL.Image.new(
         "RGBA",
@@ -35,15 +61,7 @@ def draw_panel(config, img):
     sensor_graph_img = create_sensor_graph(config)
     rain_cloud_img = create_rain_cloud_panel(config)
 
-    mascot = PIL.Image.open(
-        str(pathlib.Path(os.path.dirname(__file__), config["WALL"]["IMAGE"]))
-    )
-    mascot = mascot.resize((int(mascot.size[0] * 5), int(mascot.size[1] * 5)))
-    mascot = PIL.ImageEnhance.Brightness(mascot).enhance(4)
-
-    alpha_paste(
-        img, mascot, (config["WALL"]["OFFSET_X"], config["WALL"]["OFFSET_Y"]), overlay
-    )
+    draw_wall(config, img, overlay)
 
     alpha_paste(
         img,
