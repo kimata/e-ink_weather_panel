@@ -60,15 +60,15 @@ def get_face_map(font_config):
             "value": get_font(font_config, "EN_MEDIUM", 60),
         },
         "temp": {
-            "value": get_font(font_config, "EN_BOLD", 120),
+            "value": get_font(font_config, "EN_BOLD", 110),
             "unit": get_font(font_config, "JP_REGULAR", 30),
         },
         "precip": {
-            "value": get_font(font_config, "EN_BOLD", 120),
+            "value": get_font(font_config, "EN_BOLD", 110),
             "unit": get_font(font_config, "JP_REGULAR", 30),
         },
         "wind": {
-            "value": get_font(font_config, "EN_BOLD", 120),
+            "value": get_font(font_config, "EN_BOLD", 110),
             "unit": get_font(font_config, "JP_REGULAR", 30),
             "dir": get_font(font_config, "JP_REGULAR", 42),
         },
