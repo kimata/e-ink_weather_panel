@@ -27,7 +27,10 @@ WEATHER:
     YAHOO:
       URL: https://weather.yahoo.co.jp/weather/jp/13/4410/13113.html
   ICON:
+    THERMO: ../img/thermo.png
     ARROW: ../img/arrow.png
+    PRECIP: ../img/precip.png
+    WIND: ../img/wind.png
       
 POWER:
   PANEL:

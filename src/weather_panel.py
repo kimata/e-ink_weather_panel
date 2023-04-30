@@ -171,8 +171,18 @@ def draw_weather(img, weather, pos_x, pos_y, face_map):
     return [pos_x + icon.size[0], next_pos_y]
 
 
-def draw_text_info(img, value, unit, pos_x, pos_y, face):
+def draw_text_info(img, value, unit, is_first, pos_x, pos_y, icon, face):
     pos_y += face["value"].getsize("-10")[1] * 0.4  # NOTE: 上にマージンを設ける
+
+    if is_first:
+        img.paste(
+            icon,
+            (
+                int(pos_x - face["value"].getsize("0")[0] * 1.5),
+                int(pos_y + (face["value"].getsize("-10")[1] - icon.size[1]) / 2),
+            ),
+        )
+
     value_pos_x = pos_x + face["value"].getsize("-10")[0]
     unit_pos_y = pos_y + face["value"].getsize("0")[1] - face["unit"].getsize("℃")[1]
     unit_pos_x = value_pos_x + 5
@@ -183,34 +193,49 @@ def draw_text_info(img, value, unit, pos_x, pos_y, face):
     return pos_y + int(face["value"].getsize("0")[1])
 
 
-def draw_temp(img, temp, pos_x, pos_y, face_map):
-    return draw_text_info(img, temp, "℃", pos_x, pos_y, face_map["temp"])
+def draw_temp(img, temp, is_first, pos_x, pos_y, thermo_icon, face_map):
+    return draw_text_info(
+        img, temp, "℃", is_first, pos_x, pos_y, thermo_icon, face_map["temp"]
+    )
 
 
-def draw_precip(img, precip, pos_x, pos_y, face_map):
-    return draw_text_info(img, precip, "mm", pos_x, pos_y, face_map["precip"])
+def draw_precip(img, precip, is_first, pos_x, pos_y, precip_icon, face_map):
+    return draw_text_info(
+        img, precip, "mm", is_first, pos_x, pos_y, precip_icon, face_map["precip"]
+    )
 
 
-def draw_wind(img, wind, pos_x, pos_y, width, arrow_icon, face_map):
+def draw_wind(img, wind, is_first, pos_x, pos_y, width, icon, face_map):
     face = face_map["wind"]
     pos_y += face["value"].getsize("-10")[1] * 0.2  # NOTE: 上にマージンを設ける
 
-    icon_orig_height = arrow_icon.size[1]
+    icon_orig_height = icon["arrow"].size[1]
     if ROTATION_MAP[wind["dir"]] is not None:
-        arrow_icon = arrow_icon.rotate(ROTATION_MAP[wind["dir"]])
+        arrow_icon = icon["arrow"].rotate(ROTATION_MAP[wind["dir"]])
         img.paste(
             arrow_icon,
             (
                 int(pos_x + width * 1.4 / 2 - arrow_icon.size[0] / 2),
-                int(pos_y + (icon_orig_height - arrow_icon.size[1]) / 2),
+                int(pos_y + (icon_orig_height - icon["arrow"].size[1]) / 2),
             ),
         )
 
     pos_y += icon_orig_height
 
     value_pos_x = pos_x + face["value"].getsize("-10")[0]
-    unit_pos_y = pos_y + face["value"].getsize("0")[1] - face["unit"].getsize("℃")[1]
+    unit_pos_y = pos_y + face["value"].getsize("0")[1] - face["unit"].getsize("m/s")[1]
     unit_pos_x = value_pos_x + 5
+
+    if is_first:
+        img.paste(
+            icon["wind"],
+            (
+                int(pos_x - face["value"].getsize("0")[0] * 1.5),
+                int(
+                    pos_y + (face["value"].getsize("-10")[1] - icon["wind"].size[1]) / 2
+                ),
+            ),
+        )
 
     next_pos_y = draw_text(
         img, str(wind["speed"]), [value_pos_x, pos_y], face["value"], "right"
@@ -253,7 +278,7 @@ def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
     return pos_y + int(face["value"].getsize("0")[1])
 
 
-def draw_weather_info(img, info, is_today, pos_x, pos_y, arrow_icon, face_map):
+def draw_weather_info(img, info, is_today, is_first, pos_x, pos_y, icon, face_map):
     next_pos_y = (
         pos_y + int(face_map["hour"]["value"].getsize("0")[1]) * HOUR_CIRCLE_RATIO
     )
@@ -261,20 +286,38 @@ def draw_weather_info(img, info, is_today, pos_x, pos_y, arrow_icon, face_map):
         img, info["weather"], pos_x, next_pos_y, face_map
     )
     draw_hour(img, info["hour"], is_today, (pos_x + next_pos_x) / 2, pos_y, face_map)
-    next_pos_y = draw_temp(img, info["temp"], pos_x, next_pos_y, face_map)
-    next_pos_y = draw_precip(img, info["precip"], pos_x, next_pos_y, face_map)
+    next_pos_y = draw_temp(
+        img, info["temp"], is_first, pos_x, next_pos_y, icon["thermo"], face_map
+    )
+    next_pos_y = draw_precip(
+        img, info["precip"], is_first, pos_x, next_pos_y, icon["precip"], face_map
+    )
     next_pos_y = draw_wind(
-        img, info["wind"], pos_x, next_pos_y, next_pos_x - pos_x, arrow_icon, face_map
+        img,
+        info["wind"],
+        is_first,
+        pos_x,
+        next_pos_y,
+        next_pos_x - pos_x,
+        icon,
+        face_map,
     )
 
     return pos_x + (next_pos_x - pos_x) * 1.4
 
 
-def draw_day_weather(img, info, is_today, pos_x, pos_y, arrow_icon, face_map):
+def draw_day_weather(img, info, is_today, pos_x, pos_y, icon, face_map):
     next_pos_x = pos_x
     for hour_index in range(2, 8):
         next_pos_x = draw_weather_info(
-            img, info[hour_index], is_today, next_pos_x, pos_y, arrow_icon, face_map
+            img,
+            info[hour_index],
+            is_today,
+            hour_index == 2,
+            next_pos_x,
+            pos_y,
+            icon,
+            face_map,
         )
 
 
@@ -320,7 +363,7 @@ def draw_time(img, pos_x, pos_y, face_map):
 
 
 def draw_panel_weather_day(
-    img, pos_x, pos_y, weather_day_info, is_today, arrow_icon, face_map
+    img, pos_x, pos_y, weather_day_info, is_today, icon, face_map
 ):
     next_pos_x = draw_date(
         img,
@@ -337,7 +380,7 @@ def draw_panel_weather_day(
         is_today,
         next_pos_x + 50,
         pos_y + 10,
-        arrow_icon,
+        icon,
         face_map,
     )
 
@@ -346,9 +389,15 @@ def draw_panel_weather(img, config, weather_info):
     panel_config = config["WEATHER"]
     font_config = config["FONT"]
 
-    arrow_icon = PIL.Image.open(
-        str(pathlib.Path(os.path.dirname(__file__), panel_config["ICON"]["ARROW"]))
-    )
+    icon = {}
+    for name in ["thermo", "precip", "wind", "arrow"]:
+        icon[name] = PIL.Image.open(
+            str(
+                pathlib.Path(
+                    os.path.dirname(__file__), panel_config["ICON"][name.upper()]
+                )
+            )
+        )
 
     face_map = get_face_map(font_config)
 
@@ -360,7 +409,7 @@ def draw_panel_weather(img, config, weather_info):
         pos_y,
         weather_info["today"],
         True,
-        arrow_icon,
+        icon,
         face_map,
     )
     draw_panel_weather_day(
@@ -369,7 +418,7 @@ def draw_panel_weather(img, config, weather_info):
         pos_y,
         weather_info["tommorow"],
         False,
-        arrow_icon,
+        icon,
         face_map,
     )
 
