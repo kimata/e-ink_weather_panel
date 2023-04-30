@@ -21,7 +21,7 @@ from pil_util import get_font, text_size, draw_text
 from weather_data import get_weather_yahoo
 
 # NOTE: 天気アイコンの周りにアイコンサイズの何倍の空きを確保するか
-ICON_MARGIN = 0.19
+ICON_MARGIN = 0.24
 
 # NOTE: 現在の時間に対応する時間帯に描画する円の大きさ比率
 HOUR_CIRCLE_RATIO = 1.5
@@ -60,15 +60,15 @@ def get_face_map(font_config):
             "value": get_font(font_config, "EN_MEDIUM", 60),
         },
         "temp": {
-            "value": get_font(font_config, "EN_BOLD", 110),
+            "value": get_font(font_config, "EN_BOLD", 120),
             "unit": get_font(font_config, "JP_REGULAR", 30),
         },
         "precip": {
-            "value": get_font(font_config, "EN_BOLD", 110),
+            "value": get_font(font_config, "EN_BOLD", 120),
             "unit": get_font(font_config, "JP_REGULAR", 30),
         },
         "wind": {
-            "value": get_font(font_config, "EN_BOLD", 110),
+            "value": get_font(font_config, "EN_BOLD", 120),
             "unit": get_font(font_config, "JP_REGULAR", 30),
             "dir": get_font(font_config, "JP_REGULAR", 42),
         },
