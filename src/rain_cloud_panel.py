@@ -228,13 +228,13 @@ def draw_equidistant_circle(img):
     draw.ellipse(
         (x - size / 2, y - size / 2, x + size / 2, y + size / 2),
         outline=(255, 255, 255),
-        width=8,
+        width=16,
     )
     size = 322
     draw.ellipse(
         (x - size / 2, y - size / 2, x + size / 2, y + size / 2),
-        outline=(60, 60, 60),
-        width=3,
+        outline=(160, 160, 160),
+        width=10,
     )
 
     return img
