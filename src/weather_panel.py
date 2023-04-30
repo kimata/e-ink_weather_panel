@@ -19,7 +19,7 @@ import logging
 from weather_data import get_weather_yahoo
 
 # NOTE: 現在の時間に対応する時間帯に描画する円の大きさ比率
-HOUR_CIRCLE_RATIO = 1.4
+HOUR_CIRCLE_RATIO = 1.5
 
 # NOTE: 詳細追えてないものの，英語フォントでボディサイズがおかしいものがあったので，
 # 補正できるようにする．
@@ -304,9 +304,9 @@ def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
         draw.ellipse(
             (
                 pos_x - circle_height * HOUR_CIRCLE_RATIO / 2,
-                pos_y - circle_height * (HOUR_CIRCLE_RATIO - 1) / 2,
+                pos_y - circle_height * (HOUR_CIRCLE_RATIO - 1 - 0.2) / 2,
                 pos_x + circle_height * HOUR_CIRCLE_RATIO / 2,
-                pos_y + circle_height * (1 + HOUR_CIRCLE_RATIO) / 2,
+                pos_y + circle_height * (1 + HOUR_CIRCLE_RATIO + 0.2) / 2,
             ),
             fill=(128, 128, 128),
         )
