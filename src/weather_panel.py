@@ -21,6 +21,11 @@ from weather_data import get_weather_yahoo
 # NOTE: 現在の時間に対応する時間帯に描画する円の大きさ比率
 HOUR_CIRCLE_RATIO = 1.4
 
+# NOTE: 詳細追えてないものの，英語フォントでボディサイズがおかしいものがあったので，
+# 補正できるようにする．
+EN_FONT_HEIGHT_FACTOR = 0.78
+
+
 ROTATION_MAP = {
     "静穏": None,
     "東": 90,
@@ -81,11 +86,6 @@ def get_face_map(font_config):
             "value": get_font(font_config, "JP_REGULAR", 30),
         },
     }
-
-
-# NOTE: 詳細追えてないものの，英語フォントでボディサイズがおかしいものがあったので，
-# 補正できるようにする．
-EN_FONT_HEIGHT_FACTOR = 0.78
 
 
 def text_size(font, text, is_en_font=True):
