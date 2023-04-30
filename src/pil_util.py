@@ -4,6 +4,10 @@ import os
 import pathlib
 import PIL.ImageDraw
 
+# NOTE: 詳細追えてないものの，英語フォントでボディサイズがおかしいものがあったので，
+# 補正できるようにする．
+EN_FONT_HEIGHT_FACTOR = 0.75
+
 
 def get_font(config, font_type, size):
     return PIL.ImageFont.truetype(
@@ -16,14 +20,31 @@ def get_font(config, font_type, size):
     )
 
 
-def draw_text(img, text, pos, font, align="left", color="#000"):
+def text_size(font, text, need_padding_change=True):
+    size = font.getsize(text)
+
+    if need_padding_change:
+        return (size[0], size[1] * EN_FONT_HEIGHT_FACTOR)
+    else:
+        return size
+
+
+def draw_text(
+    img, text, pos, font, align="left", color="#000", need_padding_change=True
+):
     draw = PIL.ImageDraw.Draw(img)
 
     if align == "center":
-        pos = (pos[0] - font.getsize(text)[0] / 2, pos[1])
+        pos = (int(pos[0] - text_size(font, text)[0] / 2.0), int(pos[1]))
     elif align == "right":
-        pos = (pos[0] - font.getsize(text)[0], pos[1])
+        pos = (int(pos[0] - text_size(font, text)[0]), int(pos[1]))
 
-    draw.text(pos, text, color, font, None, font.getsize(text)[1] * 0.4)
+    if need_padding_change:
+        pos = (
+            pos[0],
+            int(pos[1] - font.getsize(text)[1] * (1 - EN_FONT_HEIGHT_FACTOR)),
+        )
 
-    return font.getsize(text)[0]
+    draw.text(pos, text, color, font, None, text_size(font, text)[1] * 0.4)
+
+    return (pos[0] + text_size(font, text)[0], pos[1] + text_size(font, text)[1])
