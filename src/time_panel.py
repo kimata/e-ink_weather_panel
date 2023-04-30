@@ -29,7 +29,7 @@ def get_face_map(font_config):
 
 def draw_time(img, pos_x, pos_y, face):
     alpha = 255
-    radius = 20
+    radius = 30
     padding = 4
 
     time_text = datetime.datetime.now(
