@@ -167,6 +167,8 @@ def fetch_cloud_image(driver, url, width, height, is_future=False):
 
 
 def retouch_cloud_image(png_data):
+    logging.info("retouch image")
+
     RAINFALL_INTENSITY_LEVEL = [
         # NOTE: 白
         {"func": lambda h, s: (160 < h) & (h < 180) & (s < 20)},
