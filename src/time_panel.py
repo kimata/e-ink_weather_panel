@@ -1,19 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from urllib import request
-from urllib.parse import urlparse
 import PIL.Image
 import PIL.ImageDraw
 import PIL.ImageFont
 import PIL.ImageEnhance
 import datetime
-import locale
-import math
-import numpy as np
-import os
-import datetime
-import pathlib
 import logging
 
 from pil_util import get_font, text_size, draw_text
