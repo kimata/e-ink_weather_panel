@@ -30,7 +30,15 @@ def text_size(font, text, need_padding_change=True):
 
 
 def draw_text(
-    img, text, pos, font, align="left", color="#000", need_padding_change=True
+    img,
+    text,
+    pos,
+    font,
+    align="left",
+    color="#000",
+    need_padding_change=True,
+    stroke_width=0,
+    stroke_fill=None,
 ):
     draw = PIL.ImageDraw.Draw(img)
 
@@ -45,6 +53,15 @@ def draw_text(
             int(pos[1] - font.getsize(text)[1] * (1 - EN_FONT_HEIGHT_FACTOR)),
         )
 
-    draw.text(pos, text, color, font, None, text_size(font, text)[1] * 0.4)
+    draw.text(
+        pos,
+        text,
+        color,
+        font,
+        None,
+        text_size(font, text)[1] * 0.4,
+        stroke_width=stroke_width,
+        stroke_fill=stroke_fill,
+    )
 
     return (pos[0] + text_size(font, text)[0], pos[1] + text_size(font, text)[1])

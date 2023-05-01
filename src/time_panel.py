@@ -20,32 +20,21 @@ def get_face_map(font_config):
 
 
 def draw_time(img, pos_x, pos_y, face):
-    alpha = 255
-    radius = 30
-    padding = 6
-    padding_top = padding - 5
-
     time_text = datetime.datetime.now(
         datetime.timezone(datetime.timedelta(hours=9), "JST")
     ).strftime("%H:%M")
 
-    text_width, text_height = text_size(face["value"], time_text)
+    pos_y -= text_size(face["value"], time_text)[1]
 
-    pos_y -= text_height
-
-    draw = PIL.ImageDraw.Draw(img)
-    draw.rounded_rectangle(
-        (
-            pos_x - padding - text_width,
-            pos_y - padding_top,
-            pos_x + padding,
-            pos_y + padding + text_height,
-        ),
-        fill=(255, 255, 255, alpha),
-        radius=radius,
+    draw_text(
+        img,
+        time_text,
+        (pos_x, pos_y),
+        face["value"],
+        "right",
+        stroke_width=10,
+        stroke_fill=(255, 255, 255, 255),
     )
-
-    draw_text(img, time_text, (pos_x, pos_y), face["value"], "right")
 
 
 def draw_panel_time(img, config):
