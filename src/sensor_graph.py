@@ -270,6 +270,6 @@ def create_sensor_graph(config):
     plt.subplots_adjust(hspace=0.1, wspace=0)
 
     buf = io.BytesIO()
-    plt.savefig(buf, format="png", dpi=IMAGE_DPI)
+    plt.savefig(buf, format="png", dpi=IMAGE_DPI, transparent=True)
 
     return (PIL.Image.open(buf), time.perf_counter() - start)
