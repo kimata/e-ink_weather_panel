@@ -158,7 +158,9 @@ def draw_weather(img, weather, overlay, pos_x, pos_y, icon_margin, face_map):
     return [pos_x + icon.size[0] * (1 + icon_margin), next_pos_y]
 
 
-def draw_text_info(img, value, unit, is_first, pos_x, pos_y, icon, face, color="#000"):
+def draw_text_info(
+    img, value, unit, is_first, pos_x, pos_y, icon, face, color="#000", underline=False
+):
     pos_y += text_size(face["value"], "-10")[1] * 0.4  # NOTE: 上にマージンを設ける
 
     if is_first:
@@ -179,22 +181,59 @@ def draw_text_info(img, value, unit, is_first, pos_x, pos_y, icon, face, color="
     draw_text(
         img, str(value), [value_pos_x, pos_y], face["value"], "right", color=color
     )
+
+    next_pos_y = pos_y + text_size(face["value"], "0")[1]
+
+    if underline:
+        draw = PIL.ImageDraw.Draw(img)
+        draw.rectangle(
+            (
+                value_pos_x - text_size(face["value"], str(value))[0],
+                next_pos_y + 8,
+                value_pos_x,
+                next_pos_y + 15,
+            ),
+            fill=(90, 90, 90),
+        )
+
     draw_text(img, unit, [unit_pos_x, unit_pos_y], face["unit"], color=color)[0]
 
-    return pos_y + text_size(face["value"], "0")[1]
+    return next_pos_y
 
 
 def draw_temp(img, temp, is_first, pos_x, pos_y, thermo_icon, face_map):
+    if temp >= 30 or temp < 5:
+        underline = True
+    else:
+        underline = False
+
     return draw_text_info(
-        img, temp, "℃", is_first, pos_x, pos_y, thermo_icon, face_map["temp"]
+        img,
+        temp,
+        "℃",
+        is_first,
+        pos_x,
+        pos_y,
+        thermo_icon,
+        face_map["temp"],
+        underline=underline,
     )
 
 
 def draw_precip(img, precip, is_first, pos_x, pos_y, precip_icon, face_map):
     if precip == 0:
+        color = "#eee"
+        underline = False
+    elif precip < 3:
         color = "#ddd"
+        underline = False
+    elif precip < 10:
+        color = "#666"
+        underline = False
     else:
         color = "#000"
+        underline = True
+
     return draw_text_info(
         img,
         precip,
@@ -204,7 +243,8 @@ def draw_precip(img, precip, is_first, pos_x, pos_y, precip_icon, face_map):
         pos_y,
         precip_icon,
         face_map["precip"],
-        color,
+        color=color,
+        underline=underline,
     )
 
 
