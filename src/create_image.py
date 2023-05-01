@@ -7,7 +7,7 @@ import PIL.Image
 import os
 import pathlib
 import logging
-
+from concurrent import futures
 import logger
 
 from weather_panel import create_weather_panel, get_font, draw_text
@@ -57,26 +57,37 @@ def draw_panel(config, img):
         (config["PANEL"]["DEVICE"]["WIDTH"], config["PANEL"]["DEVICE"]["HEIGHT"]),
         (255, 255, 255, 0),
     )
+    panel_map = {
+        "weather": {"func": create_weather_panel},
+        "sensor": {"func": create_sensor_graph},
+        "rain_cloud": {"func": create_rain_cloud_panel},
+        "time": {"func": create_time_panel},
+    }
 
-    weather_panel_img = create_weather_panel(config)
+    # NOTE: マルチスレッド処理
+    with futures.ThreadPoolExecutor() as executor:
+        for name in panel_map.keys():
+            panel_map[name]["task"] = executor.submit(panel_map[name]["func"], config)
+
+    # NOTE: matplotlib はスレッドセーフではないので，別スレッドで処理しない
     power_graph_img = create_power_graph(config)
-    sensor_graph_img = create_sensor_graph(config)
-    rain_cloud_img = create_rain_cloud_panel(config)
-    time_panel_img = create_time_panel(config)
 
     draw_wall(config, img, overlay)
 
     alpha_paste(
         img,
         power_graph_img,
-        (0, config["WEATHER"]["PANEL"]["HEIGHT"] - config["POWER"]["PANEL"]["OVERLAP"]),
+        (
+            0,
+            config["WEATHER"]["PANEL"]["HEIGHT"] - config["POWER"]["PANEL"]["OVERLAP"],
+        ),
         overlay,
     )
 
-    img.alpha_composite(weather_panel_img, (0, 0))
+    img.alpha_composite(panel_map["weather"]["task"].result(), (0, 0))
     alpha_paste(
         img,
-        sensor_graph_img,
+        panel_map["sensor"]["task"].result(),
         (
             0,
             config["WEATHER"]["PANEL"]["HEIGHT"]
@@ -88,7 +99,7 @@ def draw_panel(config, img):
     )
     alpha_paste(
         img,
-        rain_cloud_img,
+        panel_map["rain_cloud"]["task"].result(),
         (
             config["RAIN_CLOUD"]["PANEL"]["OFFSET_X"],
             config["RAIN_CLOUD"]["PANEL"]["OFFSET_Y"],
@@ -97,7 +108,7 @@ def draw_panel(config, img):
     )
     alpha_paste(
         img,
-        time_panel_img,
+        panel_map["time"]["task"].result(),
         (0, 0),
         overlay,
     )
