@@ -213,17 +213,17 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face_map)
     pos_y += text_size(face["value"], "-10")[1] * 0.2  # NOTE: 上にマージンを設ける
 
     if wind["speed"] == 0:
-        color = "#ddd"
-        brightness = 7
+        color = "#eee"
+        brightness = 8
     elif wind["speed"] == 1:
-        color = "#ccc"
-        brightness = 7
+        color = "#ddd"
+        brightness = 7.5
     elif wind["speed"] == 2:
-        color = "#999"
-        brightness = 6
+        color = "#ccc"
+        brightness = 6.5
     elif wind["speed"] == 3:
-        color = "#888"
-        brightness = 5
+        color = "#999"
+        brightness = 5.5
     elif wind["speed"] == 4:
         color = "#666"
         brightness = 3
@@ -234,7 +234,8 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face_map)
     icon_orig_height = icon["arrow"].size[1]
     if ROTATION_MAP[wind["dir"]] is not None:
         arrow_icon = icon["arrow"].rotate(
-            ROTATION_MAP[wind["dir"]], resample=PIL.Image.BICUBIC
+            ROTATION_MAP[wind["dir"]],
+            resample=PIL.Image.BICUBIC,
         )
         arrow_icon = PIL.ImageEnhance.Brightness(arrow_icon).enhance(brightness)
 
