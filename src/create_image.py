@@ -10,7 +10,8 @@ import logging
 from concurrent import futures
 import logger
 
-from weather_panel import create_weather_panel, get_font, draw_text
+from pil_util import get_font, draw_text
+from weather_panel import create_weather_panel
 from power_graph import create_power_graph
 from sensor_graph import create_sensor_graph
 from rain_cloud_panel import create_rain_cloud_panel
@@ -141,7 +142,7 @@ except:
     draw_text(
         img,
         "ERROR",
-        [10, 10],
+        (10, 10),
         get_font(config["FONT"], "EN_BOLD", 160),
         "left",
         "#666",
@@ -150,7 +151,7 @@ except:
     draw_text(
         img,
         "\n".join(textwrap.wrap(traceback.format_exc(), 100)),
-        [20, 200],
+        (20, 200),
         get_font(config["FONT"], "EN_MEDIUM", 40),
         "left" "#333",
     )

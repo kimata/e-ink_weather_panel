@@ -366,19 +366,6 @@ def draw_date(img, pos_x, pos_y, date, face_map):
     return next_pos_x
 
 
-def draw_time(img, pos_x, pos_y, face_map):
-    face = face_map["date"]
-
-    now = datetime.datetime.now()
-
-    locale.setlocale(locale.LC_TIME, "en_US.UTF-8")
-    next_pos_x = draw_text(
-        img, now.strftime("%H:%M"), [pos_x, pos_y], face["time"], "right", "#666"
-    )
-
-    return next_pos_x
-
-
 def draw_panel_weather_day(
     img, pos_x, pos_y, weather_day_info, is_today, overlay, icon, face_map
 ):
@@ -441,8 +428,6 @@ def draw_panel_weather(img, config, weather_info):
         icon,
         face_map,
     )
-
-    # draw_time(img, panel_config["PANEL"]["WIDTH"] - 5, 15, face_map)
 
 
 def create_weather_panel(config):
