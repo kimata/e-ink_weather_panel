@@ -9,6 +9,10 @@ import PIL.ImageDraw
 
 import cv2
 import numpy as np
+import textwrap
+import traceback
+from concurrent import futures
+
 import time
 import logging
 
@@ -138,6 +142,7 @@ def change_window_size(driver, url, width, height):
 
 
 def fetch_cloud_image(driver, url, width, height, is_future=False):
+    logging.info("fetch cloud image")
     PARTS_LIST = [
         {"class": "jmatile-map-title", "mode": "none"},
         {"class": "leaflet-bar", "mode": "none"},
@@ -161,7 +166,6 @@ def fetch_cloud_image(driver, url, width, height, is_future=False):
     time.sleep(0.5)
 
     png_data = driver.find_element(By.XPATH, CLOUD_IMAGE_XPATH).screenshot_as_png
-    driver.refresh()
 
     return png_data
 
@@ -213,6 +217,7 @@ def retouch_cloud_image(png_data):
 
 
 def draw_equidistant_circle(img):
+    logging.info("draw equidistant_circle")
     draw = PIL.ImageDraw.Draw(img)
     x = img.size[0] / 2
     y = img.size[1] / 2
@@ -242,6 +247,7 @@ def draw_equidistant_circle(img):
 
 
 def draw_caption(img, title, face):
+    logging.info("draw caption")
     size = face["title"].getsize(title)
     x = 10
     y = 10
@@ -274,11 +280,47 @@ def draw_caption(img, title, face):
     draw_text(
         img,
         title,
-        [10, 10],
+        (10, 20),
         face["title"],
         "left",
         color="#000",
     )
+
+    return img
+
+
+def create_rain_cloud_img(panel_config, sub_panel_config, face_map):
+    logging.info(
+        "create rain cloud image ({type})".format(
+            type="future" if sub_panel_config["is_future"] else "current"
+        )
+    )
+
+    driver = create_driver()
+
+    if sub_panel_config["is_future"]:
+        # NOTE: 同時アクセスを防ぐため，片方を少し遅らせる
+        time.sleep(2)
+
+    change_window_size(
+        driver,
+        panel_config["DATA"]["JMA"]["URL"],
+        int(panel_config["PANEL"]["WIDTH"] / 2),
+        panel_config["PANEL"]["HEIGHT"],
+    )
+
+    img = retouch_cloud_image(
+        fetch_cloud_image(
+            driver,
+            panel_config["DATA"]["JMA"]["URL"],
+            int(panel_config["PANEL"]["WIDTH"] / 2),
+            panel_config["PANEL"]["HEIGHT"],
+            sub_panel_config["is_future"],
+        )
+    )
+
+    img = draw_equidistant_circle(img)
+    img = draw_caption(img, sub_panel_config["title"], face_map)
 
     return img
 
@@ -295,14 +337,6 @@ def create_rain_cloud_panel_impl(config):
             "offset_x": int(panel_config["PANEL"]["WIDTH"] / 2),
         },
     ]
-    driver = create_driver()
-
-    change_window_size(
-        driver,
-        panel_config["DATA"]["JMA"]["URL"],
-        int(panel_config["PANEL"]["WIDTH"] / 2),
-        panel_config["PANEL"]["HEIGHT"],
-    )
 
     img = PIL.Image.new(
         "RGBA",
@@ -311,39 +345,70 @@ def create_rain_cloud_panel_impl(config):
     )
     face_map = get_face_map(font_config)
 
-    for sub_panel_config in SUB_PANEL_CONFIG_LIST:
-        sub_img = retouch_cloud_image(
-            fetch_cloud_image(
-                driver,
-                panel_config["DATA"]["JMA"]["URL"],
-                int(panel_config["PANEL"]["WIDTH"] / 2),
-                panel_config["PANEL"]["HEIGHT"],
-                sub_panel_config["is_future"],
+    task_list = []
+    # NOTE: 並列に生成する
+    with futures.ThreadPoolExecutor() as executor:
+        for sub_panel_config in SUB_PANEL_CONFIG_LIST:
+            task_list.append(
+                executor.submit(
+                    create_rain_cloud_img, panel_config, sub_panel_config, face_map
+                )
             )
-        )
-        time.sleep(1)
-        sub_img = draw_equidistant_circle(sub_img)
-        sub_img = draw_caption(sub_img, sub_panel_config["title"], face_map)
-        img.paste(sub_img, (sub_panel_config["offset_x"], 0))
 
-    driver.quit()
+    for i, sub_panel_config in enumerate(SUB_PANEL_CONFIG_LIST):
+        img.paste(task_list[i].result(), (sub_panel_config["offset_x"], 0))
 
     return img.convert("L")
 
 
-def create_rain_cloud_panel(config):
-    for i in range(3):
-        try:
-            return create_rain_cloud_panel_impl(config)
-        except:
-            pass
-
+def error_image(config, error_text):
     panel_config = config["RAIN_CLOUD"]
-    return PIL.Image.new(
+
+    img = PIL.Image.new(
         "RGBA",
         (panel_config["PANEL"]["WIDTH"], panel_config["PANEL"]["HEIGHT"]),
         (255, 255, 255, 255),
     )
+
+    draw = PIL.ImageDraw.Draw(img)
+    draw.rectangle(
+        (0, 0, config["PANEL"]["DEVICE"]["WIDTH"], config["PANEL"]["DEVICE"]["HEIGHT"]),
+        fill=(255, 255, 255, 255),
+    )
+
+    draw_text(
+        img,
+        "ERROR",
+        (10, 10),
+        get_font(config["FONT"], "EN_BOLD", 120),
+        "left",
+        "#666",
+    )
+
+    draw_text(
+        img,
+        "\n".join(textwrap.wrap(error_text, 90)),
+        (20, 150),
+        get_font(config["FONT"], "EN_MEDIUM", 30),
+        "left" "#333",
+    )
+
+    return img
+
+
+def create_rain_cloud_panel(config):
+    logging.info("create rain cloud panel")
+    error_text = None
+    for i in range(5):
+        try:
+            return create_rain_cloud_panel_impl(config)
+        except:
+            error_text = traceback.format_exc()
+            logging.error(error_text)
+            pass
+        logging.warn("retry")
+
+    return error_image(config, error_text)
 
 
 if __name__ == "__main__":
