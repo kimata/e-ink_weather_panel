@@ -22,7 +22,8 @@ def get_face_map(font_config):
 def draw_time(img, pos_x, pos_y, face):
     alpha = 255
     radius = 30
-    padding = 4
+    padding = 6
+    padding_top = padding - 5
 
     time_text = datetime.datetime.now(
         datetime.timezone(datetime.timedelta(hours=9), "JST")
@@ -36,7 +37,7 @@ def draw_time(img, pos_x, pos_y, face):
     draw.rounded_rectangle(
         (
             pos_x - padding - text_width,
-            pos_y - padding,
+            pos_y - padding_top,
             pos_x + padding,
             pos_y + padding + text_height,
         ),
