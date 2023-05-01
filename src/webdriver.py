@@ -4,6 +4,8 @@
 import os
 import pathlib
 import shutil
+import inspect
+import datetime
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -58,6 +60,46 @@ def create_driver():
     )
 
     return driver
+
+
+def dump_page(driver, index, dump_path=DUMP_PATH):
+    name = inspect.stack()[1].function.replace("<", "").replace(">", "")
+    dump_path = pathlib.Path(dump_path)
+
+    os.makedirs(str(dump_path), exist_ok=True)
+
+    png_path = dump_path / (
+        "{name}_{index:02d}.{ext}".format(name=name, index=index, ext="png")
+    )
+    htm_path = dump_path / (
+        "{name}_{index:02d}.{ext}".format(name=name, index=index, ext="htm")
+    )
+
+    driver.save_screenshot(str(png_path))
+
+    with open(str(htm_path), "w") as f:
+        f.write(driver.page_source)
+
+    logging.info("page dump: {index:02d}.".format(index=index))
+
+
+def clean_dump(dump_path=DUMP_PATH, keep_days=1):
+    dump_path = pathlib.Path(dump_path)
+    time_threshold = datetime.timedelta(keep_days)
+
+    for item in dump_path.iterdir():
+        if not item.is_file():
+            continue
+        time_diff = datetime.datetime.now() - datetime.datetime.fromtimestamp(
+            item.stat().st_mtime
+        )
+        if time_diff > time_threshold:
+            logging.info(
+                "remove {path} [{day:,} day(s) old].".format(
+                    path=item.absolute(), day=time_diff.days
+                )
+            )
+            item.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":
