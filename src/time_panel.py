@@ -32,8 +32,8 @@ def draw_time(img, pos_x, pos_y, face):
         (pos_x, pos_y),
         face["value"],
         "right",
-        stroke_width=10,
-        stroke_fill=(255, 255, 255, 255),
+        stroke_width=20,
+        stroke_fill=(255, 255, 255, 200),
     )
 
 
