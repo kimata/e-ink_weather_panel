@@ -5,6 +5,7 @@ import sys
 import textwrap
 import PIL.Image
 import os
+import time
 import pathlib
 import logging
 from concurrent import futures
@@ -66,13 +67,24 @@ def draw_panel(config, img):
     ]
 
     # NOTE: マルチスレッド処理
+    start = time.perf_counter()
     with futures.ThreadPoolExecutor() as executor:
         for panel in panel_list:
             panel["task"] = executor.submit(panel["func"], config)
 
     panel_map = {}
     for panel in panel_list:
-        panel_map[panel["name"]] = panel["task"].result()
+        result = panel["task"].result()
+        panel_map[panel["name"]] = result[0]
+        logging.info(
+            "elapsed time: {name} panel = {time:.3f} sec".format(
+                name=panel["name"], time=result[1]
+            )
+        )
+    logging.info(
+        "total elapsed time: {time:.3f} sec".format(time=time.perf_counter() - start)
+    )
+
     # NOTE: matplotlib はスレッドセーフではないので，別スレッドで処理しない
     panel_map["power"] = create_power_graph(config)
 

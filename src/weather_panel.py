@@ -11,6 +11,7 @@ import PIL.ImageEnhance
 import cv2
 import datetime
 import locale
+import time
 import math
 import numpy as np
 import os
@@ -25,7 +26,6 @@ ICON_MARGIN = 0.24
 
 # NOTE: 現在の時間に対応する時間帯に描画する円の大きさ比率
 HOUR_CIRCLE_RATIO = 1.5
-
 
 ROTATION_MAP = {
     "静穏": None,
@@ -516,6 +516,7 @@ def draw_panel_weather(img, config, weather_info):
 
 def create_weather_panel(config):
     logging.info("draw weather panel")
+    start = time.perf_counter()
 
     weather_info = get_weather_yahoo(config["WEATHER"]["DATA"]["YAHOO"])
     img = PIL.Image.new(
@@ -526,4 +527,4 @@ def create_weather_panel(config):
 
     draw_panel_weather(img, config, weather_info)
 
-    return img
+    return (img, time.perf_counter() - start)

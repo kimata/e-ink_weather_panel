@@ -5,6 +5,7 @@ import PIL.Image
 import PIL.ImageDraw
 import PIL.ImageFont
 import PIL.ImageEnhance
+import time
 import datetime
 import logging
 
@@ -53,6 +54,7 @@ def draw_panel_time(img, config):
 
 def create_time_panel(config):
     logging.info("draw time panel")
+    start = time.perf_counter()
 
     img = PIL.Image.new(
         "RGBA",
@@ -62,4 +64,4 @@ def create_time_panel(config):
 
     draw_panel_time(img, config)
 
-    return img
+    return (img, time.perf_counter() - start)

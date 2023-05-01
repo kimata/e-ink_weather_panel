@@ -393,17 +393,19 @@ def error_image(config, error_text):
 
 def create_rain_cloud_panel(config):
     logging.info("create rain cloud panel")
+    start = time.perf_counter()
+
     error_text = None
     for i in range(5):
         try:
-            return create_rain_cloud_panel_impl(config)
+            return (create_rain_cloud_panel_impl(config), time.perf_counter() - start)
         except:
             error_text = traceback.format_exc()
             logging.error(error_text)
             pass
         logging.warn("retry")
 
-    return error_image(config, error_text)
+    return (error_image(config, error_text), time.perf_counter() - start)
 
 
 if __name__ == "__main__":

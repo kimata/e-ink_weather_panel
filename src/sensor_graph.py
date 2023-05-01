@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import pathlib
 import os
+import time
 import datetime
 import io
 import matplotlib
@@ -164,6 +165,7 @@ def sensor_data(config, host_specify_list, param, period="60h"):
 
 def create_sensor_graph(config):
     logging.info("draw sensor graph")
+    start = time.perf_counter()
 
     face_map = get_face_map(config["FONT"])
 
@@ -270,4 +272,4 @@ def create_sensor_graph(config):
     buf = io.BytesIO()
     plt.savefig(buf, format="png", dpi=IMAGE_DPI)
 
-    return PIL.Image.open(buf)
+    return (PIL.Image.open(buf), time.perf_counter() - start)
