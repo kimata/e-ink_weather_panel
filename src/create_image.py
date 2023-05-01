@@ -58,26 +58,29 @@ def draw_panel(config, img):
         (config["PANEL"]["DEVICE"]["WIDTH"], config["PANEL"]["DEVICE"]["HEIGHT"]),
         (255, 255, 255, 0),
     )
-    panel_map = {
-        "weather": {"func": create_weather_panel},
-        "sensor": {"func": create_sensor_graph},
-        "rain_cloud": {"func": create_rain_cloud_panel},
-        "time": {"func": create_time_panel},
-    }
+    panel_list = [
+        {"name": "rain_cloud", "func": create_rain_cloud_panel},
+        {"name": "sensor", "func": create_sensor_graph},
+        {"name": "weather", "func": create_weather_panel},
+        {"name": "time", "func": create_time_panel},
+    ]
 
     # NOTE: マルチスレッド処理
     with futures.ThreadPoolExecutor() as executor:
-        for name in panel_map.keys():
-            panel_map[name]["task"] = executor.submit(panel_map[name]["func"], config)
+        for panel in panel_list:
+            panel["task"] = executor.submit(panel["func"], config)
 
+    panel_map = {}
+    for panel in panel_list:
+        panel_map[panel["name"]] = panel["task"].result()
     # NOTE: matplotlib はスレッドセーフではないので，別スレッドで処理しない
-    power_graph_img = create_power_graph(config)
+    panel_map["power"] = create_power_graph(config)
 
     draw_wall(config, img, overlay)
 
     alpha_paste(
         img,
-        power_graph_img,
+        panel_map["power"],
         (
             0,
             config["WEATHER"]["PANEL"]["HEIGHT"] - config["POWER"]["PANEL"]["OVERLAP"],
@@ -85,10 +88,10 @@ def draw_panel(config, img):
         overlay,
     )
 
-    img.alpha_composite(panel_map["weather"]["task"].result(), (0, 0))
+    img.alpha_composite(panel_map["weather"], (0, 0))
     alpha_paste(
         img,
-        panel_map["sensor"]["task"].result(),
+        panel_map["sensor"],
         (
             0,
             config["WEATHER"]["PANEL"]["HEIGHT"]
@@ -100,7 +103,7 @@ def draw_panel(config, img):
     )
     alpha_paste(
         img,
-        panel_map["rain_cloud"]["task"].result(),
+        panel_map["rain_cloud"],
         (
             config["RAIN_CLOUD"]["PANEL"]["OFFSET_X"],
             config["RAIN_CLOUD"]["PANEL"]["OFFSET_Y"],
@@ -109,7 +112,7 @@ def draw_panel(config, img):
     )
     alpha_paste(
         img,
-        panel_map["time"]["task"].result(),
+        panel_map["time"],
         (0, 0),
         overlay,
     )
