@@ -289,36 +289,14 @@ def draw_caption(img, title, face):
     return img
 
 
-def create_rain_cloud_img(panel_config, sub_panel_config, face_map):
+def create_rain_cloud_img(img, sub_panel_config, face_map):
     logging.info(
         "create rain cloud image ({type})".format(
             type="future" if sub_panel_config["is_future"] else "current"
         )
     )
 
-    driver = create_driver()
-
-    if sub_panel_config["is_future"]:
-        # NOTE: 同時アクセスを防ぐため，片方を少し遅らせる
-        time.sleep(2)
-
-    change_window_size(
-        driver,
-        panel_config["DATA"]["JMA"]["URL"],
-        int(panel_config["PANEL"]["WIDTH"] / 2),
-        panel_config["PANEL"]["HEIGHT"],
-    )
-
-    img = retouch_cloud_image(
-        fetch_cloud_image(
-            driver,
-            panel_config["DATA"]["JMA"]["URL"],
-            int(panel_config["PANEL"]["WIDTH"] / 2),
-            panel_config["PANEL"]["HEIGHT"],
-            sub_panel_config["is_future"],
-        )
-    )
-
+    img = retouch_cloud_image(img)
     img = draw_equidistant_circle(img)
     img = draw_caption(img, sub_panel_config["title"], face_map)
 
@@ -345,15 +323,32 @@ def create_rain_cloud_panel_impl(config):
     )
     face_map = get_face_map(font_config)
 
+    driver = create_driver()
+
     task_list = []
     # NOTE: 並列に生成する
     with futures.ThreadPoolExecutor() as executor:
         for sub_panel_config in SUB_PANEL_CONFIG_LIST:
+            change_window_size(
+                driver,
+                panel_config["DATA"]["JMA"]["URL"],
+                int(panel_config["PANEL"]["WIDTH"] / 2),
+                panel_config["PANEL"]["HEIGHT"],
+            )
+            sub_img = fetch_cloud_image(
+                driver,
+                panel_config["DATA"]["JMA"]["URL"],
+                int(panel_config["PANEL"]["WIDTH"] / 2),
+                panel_config["PANEL"]["HEIGHT"],
+                sub_panel_config["is_future"],
+            )
             task_list.append(
                 executor.submit(
-                    create_rain_cloud_img, panel_config, sub_panel_config, face_map
+                    create_rain_cloud_img, sub_img, sub_panel_config, face_map
                 )
             )
+
+    driver.quit()
 
     for i, sub_panel_config in enumerate(SUB_PANEL_CONFIG_LIST):
         img.paste(task_list[i].result(), (sub_panel_config["offset_x"], 0))
