@@ -22,7 +22,7 @@ from pil_util import get_font, text_size, draw_text
 from weather_data import get_weather_yahoo
 
 # NOTE: 天気アイコンの周りにアイコンサイズの何倍の空きを確保するか
-ICON_MARGIN = 0.24
+ICON_MARGIN = 0.48
 
 # NOTE: 現在の時間に対応する時間帯に描画する円の大きさ比率
 HOUR_CIRCLE_RATIO = 1.5
@@ -155,24 +155,24 @@ def draw_weather(img, weather, overlay, pos_x, pos_y, icon_margin, face_map):
         "center",
     )[1]
 
-    return [pos_x + icon.size[0] * (1 + icon_margin), next_pos_y]
+    return [pos_x + icon.size[0] * (1 + icon_margin / 2.0), next_pos_y]
 
 
 def draw_text_info(
     img, value, unit, is_first, pos_x, pos_y, icon, face, color="#000", underline=False
 ):
-    pos_y += text_size(face["value"], "-10")[1] * 0.4  # NOTE: 上にマージンを設ける
+    pos_y += text_size(face["value"], "0")[1] * 0.4  # NOTE: 上にマージンを設ける
 
     if is_first:
         img.paste(
             icon,
             (
-                int(pos_x - icon.size[0] - text_size(face["value"], "0")[0] * 0.1),
-                int(pos_y + (text_size(face["value"], "-10")[1] - icon.size[1]) / 2.0),
+                int(pos_x - icon.size[0] - text_size(face["value"], "0")[0] * 0.3),
+                int(pos_y + (text_size(face["value"], "0")[1] - icon.size[1]) / 2.0),
             ),
         )
 
-    value_pos_x = pos_x + text_size(face["value"], "-10")[0]
+    value_pos_x = pos_x + text_size(face["value"], "10")[0]
     unit_pos_y = (
         pos_y + text_size(face["value"], "0")[1] - text_size(face["unit"], "℃")[1]
     )
@@ -250,7 +250,7 @@ def draw_precip(img, precip, is_first, pos_x, pos_y, precip_icon, face_map):
 
 def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face_map):
     face = face_map["wind"]
-    pos_y += text_size(face["value"], "-10")[1] * 0.2  # NOTE: 上にマージンを設ける
+    pos_y += text_size(face["value"], "0")[1] * 0.2  # NOTE: 上にマージンを設ける
 
     if wind["speed"] == 0:
         color = "#eee"
@@ -283,7 +283,7 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face_map)
         canvas.paste(
             arrow_icon,
             (
-                int(pos_x + width * 1.4 / 2.0 - arrow_icon.size[0] / 2.0),
+                int(pos_x + width / 2.0 - arrow_icon.size[0] / 2.0),
                 int(pos_y + (icon_orig_height - icon["arrow"].size[1]) / 2.0),
             ),
         )
@@ -291,7 +291,7 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face_map)
 
     pos_y += icon_orig_height
 
-    value_pos_x = pos_x + text_size(face["value"], "-10")[0]
+    value_pos_x = pos_x + text_size(face["value"], "10")[0]
     unit_pos_y = (
         pos_y + text_size(face["value"], "0")[1] - text_size(face["unit"], "m/s")[1]
     )
@@ -304,7 +304,7 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face_map)
                 int(pos_x - text_size(face["value"], "0")[0] * 1.5),
                 int(
                     pos_y
-                    + (text_size(face["value"], "-10")[1] - icon["wind"].size[1]) / 2.0
+                    + (text_size(face["value"], "0")[1] - icon["wind"].size[1]) / 2.0
                 ),
             ),
         )
