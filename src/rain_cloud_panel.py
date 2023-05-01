@@ -383,7 +383,7 @@ def error_image(config, error_text):
     draw_text(
         img,
         "\n".join(textwrap.wrap(error_text, 90)),
-        (20, 150),
+        (20, 60),
         get_font(config["FONT"], "EN_MEDIUM", 30),
         "left" "#333",
     )
