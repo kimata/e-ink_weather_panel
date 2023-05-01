@@ -249,9 +249,9 @@ def draw_equidistant_circle(img):
 def draw_caption(img, title, face):
     logging.info("draw caption")
     size = face["title"].getsize(title)
-    x = 10
-    y = 10
-    padding = 12
+    x = 12
+    y = 12
+    padding = 10
     radius = 20
     alpha = 200
 
