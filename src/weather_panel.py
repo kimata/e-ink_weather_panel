@@ -165,7 +165,7 @@ def draw_text_info(img, value, unit, is_first, pos_x, pos_y, icon, face):
         img.paste(
             icon,
             (
-                int(pos_x - text_size(face["value"], "0")[0] * 1.2),
+                int(pos_x - icon.size[0] - text_size(face["value"], "0")[0] * 0.1),
                 int(pos_y + (text_size(face["value"], "-10")[1] - icon.size[1]) / 2.0),
             ),
         )
