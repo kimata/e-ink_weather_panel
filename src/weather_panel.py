@@ -158,7 +158,7 @@ def draw_weather(img, weather, overlay, pos_x, pos_y, icon_margin, face_map):
     return [pos_x + icon.size[0] * (1 + icon_margin), next_pos_y]
 
 
-def draw_text_info(img, value, unit, is_first, pos_x, pos_y, icon, face):
+def draw_text_info(img, value, unit, is_first, pos_x, pos_y, icon, face, color="#000"):
     pos_y += text_size(face["value"], "-10")[1] * 0.4  # NOTE: 上にマージンを設ける
 
     if is_first:
@@ -176,8 +176,10 @@ def draw_text_info(img, value, unit, is_first, pos_x, pos_y, icon, face):
     )
     unit_pos_x = value_pos_x + 5
 
-    draw_text(img, str(value), [value_pos_x, pos_y], face["value"], "right")
-    draw_text(img, unit, [unit_pos_x, unit_pos_y], face["unit"])[0]
+    draw_text(
+        img, str(value), [value_pos_x, pos_y], face["value"], "right", color=color
+    )
+    draw_text(img, unit, [unit_pos_x, unit_pos_y], face["unit"], color=color)[0]
 
     return pos_y + text_size(face["value"], "0")[1]
 
@@ -189,8 +191,20 @@ def draw_temp(img, temp, is_first, pos_x, pos_y, thermo_icon, face_map):
 
 
 def draw_precip(img, precip, is_first, pos_x, pos_y, precip_icon, face_map):
+    if precip == 0:
+        color = "#ddd"
+    else:
+        color = "#000"
     return draw_text_info(
-        img, precip, "mm", is_first, pos_x, pos_y, precip_icon, face_map["precip"]
+        img,
+        precip,
+        "mm",
+        is_first,
+        pos_x,
+        pos_y,
+        precip_icon,
+        face_map["precip"],
+        color,
     )
 
 
@@ -198,9 +212,30 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face_map)
     face = face_map["wind"]
     pos_y += text_size(face["value"], "-10")[1] * 0.2  # NOTE: 上にマージンを設ける
 
+    if wind["speed"] == 0:
+        color = "#ddd"
+        brightness = 7
+    elif wind["speed"] == 1:
+        color = "#ccc"
+        brightness = 7
+    elif wind["speed"] == 2:
+        color = "#999"
+        brightness = 6
+    elif wind["speed"] == 3:
+        color = "#888"
+        brightness = 5
+    elif wind["speed"] == 4:
+        color = "#666"
+        brightness = 3
+    else:
+        color = "#000"
+        brightness = 1
+
     icon_orig_height = icon["arrow"].size[1]
     if ROTATION_MAP[wind["dir"]] is not None:
         arrow_icon = icon["arrow"].rotate(ROTATION_MAP[wind["dir"]])
+        arrow_icon = PIL.ImageEnhance.Brightness(arrow_icon).enhance(brightness)
+
         canvas = overlay.copy()
         canvas.paste(
             arrow_icon,
@@ -232,9 +267,14 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face_map)
         )
 
     next_pos_y = draw_text(
-        img, str(wind["speed"]), [value_pos_x, pos_y], face["value"], "right"
+        img,
+        str(wind["speed"]),
+        [value_pos_x, pos_y],
+        face["value"],
+        "right",
+        color=color,
     )[1]
-    draw_text(img, "m/s", [unit_pos_x, unit_pos_y], face["unit"])[0]
+    draw_text(img, "m/s", [unit_pos_x, unit_pos_y], face["unit"], color=color)[0]
 
     next_pos_y += text_size(
         face["dir"],
@@ -247,6 +287,7 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face_map)
         [value_pos_x, next_pos_y],
         face["dir"],
         "right",
+        color=color,
         need_padding_change=False,
     )[1]
 
