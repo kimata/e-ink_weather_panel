@@ -139,8 +139,6 @@ def get_image(weather_info):
 def draw_weather(img, weather, overlay, pos_x, pos_y, icon_margin, face_map):
     icon = get_image(weather)
 
-    pos_x += icon.size[0] * icon_margin / 2.0
-
     canvas = overlay.copy()
     canvas.paste(icon, (int(pos_x), int(pos_y)))
     img.alpha_composite(canvas, (0, 0))
@@ -155,7 +153,7 @@ def draw_weather(img, weather, overlay, pos_x, pos_y, icon_margin, face_map):
         "center",
     )[1]
 
-    return [pos_x + icon.size[0] * (1 + icon_margin / 2.0), next_pos_y]
+    return [pos_x + icon.size[0] * (1 + icon_margin), next_pos_y]
 
 
 def draw_text_info(
@@ -374,7 +372,14 @@ def draw_weather_info(
     next_pos_x, next_pos_y = draw_weather(
         img, info["weather"], overlay, pos_x, next_pos_y, ICON_MARGIN, face_map
     )
-    draw_hour(img, info["hour"], is_today, (pos_x + next_pos_x) / 2.0, pos_y, face_map)
+    draw_hour(
+        img,
+        info["hour"],
+        is_today,
+        pos_x + (next_pos_x - pos_x) / ((1 + ICON_MARGIN) * 2.0),
+        pos_y,
+        face_map,
+    )
     next_pos_y = draw_temp(
         img, info["temp"], is_first, pos_x, next_pos_y, icon["thermo"], face_map
     )
