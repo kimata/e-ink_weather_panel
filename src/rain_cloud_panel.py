@@ -159,8 +159,6 @@ def change_window_size(driver, url, width, height):
     except:
         pass
 
-    logging.info(window_size_map)
-
     if width in window_size_map and height in window_size_map[width]:
         logging.info(
             "change {width} x {height} based on a cache".format(
