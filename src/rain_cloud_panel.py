@@ -419,7 +419,7 @@ def error_image(config, error_text):
         img,
         "ERROR",
         (10, 10),
-        get_font(config["FONT"], "EN_BOLD", 120),
+        get_font(config["FONT"], "EN_BOLD", 100),
         "left",
         "#666",
     )
@@ -427,9 +427,9 @@ def error_image(config, error_text):
     draw_text(
         img,
         "\n".join(textwrap.wrap(error_text, 90)),
-        (20, 60),
+        (20, 100),
         get_font(config["FONT"], "EN_MEDIUM", 30),
-        "left" "#333",
+        "left" "#666",
     )
 
     return img
