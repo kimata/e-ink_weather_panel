@@ -7,10 +7,13 @@ from selenium.webdriver.support import expected_conditions as EC
 import PIL.Image
 import PIL.ImageDraw
 
+import os
 import cv2
+import pathlib
 import numpy as np
 import textwrap
 import traceback
+import pickle
 from concurrent import futures
 
 import time
@@ -18,6 +21,9 @@ import logging
 
 from webdriver import create_driver
 from pil_util import get_font, draw_text
+
+DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
+WINDOW_SIZE_CACHE = DATA_PATH / "window_size.cache"
 
 CLOUD_IMAGE_XPATH = '//div[contains(@id, "jmatile_map_")]'
 
@@ -58,7 +64,7 @@ var elements = document.getElementsByClassName("{class_name}")
         ).click()
 
 
-def change_window_size(driver, url, width, height):
+def change_window_size_impl(driver, url, width, height):
     wait = WebDriverWait(driver, 5)
 
     # NOTE: 雨雲画像がこのサイズになるように，ウィンドウサイズを調整する
@@ -140,6 +146,42 @@ def change_window_size(driver, url, width, height):
         )
     )
 
+    return driver.get_window_size()
+
+
+def change_window_size(driver, url, width, height):
+    # NOTE: 雨雲画像のサイズ調整には時間がかかるので，結果をキャッシュして使う
+    window_size_map = {}
+    try:
+        if pathlib.Path(WINDOW_SIZE_CACHE).exists():
+            with open(WINDOW_SIZE_CACHE, "rb") as f:
+                window_size_map = pickle.load(f)
+    except:
+        pass
+
+    logging.info(window_size_map)
+
+    if width in window_size_map and height in window_size_map[width]:
+        logging.info(
+            "change {width} x {height} based on a cache".format(
+                width=width, height=height
+            )
+        )
+        driver.set_window_size(
+            window_size_map[width][height]["width"],
+            window_size_map[width][height]["height"],
+        )
+        return
+
+    window_size = change_window_size_impl(driver, url, width, height)
+
+    if width in window_size_map:
+        window_size_map[width][height] = window_size
+    else:
+        window_size_map[width] = {height: window_size}
+        with open(WINDOW_SIZE_CACHE, "wb") as f:
+            pickle.dump(window_size_map, f)
+
 
 def fetch_cloud_image(driver, url, width, height, is_future=False):
     logging.info("fetch cloud image")
@@ -166,6 +208,8 @@ def fetch_cloud_image(driver, url, width, height, is_future=False):
     time.sleep(0.5)
 
     png_data = driver.find_element(By.XPATH, CLOUD_IMAGE_XPATH).screenshot_as_png
+
+    driver.refresh()
 
     return png_data
 
@@ -324,17 +368,17 @@ def create_rain_cloud_panel_impl(config):
     face_map = get_face_map(font_config)
 
     driver = create_driver()
+    change_window_size(
+        driver,
+        panel_config["DATA"]["JMA"]["URL"],
+        int(panel_config["PANEL"]["WIDTH"] / 2),
+        panel_config["PANEL"]["HEIGHT"],
+    )
 
     task_list = []
     # NOTE: 並列に生成する
     with futures.ThreadPoolExecutor() as executor:
         for sub_panel_config in SUB_PANEL_CONFIG_LIST:
-            change_window_size(
-                driver,
-                panel_config["DATA"]["JMA"]["URL"],
-                int(panel_config["PANEL"]["WIDTH"] / 2),
-                panel_config["PANEL"]["HEIGHT"],
-            )
             sub_img = fetch_cloud_image(
                 driver,
                 panel_config["DATA"]["JMA"]["URL"],
