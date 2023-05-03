@@ -77,7 +77,7 @@ if __name__ == "__main__":
     error(
         config["SLACK"]["BOT_TOKEN"],
         config["SLACK"]["ERROR"]["CHANNEL"],
-        "タイトル",
         "メッセージ",
+        "タイトル",
         config["SLACK"]["ERROR"]["INTERVAL_MIN"],
     )

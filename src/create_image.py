@@ -164,8 +164,8 @@ except:
         notify_slack.error(
             config["SLACK"]["BOT_TOKEN"],
             config["SLACK"]["ERROR"]["CHANNEL"],
-            "エラー",
             traceback.format_exc(),
+            "エラー",
             config["SLACK"]["ERROR"]["INTERVAL_MIN"],
         )
     print(traceback.format_exc(), file=sys.stderr)
