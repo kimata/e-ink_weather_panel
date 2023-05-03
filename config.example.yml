@@ -146,9 +146,10 @@ SENSOR:
       SIZE_SMALL: True
   ICON:
     LIGHT:
-      ON:
+      # NOTE: ON/OFF は「'」で囲わないと文字列以外に変換されてしまうので注意
+      'ON':
         PATH: ../img/light-on.png
-      OFF:
+      'OFF':
         PATH: ../img/light-off.png
 
 RAIN_CLOUD:
