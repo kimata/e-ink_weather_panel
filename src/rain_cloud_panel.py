@@ -13,6 +13,7 @@ import pathlib
 import numpy as np
 import textwrap
 import traceback
+import datetime
 import pickle
 from concurrent import futures
 
@@ -24,6 +25,7 @@ from pil_util import get_font, draw_text
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
 WINDOW_SIZE_CACHE = DATA_PATH / "window_size.cache"
+CACHE_EXPIRE_HOUR = 1
 
 CLOUD_IMAGE_XPATH = '//div[contains(@id, "jmatile_map_")]'
 
@@ -154,8 +156,15 @@ def change_window_size(driver, url, width, height):
     window_size_map = {}
     try:
         if pathlib.Path(WINDOW_SIZE_CACHE).exists():
-            with open(WINDOW_SIZE_CACHE, "rb") as f:
-                window_size_map = pickle.load(f)
+            if (
+                datetime.datetime.now()
+                - datetime.datetime.fromtimestamp(WINDOW_SIZE_CACHE.stat().st_mtime)
+            ).seconds < CACHE_EXPIRE_HOUR * 60 * 60:
+                with open(WINDOW_SIZE_CACHE, "rb") as f:
+                    window_size_map = pickle.load(f)
+            else:
+                # NOTE: キャッシュの有効期限切れ
+                WINDOW_SIZE_CACHE.unlink(missing_ok=True)
     except:
         pass
 
