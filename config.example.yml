@@ -20,10 +20,11 @@ INFLUXDB:
   BUCKET: sensor
 
 WALL:
-  - IMAGE: ../img/mascot.png
-    BRIGHTNESS: 3
-    OFFSET_X: 1550
-    OFFSET_Y: 580
+  IMAGE:
+    - PATH: ../img/mascot.png
+      BRIGHTNESS: 2
+      OFFSET_X: 1550
+      OFFSET_Y: 580
 
 TIME:
   PANEL:
@@ -38,10 +39,17 @@ WEATHER:
     YAHOO:
       URL: https://weather.yahoo.co.jp/weather/jp/13/4410/13113.html
   ICON:
-    THERMO: ../img/thermo.png
-    ARROW: ../img/arrow.png
-    PRECIP: ../img/precip.png
-    WIND: ../img/wind.png
+    ARROW:
+      PATH: ../img/arrow.png
+    THERMO:
+      PATH: ../img/thermo.png
+      BRIGHTNESS: 1.2
+    PRECIP:
+      PATH: ../img/precip.png
+      BRIGHTNESS: 1.2
+    WIND:
+      PATH: ../img/wind.png
+      BRIGHTNESS: 1.2
       
 POWER:
   PANEL:
@@ -138,8 +146,10 @@ SENSOR:
       SIZE_SMALL: True
   ICON:
     LIGHT:
-      'ON': ../img/light-on.png
-      'OFF': ../img/light-off.png
+      ON:
+        PATH: ../img/light-on.png
+      OFF:
+        PATH: ../img/light-off.png
 
 RAIN_CLOUD:
   PANEL:

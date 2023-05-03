@@ -65,3 +65,21 @@ def draw_text(
     )
 
     return (pos[0] + text_size(font, text)[0], pos[1] + text_size(font, text)[1])
+
+
+def load_image(img_config):
+    img = PIL.Image.open(
+        str(pathlib.Path(os.path.dirname(__file__), img_config["PATH"]))
+    )
+
+    if "RESIZE" in img_config:
+        img = img.resize(
+            (
+                int(img.size[0] * img_config["SCALE"]),
+                int(img.size[1] * img_config["SCALE"]),
+            )
+        )
+    if "BRIGHTNESS" in img_config:
+        img = PIL.ImageEnhance.Brightness(img).enhance(img_config["BRIGHTNESS"])
+
+    return img

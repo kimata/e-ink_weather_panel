@@ -18,7 +18,7 @@ import os
 import pathlib
 import logging
 
-from pil_util import get_font, text_size, draw_text
+from pil_util import get_font, text_size, draw_text, load_image
 from weather_data import get_weather_yahoo
 
 # NOTE: 天気アイコンの周りにアイコンサイズの何倍の空きを確保するか
@@ -485,13 +485,7 @@ def draw_panel_weather(img, config, weather_info):
 
     icon = {}
     for name in ["thermo", "precip", "wind", "arrow"]:
-        icon[name] = PIL.Image.open(
-            str(
-                pathlib.Path(
-                    os.path.dirname(__file__), panel_config["ICON"][name.upper()]
-                )
-            )
-        )
+        icon[name] = load_image(panel_config["ICON"][name.upper()])
 
     face_map = get_face_map(font_config)
 

@@ -4,14 +4,12 @@
 import sys
 import textwrap
 import PIL.Image
-import os
 import time
-import pathlib
 import logging
 from concurrent import futures
 import logger
 
-from pil_util import get_font, draw_text
+from pil_util import get_font, draw_text, load_image
 from weather_panel import create_weather_panel
 from power_graph import create_power_graph
 from sensor_graph import create_sensor_graph
@@ -28,26 +26,10 @@ def alpha_paste(img, paint_img, pos, overlay):
 
 
 def draw_wall(config, img, overlay):
-    for wall_config in config["WALL"]:
-        mascot = PIL.Image.open(
-            str(pathlib.Path(os.path.dirname(__file__), wall_config["IMAGE"]))
-        )
-
-        if "RESIZE" in wall_config:
-            mascot = mascot.resize(
-                (
-                    int(mascot.size[0] * wall_config["SCALE"]),
-                    int(mascot.size[1] * wall_config["SCALE"]),
-                )
-            )
-        if "BRIGHTNESS" in wall_config:
-            mascot = PIL.ImageEnhance.Brightness(mascot).enhance(
-                wall_config["BRIGHTNESS"]
-            )
-
+    for wall_config in config["WALL"]["IMAGE"]:
         alpha_paste(
             img,
-            mascot,
+            load_image(wall_config),
             (wall_config["OFFSET_X"], wall_config["OFFSET_Y"]),
             overlay,
         )

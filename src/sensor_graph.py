@@ -134,9 +134,9 @@ def draw_light_icon(config, ax, y):
     if lux == EMPTY_VALUE:
         return
     elif lux < 10:
-        icon_file = config["LIGHT"]["OFF"]
+        icon_file = config["LIGHT"]["OFF"]["PATH"]
     else:
-        icon_file = config["LIGHT"]["ON"]
+        icon_file = config["LIGHT"]["ON"]["PATH"]
 
     img = plt.imread(str(pathlib.Path(os.path.dirname(__file__), icon_file)))
 
