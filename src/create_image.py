@@ -137,6 +137,7 @@ try:
     draw_panel(config, img)
 except:
     import traceback
+    import notify_slack
 
     draw = PIL.ImageDraw.Draw(img)
     draw.rectangle(
@@ -160,6 +161,14 @@ except:
         get_font(config["FONT"], "EN_MEDIUM", 40),
         "left" "#333",
     )
+    if "SLACK" in config:
+        notify_slack.error(
+            config["SLACK"]["BOT_TOKEN"],
+            config["SLACK"]["ERROR"]["CHANNEL"],
+            "エラー",
+            traceback.format_exc(),
+            config["SLACK"]["ERROR"]["INTERVAL_MIN"],
+        )
     print(traceback.format_exc(), file=sys.stderr)
 
 conver_gray(img).save(sys.stdout.buffer, "PNG")

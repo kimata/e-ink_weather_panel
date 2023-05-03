@@ -1,3 +1,5 @@
 selenium
 webdriver-manager
 influxdb-client[ciso]
+slack_bolt
+
