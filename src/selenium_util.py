@@ -23,7 +23,7 @@ from webdriver_manager.core.utils import ChromeType
 from webdriver_manager.chrome import ChromeDriverManager
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
-DUMP_PATH = str(DATA_PATH / "debug")
+DUMP_PATH = DATA_PATH / "debug"
 
 WAIT_RETRY_COUNT = 1
 
@@ -33,7 +33,6 @@ def create_driver_impl(profile_name, data_path):
     log_path = data_path / "log"
 
     DATA_PATH.mkdir(parents=True, exist_ok=True)
-    DUMP_PATH.mkdir(parents=True, exist_ok=True)
 
     os.makedirs(chrome_data_path, exist_ok=True)
     os.makedirs(log_path, exist_ok=True)
@@ -135,9 +134,8 @@ def wait_patiently(driver, wait, target):
 
 def dump_page(driver, index, dump_path=DUMP_PATH):
     name = inspect.stack()[1].function.replace("<", "").replace(">", "")
-    dump_path = pathlib.Path(dump_path)
 
-    os.makedirs(str(dump_path), exist_ok=True)
+    dump_path.mkdir(parents=True, exist_ok=True)
 
     png_path = dump_path / (
         "{name}_{index:02d}.{ext}".format(name=name, index=index, ext="png")
@@ -155,7 +153,9 @@ def dump_page(driver, index, dump_path=DUMP_PATH):
 
 
 def clean_dump(dump_path=DUMP_PATH, keep_days=1):
-    dump_path = pathlib.Path(dump_path)
+    if not dump_path.exists():
+        return
+
     time_threshold = datetime.timedelta(keep_days)
 
     for item in dump_path.iterdir():
