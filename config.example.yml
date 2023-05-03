@@ -46,10 +46,10 @@ WEATHER:
       BRIGHTNESS: 1.2
     PRECIP:
       PATH: ../img/precip.png
-      BRIGHTNESS: 1.2
+      BRIGHTNESS: 1.3
     WIND:
       PATH: ../img/wind.png
-      BRIGHTNESS: 1.2
+      BRIGHTNESS: 1.3
       
 POWER:
   PANEL:
