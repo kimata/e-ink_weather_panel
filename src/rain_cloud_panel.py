@@ -19,7 +19,7 @@ from concurrent import futures
 import time
 import logging
 
-from webdriver import create_driver
+from selenium_util import create_driver
 from pil_util import get_font, draw_text
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
