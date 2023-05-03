@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import textwrap
 import PIL.Image
 import time
 import logging
 from concurrent import futures
 import logger
+import traceback
+import textwrap
+import notify_slack
 
 from pil_util import get_font, draw_text, load_image
 from weather_panel import create_weather_panel
@@ -136,9 +138,6 @@ img = PIL.Image.new(
 try:
     draw_panel(config, img)
 except:
-    import traceback
-    import notify_slack
-
     draw = PIL.ImageDraw.Draw(img)
     draw.rectangle(
         (0, 0, config["PANEL"]["DEVICE"]["WIDTH"], config["PANEL"]["DEVICE"]["HEIGHT"]),
