@@ -62,6 +62,7 @@ def error(token, channel, message, title="エラー", interval_min=10):
         return
 
     error_impl(token, channel, message, title)
+    ERROR_NOTIFY_FOOTPRINT.parent.mkdir(parents=True, exist_ok=True)
     ERROR_NOTIFY_FOOTPRINT.touch()
 
 

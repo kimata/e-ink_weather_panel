@@ -32,6 +32,9 @@ def create_driver_impl(profile_name, data_path):
     chrome_data_path = data_path / "chrome"
     log_path = data_path / "log"
 
+    DATA_PATH.mkdir(parents=True, exist_ok=True)
+    DUMP_PATH.mkdir(parents=True, exist_ok=True)
+
     os.makedirs(chrome_data_path, exist_ok=True)
     os.makedirs(log_path, exist_ok=True)
 
