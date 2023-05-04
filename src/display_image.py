@@ -9,10 +9,11 @@ import sys
 import os
 import logging
 import pathlib
+import traceback
 
 import logger
 from config import load_config
-
+import notify_slack
 
 CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
 
@@ -30,21 +31,7 @@ def ssh_connect(hostname, key_filename):
     return ssh
 
 
-logger.init("panel.e-ink.weather")
-
-rasp_hostname = os.environ.get(
-    "RASP_HOSTNAME", sys.argv[1] if len(sys.argv) != 1 else None
-)
-key_file_path = os.environ.get(
-    "SSH_KEY",
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/key/panel.id_rsa",
-)
-
-logging.info("Raspberry Pi hostname: %s" % (rasp_hostname))
-
-config = load_config()
-
-while True:
+def display_image(config):
     ssh = ssh_connect(rasp_hostname, key_file_path)
 
     ssh_stdin = ssh.exec_command(
@@ -78,3 +65,30 @@ while True:
     # NOTE: fbi コマンドのプロセスが残るので強制終了させる
     ssh.exec_command("sudo killall -9 fbi")
     ssh.close()
+
+
+logger.init("panel.e-ink.weather")
+
+rasp_hostname = os.environ.get(
+    "RASP_HOSTNAME", sys.argv[1] if len(sys.argv) != 1 else None
+)
+key_file_path = os.environ.get(
+    "SSH_KEY",
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/key/panel.id_rsa",
+)
+
+logging.info("Raspberry Pi hostname: %s" % (rasp_hostname))
+
+config = load_config()
+
+while True:
+    try:
+        display_image(config)
+    except:
+        notify_slack.error(
+            config["SLACK"]["BOT_TOKEN"],
+            config["SLACK"]["ERROR"]["CHANNEL"],
+            traceback.format_exc(),
+            config["SLACK"]["ERROR"]["INTERVAL_MIN"],
+        )
+        raise
