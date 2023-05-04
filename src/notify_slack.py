@@ -66,11 +66,13 @@ def error(token, channel, message, title="エラー", interval_min=10):
     ERROR_NOTIFY_FOOTPRINT.touch()
 
 
+logging.getLogger("urllib3").setLevel(level=logging.WARNING)
+
 if __name__ == "__main__":
     import logger
     from config import load_config
 
-    logger.init("test")
+    logger.init("test", level=logging.DEBUG)
     logging.info("Test")
 
     config = load_config()
