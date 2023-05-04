@@ -468,8 +468,10 @@ if __name__ == "__main__":
 
     config = load_config()
 
-    img = create_rain_cloud_panel(config)
+    result = create_rain_cloud_panel(config)
 
-    img.save("test_rain_cloud_panel.png", "PNG")
+    logging.info("elapsed time: {time:.3f} sec".format(time=result[1]))
+
+    result[0].save("test_rain_cloud_panel.png", "PNG")
 
     print("Finish.")
