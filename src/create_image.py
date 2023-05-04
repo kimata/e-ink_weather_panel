@@ -165,7 +165,6 @@ except:
             config["SLACK"]["BOT_TOKEN"],
             config["SLACK"]["ERROR"]["CHANNEL"],
             traceback.format_exc(),
-            "エラー",
             config["SLACK"]["ERROR"]["INTERVAL_MIN"],
         )
     print(traceback.format_exc(), file=sys.stderr)

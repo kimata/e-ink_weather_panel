@@ -56,9 +56,8 @@ def send(token, channel, title, message):
         logging.warning(e.response["error"])
 
 
-def info(
-    token, channel, message, title="Info", interval_min=10, formatter=format_simple
-):
+def info(token, channel, message, formatter=format_simple):
+    title = "Info"
     send(
         token,
         channel,
@@ -67,9 +66,9 @@ def info(
     )
 
 
-def error(
-    token, channel, message, title="エラー", interval_min=10, formatter=format_simple
-):
+def error(token, channel, message, interval_min=10, formatter=format_simple):
+    title = "Error"
+
     if (
         ERROR_NOTIFY_FOOTPRINT.exists()
         and (
@@ -92,16 +91,12 @@ def error(
     ERROR_NOTIFY_FOOTPRINT.touch()
 
 
-# NOTE: Slack SDK のロギングレベルは常に WARNING に固定する
-logging.getLogger(slack_sdk.web.base_client.__name__).setLevel(logging.WARNING)
-
-
 if __name__ == "__main__":
     import logger
     import sys
     from config import load_config
 
-    logger.init("test", level=logging.DEBUG)
+    logger.init("test", level=logging.WARNING)
     logging.info("Test")
 
     config = load_config()
@@ -113,7 +108,7 @@ if __name__ == "__main__":
         info(
             config["SLACK"]["BOT_TOKEN"],
             config["SLACK"]["INFO"]["CHANNEL"],
-            "メッセージ",
+            "メッセージ\nメッセージ",
         )
 
     if "ERROR" in config["SLACK"]:
@@ -121,6 +116,5 @@ if __name__ == "__main__":
             config["SLACK"]["BOT_TOKEN"],
             config["SLACK"]["ERROR"]["CHANNEL"],
             "エラーメッセージ",
-            "テスト",
             config["SLACK"]["ERROR"]["INTERVAL_MIN"],
         )
