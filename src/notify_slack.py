@@ -43,7 +43,7 @@ def format_simple(title, message):
     }
 
 
-def send(token, channel, title, message):
+def send(token, channel, message):
     client = slack_sdk.WebClient(token=token)
 
     try:
@@ -56,14 +56,21 @@ def send(token, channel, title, message):
         logging.warning(e.response["error"])
 
 
+def split_send(token, channel, title, message, formatter=format_simple):
+    LINE_SPLIT = 20
+
+    message_lines = message.splitlines()
+    for i in range(0, len(message_lines), LINE_SPLIT):
+        send(
+            token,
+            channel,
+            formatter(title, "\n".join(message_lines[i : i + LINE_SPLIT])),
+        )
+
+
 def info(token, channel, message, formatter=format_simple):
     title = "Info"
-    send(
-        token,
-        channel,
-        title,
-        formatter(title, message),
-    )
+    split_send(token, channel, title, message, formatter)
 
 
 def error(token, channel, message, interval_min=10, formatter=format_simple):
@@ -80,12 +87,7 @@ def error(token, channel, message, interval_min=10, formatter=format_simple):
         logging.info("skip slack nofity")
         return
 
-    send(
-        token,
-        channel,
-        title,
-        formatter(title, message),
-    )
+    split_send(token, channel, title, message, formatter)
 
     ERROR_NOTIFY_FOOTPRINT.parent.mkdir(parents=True, exist_ok=True)
     ERROR_NOTIFY_FOOTPRINT.touch()
