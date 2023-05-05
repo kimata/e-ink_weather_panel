@@ -277,11 +277,11 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face_map)
 
     icon_orig_height = icon["arrow"].size[1]
     if ROTATION_MAP[wind["dir"]] is not None:
-        arrow_icon = icon["arrow"].rotate(
+        arrow_icon = PIL.ImageEnhance.Brightness(icon["arrow"]).enhance(brightness)
+        arrow_icon = arrow_icon.rotate(
             ROTATION_MAP[wind["dir"]],
             resample=PIL.Image.BICUBIC,
         )
-        arrow_icon = PIL.ImageEnhance.Brightness(arrow_icon).enhance(brightness)
 
         canvas = overlay.copy()
         canvas.paste(
