@@ -123,7 +123,7 @@ def conver_gray(img):
 
 
 ######################################################################
-logger.init("panel.e-ink.weather")
+logger.init("panel.e-ink.weather", level=logging.INFO)
 
 logging.info("start to create image")
 
