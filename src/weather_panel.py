@@ -222,11 +222,17 @@ def draw_precip(img, precip, is_first, pos_x, pos_y, precip_icon, face_map):
     if precip == 0:
         color = "#eee"
         underline = False
-    elif precip < 3:
+    elif precip == 1:
         color = "#ddd"
+        underline = False
+    elif precip == 2:
+        color = "#bbb"
         underline = False
     elif precip < 10:
         color = "#666"
+        underline = False
+    elif precip < 20:
+        color = "#333"
         underline = False
     else:
         color = "#000"
@@ -257,7 +263,7 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face_map)
         color = "#ddd"
         brightness = 7.5
     elif wind["speed"] == 2:
-        color = "#ccc"
+        color = "#bbb"
         brightness = 6.5
     elif wind["speed"] == 3:
         color = "#999"
