@@ -13,7 +13,7 @@ import traceback
 import textwrap
 import notify_slack
 
-from pil_util import get_font, draw_text, load_image, alpha_paste
+from pil_util import get_font, draw_text, load_image, alpha_paste, convert_to_gray
 from weather_panel import create_weather_panel
 from power_graph import create_power_graph
 from sensor_graph import create_sensor_graph
@@ -101,14 +101,6 @@ def draw_panel(config, img):
     )
 
 
-def conver_gray(img):
-    img = img.convert("RGB")
-    img = img.point(([int(pow(x / 255.0, 2.2) * 255) for x in range(256)] * 3))
-    img = img.convert("L")
-    img = img.point([int(pow(x / 255.0, 1.0 / 2.2) * 255) for x in range(256)])
-    return img
-
-
 ######################################################################
 logger.init("panel.e-ink.weather", level=logging.INFO)
 
@@ -156,6 +148,6 @@ except:
         )
     print(traceback.format_exc(), file=sys.stderr)
 
-conver_gray(img).save(sys.stdout.buffer, "PNG")
+convert_to_gray(img).save(sys.stdout.buffer, "PNG")
 
 exit(0)

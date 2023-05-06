@@ -21,7 +21,7 @@ import time
 import logging
 
 from selenium_util import create_driver
-from pil_util import get_font, draw_text, text_size, alpha_paste
+from pil_util import get_font, draw_text, text_size, alpha_paste, convert_to_gray
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
 WINDOW_SIZE_CACHE = DATA_PATH / "window_size.cache"
@@ -53,6 +53,7 @@ def get_face_map(font_config):
     return {
         "title": get_font(font_config, "JP_MEDIUM", 50),
         "legend": get_font(font_config, "EN_MEDIUM", 30),
+        "legend_unit": get_font(font_config, "EN_MEDIUM", 18),
     }
 
 
@@ -415,8 +416,8 @@ def draw_legend(img, bar, panel_config, face_map):
 
     text_height = int(text_size(face_map["legend"], "0")[1] * TEXT_MARGIN)
     unit = "mm/h"
-    unit_width = text_size(face_map["legend"], unit)[0]
-    unit_overlap = text_size(face_map["legend"], unit[0])[0]
+    unit_width, unit_height = text_size(face_map["legend_unit"], unit)
+    unit_overlap = text_size(face_map["legend_unit"], unit[0])[0]
     legend = PIL.Image.new(
         "RGBA",
         (
@@ -437,20 +438,24 @@ def draw_legend(img, bar, panel_config, face_map):
         if "value" in RAINFALL_INTENSITY_LEVEL[i]:
             text = str(RAINFALL_INTENSITY_LEVEL[i]["value"])
             pos_x = PADDING + bar_size * (i + 1)
+            pos_y = PADDING
             align = "center"
+            font = face_map["legend"]
         else:
             text = "mm/h"
             pos_x = PADDING + bar_size * (i + 1) - unit_overlap
+            pos_y = PADDING + text_size(face_map["legend"], "0")[1] - unit_height
             align = "left"
+            font = face_map["legend_unit"]
 
         draw_text(
             legend,
             text,
             (
                 pos_x,
-                bar_size - text_height,
+                pos_y,
             ),
-            face_map["legend"],
+            font,
             align,
             "#666",
         )

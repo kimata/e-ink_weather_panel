@@ -93,3 +93,11 @@ def alpha_paste(img, paint_img, pos):
     )
     canvas.paste(paint_img, pos)
     img.alpha_composite(canvas, (0, 0))
+
+
+def convert_to_gray(img):
+    img = img.convert("RGB")
+    img = img.point(([int(pow(x / 255.0, 2.2) * 255) for x in range(256)] * 3))
+    img = img.convert("L")
+    img = img.point([int(pow(x / 255.0, 1.0 / 2.2) * 255) for x in range(256)])
+    return img
