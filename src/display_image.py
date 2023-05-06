@@ -67,7 +67,7 @@ def display_image(config):
     ssh.close()
 
 
-logger.init("panel.e-ink.weather")
+logger.init("panel.e-ink.weather", level=logging.INFO)
 
 rasp_hostname = os.environ.get(
     "RASP_HOSTNAME", sys.argv[1] if len(sys.argv) != 1 else None
