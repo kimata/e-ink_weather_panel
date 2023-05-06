@@ -95,7 +95,7 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, face_map):
         transform=ax.transAxes,
         horizontalalignment="right",
         color="#000000",
-        alpha=1.0,
+        alpha=0.8,
         fontproperties=face_map["value"],
     )
 
@@ -106,7 +106,7 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, face_map):
         transform=ax.transAxes,
         horizontalalignment="right",
         color="#000000",
-        alpha=1.0,
+        alpha=0.8,
         fontproperties=face_map["value_unit"],
     )
 
