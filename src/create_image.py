@@ -57,7 +57,7 @@ def draw_panel(config, img):
 
     # NOTE: 並列処理 (matplotlib はマルチスレッド対応していないので，マルチプロセス処理する)
     start = time.perf_counter()
-    pool = multiprocessing.Pool(processes=10)
+    pool = multiprocessing.Pool(processes=len(panel_list))
     for panel in panel_list:
         panel["task"] = pool.apply_async(panel["func"], (config,))
     pool.close()
