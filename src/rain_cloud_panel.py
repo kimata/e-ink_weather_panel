@@ -21,7 +21,7 @@ import time
 import logging
 
 from selenium_util import create_driver
-from pil_util import get_font, draw_text
+from pil_util import get_font, draw_text, text_size, alpha_paste
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
 WINDOW_SIZE_CACHE = DATA_PATH / "window_size.cache"
@@ -29,10 +29,30 @@ CACHE_EXPIRE_HOUR = 1
 
 CLOUD_IMAGE_XPATH = '//div[contains(@id, "jmatile_map_")]'
 
+RAINFALL_INTENSITY_LEVEL = [
+    # NOTE: 白
+    {"func": lambda h, s: (160 < h) & (h < 180) & (s < 20), "value": 1},
+    # NOTE: 薄水色
+    {"func": lambda h, s: (140 < h) & (h < 150) & (90 < s) & (s < 100), "value": 5},
+    # NOTE: 水色
+    {"func": lambda h, s: (145 < h) & (h < 155) & (210 < s) & (s < 230), "value": 10},
+    # NOTE: 青色
+    {"func": lambda h, s: (155 < h) & (h < 165) & (230 < s), "value": 20},
+    # NOTE: 黄色
+    {"func": lambda h, s: (35 < h) & (h < 45), "value": 30},
+    # NOTE: 橙色
+    {"func": lambda h, s: (20 < h) & (h < 30), "value": 50},
+    # NOTE: 赤色
+    {"func": lambda h, s: (0 < h) & (h < 8), "value": 80},
+    # NOTE: 紫色
+    {"func": lambda h, s: (225 < h) & (h < 235) & (240 < s)},
+]
+
 
 def get_face_map(font_config):
     return {
         "title": get_font(font_config, "JP_MEDIUM", 50),
+        "legend": get_font(font_config, "EN_MEDIUM", 30),
     }
 
 
@@ -224,46 +244,37 @@ def fetch_cloud_image(driver, url, width, height, is_future=False):
 def retouch_cloud_image(png_data):
     logging.info("retouch image")
 
-    RAINFALL_INTENSITY_LEVEL = [
-        # NOTE: 白
-        {"func": lambda h, s: (160 < h) & (h < 180) & (s < 20)},
-        # NOTE: 薄水色
-        {"func": lambda h, s: (140 < h) & (h < 150) & (90 < s) & (s < 100)},
-        # NOTE: 水色
-        {"func": lambda h, s: (145 < h) & (h < 155) & (210 < s) & (s < 230)},
-        # NOTE: 青色
-        {"func": lambda h, s: (155 < h) & (h < 165) & (230 < s)},
-        # NOTE: 黄色
-        {"func": lambda h, s: (35 < h) & (h < 45)},
-        # NOTE: 橙色
-        {"func": lambda h, s: (20 < h) & (h < 30)},
-        # NOTE: 赤色
-        {"func": lambda h, s: (0 < h) & (h < 8)},
-        # NOTE: 紫色
-        {"func": lambda h, s: (225 < h) & (h < 235) & (240 < s)},
-    ]
-
     img_rgb = cv2.imdecode(
         np.asarray(bytearray(png_data), dtype=np.uint8), cv2.IMREAD_COLOR
     )
 
     img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2HSV_FULL).astype(np.float32)
+    bar = np.zeros((1, len(RAINFALL_INTENSITY_LEVEL), 3))
     h, s, v = cv2.split(img_hsv)
 
     # NOTE: 降雨強度の色をグレースケール用に変換
     for i, level in enumerate(RAINFALL_INTENSITY_LEVEL):
         img_hsv[level["func"](h, s), 0] = 0
         img_hsv[level["func"](h, s), 1] = 80
-        img_hsv[level["func"](h, s), 2] = 256 / 16 * (16 - i * 2)
+        img_hsv[level["func"](h, s), 2] = 255 / 16 * (16 - i * 2)
+        bar[0][i] = (0, 80, 255 / 16 * (16 - i * 2))
 
     # NOTE: 白地図の色をやや明るめにする
     img_hsv[s < 30, 2] = np.clip(pow(v[(s < 30)], 1.35) * 0.3, 0, 255)
 
-    return PIL.Image.fromarray(
-        cv2.cvtColor(
-            cv2.cvtColor(img_hsv.astype(np.uint8), cv2.COLOR_HSV2RGB_FULL),
-            cv2.COLOR_RGB2RGBA,
-        )
+    return (
+        PIL.Image.fromarray(
+            cv2.cvtColor(
+                cv2.cvtColor(img_hsv.astype(np.uint8), cv2.COLOR_HSV2RGB_FULL),
+                cv2.COLOR_RGB2RGBA,
+            )
+        ),
+        PIL.Image.fromarray(
+            cv2.cvtColor(
+                cv2.cvtColor(bar.astype(np.uint8), cv2.COLOR_HSV2RGB_FULL),
+                cv2.COLOR_RGB2RGBA,
+            )
+        ),
     )
 
 
@@ -281,7 +292,7 @@ def draw_equidistant_circle(img):
         width=5,
     )
     # 5km
-    size = 327
+    size = 328
     draw.ellipse(
         (x - size / 2, y - size / 2, x + size / 2, y + size / 2),
         outline=(255, 255, 255),
@@ -297,9 +308,9 @@ def draw_equidistant_circle(img):
     return img
 
 
-def draw_caption(img, title, face):
+def draw_caption(img, title, face_map):
     logging.info("draw caption")
-    size = face["title"].getsize(title)
+    size = face_map["title"].getsize(title)
     x = 12
     y = 12
     padding = 10
@@ -332,7 +343,7 @@ def draw_caption(img, title, face):
         img,
         title,
         (10, 20),
-        face["title"],
+        face_map["title"],
         "left",
         color="#000",
     )
@@ -367,9 +378,79 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map):
 
     driver.quit()
 
-    img = retouch_cloud_image(img)
+    img, bar = retouch_cloud_image(img)
+
+    img.save("9.png", "PNG")
+    bar.save("L.png", "PNG")
+
     img = draw_equidistant_circle(img)
     img = draw_caption(img, sub_panel_config["title"], face_map)
+
+    return (img, bar)
+
+
+def draw_legend(img, bar, panel_config, face_map):
+    PADDING = 20
+    TEXT_MARGIN = 1.2
+
+    bar_size = panel_config["LEGEND"]["BAR_SIZE"]
+    bar = bar.resize(
+        (
+            bar.size[0] * bar_size,
+            bar.size[1] * bar_size,
+        ),
+        PIL.Image.NEAREST,
+    )
+    draw = PIL.ImageDraw.Draw(bar)
+    for i in range(len(RAINFALL_INTENSITY_LEVEL)):
+        draw.rectangle(
+            (
+                bar_size * i,
+                0,
+                bar_size * (i + 1) - 1,
+                bar_size,
+            ),
+            outline=(20, 20, 20),
+        )
+
+    text_height = int(text_size(face_map["legend"], "0")[1] * TEXT_MARGIN)
+    legend = PIL.Image.new(
+        "RGBA",
+        (
+            bar.size[0] + PADDING * 2,
+            bar.size[1] + PADDING * 2 + text_height,
+        ),
+        (255, 255, 255, 0),
+    )
+    draw = PIL.ImageDraw.Draw(legend)
+    draw.rounded_rectangle(
+        (0, 0, legend.size[0], legend.size[1]),
+        radius=20,
+        fill=(255, 255, 255, 200),
+    )
+
+    legend.paste(bar, (PADDING, PADDING + text_height))
+    for i in range(len(RAINFALL_INTENSITY_LEVEL)):
+        if "value" in RAINFALL_INTENSITY_LEVEL[i]:
+            draw_text(
+                legend,
+                str(RAINFALL_INTENSITY_LEVEL[i]["value"]),
+                (
+                    PADDING + bar_size * (i + 1),
+                    bar_size - text_height,
+                ),
+                face_map["legend"],
+                "center",
+                "#666",
+            )
+
+    # RAINFALL_INTENSITY_LEVEL = [
+
+    alpha_paste(
+        img,
+        legend,
+        (panel_config["LEGEND"]["OFFSET_X"], panel_config["LEGEND"]["OFFSET_Y"] - 100),
+    )
 
     return img
 
@@ -394,14 +475,6 @@ def create_rain_cloud_panel_impl(config):
     )
     face_map = get_face_map(font_config)
 
-    # driver = create_driver()
-    # change_window_size(
-    #     driver,
-    #     panel_config["DATA"]["JMA"]["URL"],
-    #     int(panel_config["PANEL"]["WIDTH"] / 2),
-    #     panel_config["PANEL"]["HEIGHT"],
-    # )
-
     task_list = []
     # NOTE: 並列に生成する
     with futures.ThreadPoolExecutor() as executor:
@@ -412,12 +485,13 @@ def create_rain_cloud_panel_impl(config):
                 )
             )
 
-    # driver.quit()
-
     for i, sub_panel_config in enumerate(SUB_PANEL_CONFIG_LIST):
-        img.paste(task_list[i].result(), (sub_panel_config["offset_x"], 0))
+        sub_img, bar = task_list[i].result()
+        img.paste(sub_img, (sub_panel_config["offset_x"], 0))
 
-    return img.convert("L")
+    img = draw_legend(img, bar, panel_config, face_map)
+
+    return img
 
 
 def error_image(config, error_text):

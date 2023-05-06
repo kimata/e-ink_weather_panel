@@ -13,7 +13,7 @@ import traceback
 import textwrap
 import notify_slack
 
-from pil_util import get_font, draw_text, load_image
+from pil_util import get_font, draw_text, load_image, alpha_paste
 from weather_panel import create_weather_panel
 from power_graph import create_power_graph
 from sensor_graph import create_sensor_graph
@@ -23,28 +23,16 @@ from time_panel import create_time_panel
 from config import load_config
 
 
-def alpha_paste(img, paint_img, pos, overlay):
-    canvas = overlay.copy()
-    canvas.paste(paint_img, pos)
-    img.alpha_composite(canvas, (0, 0))
-
-
-def draw_wall(config, img, overlay):
+def draw_wall(config, img):
     for wall_config in config["WALL"]["IMAGE"]:
         alpha_paste(
             img,
             load_image(wall_config),
             (wall_config["OFFSET_X"], wall_config["OFFSET_Y"]),
-            overlay,
         )
 
 
 def draw_panel(config, img):
-    overlay = PIL.Image.new(
-        "RGBA",
-        (config["PANEL"]["DEVICE"]["WIDTH"], config["PANEL"]["DEVICE"]["HEIGHT"]),
-        (255, 255, 255, 0),
-    )
     panel_list = [
         {"name": "rain_cloud", "func": create_rain_cloud_panel},
         {"name": "sensor", "func": create_sensor_graph},
@@ -75,7 +63,7 @@ def draw_panel(config, img):
         "total elapsed time: {time:.3f} sec".format(time=time.perf_counter() - start)
     )
 
-    draw_wall(config, img, overlay)
+    draw_wall(config, img)
 
     alpha_paste(
         img,
@@ -84,7 +72,6 @@ def draw_panel(config, img):
             0,
             config["WEATHER"]["PANEL"]["HEIGHT"] - config["POWER"]["PANEL"]["OVERLAP"],
         ),
-        overlay,
     )
 
     img.alpha_composite(panel_map["weather"], (0, 0))
@@ -98,7 +85,6 @@ def draw_panel(config, img):
             - config["POWER"]["PANEL"]["OVERLAP"]
             - config["SENSOR"]["PANEL"]["OVERLAP"],
         ),
-        overlay,
     )
     alpha_paste(
         img,
@@ -107,13 +93,11 @@ def draw_panel(config, img):
             config["RAIN_CLOUD"]["PANEL"]["OFFSET_X"],
             config["RAIN_CLOUD"]["PANEL"]["OFFSET_Y"],
         ),
-        overlay,
     )
     alpha_paste(
         img,
         panel_map["time"],
         (0, 0),
-        overlay,
     )
 
 

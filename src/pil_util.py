@@ -83,3 +83,13 @@ def load_image(img_config):
         img = PIL.ImageEnhance.Brightness(img).enhance(img_config["BRIGHTNESS"])
 
     return img
+
+
+def alpha_paste(img, paint_img, pos):
+    canvas = PIL.Image.new(
+        "RGBA",
+        img.size,
+        (255, 255, 255, 0),
+    )
+    canvas.paste(paint_img, pos)
+    img.alpha_composite(canvas, (0, 0))
