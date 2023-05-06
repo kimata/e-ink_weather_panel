@@ -3,6 +3,7 @@
 import pathlib
 import os
 import datetime
+import time
 import io
 import matplotlib
 import PIL.Image
@@ -119,6 +120,7 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, face_map):
 
 def create_power_graph(config):
     logging.info("draw power graph")
+    start = time.perf_counter()
 
     db_config = config["INFLUXDB"]
     panel_config = config["POWER"]
@@ -160,4 +162,4 @@ def create_power_graph(config):
     buf = io.BytesIO()
     plt.savefig(buf, format="png", dpi=IMAGE_DPI, transparent=True)
 
-    return PIL.Image.open(buf)
+    return (PIL.Image.open(buf), time.perf_counter() - start)

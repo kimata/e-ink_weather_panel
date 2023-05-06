@@ -5,7 +5,9 @@ import sys
 import PIL.Image
 import time
 import logging
-from concurrent import futures
+
+# from concurrent import futures
+import multiprocessing
 import logger
 import traceback
 import textwrap
@@ -46,19 +48,23 @@ def draw_panel(config, img):
     panel_list = [
         {"name": "rain_cloud", "func": create_rain_cloud_panel},
         {"name": "sensor", "func": create_sensor_graph},
+        {"name": "power", "func": create_power_graph},
         {"name": "weather", "func": create_weather_panel},
         {"name": "time", "func": create_time_panel},
     ]
 
-    # NOTE: マルチスレッド処理
-    start = time.perf_counter()
-    with futures.ThreadPoolExecutor() as executor:
-        for panel in panel_list:
-            panel["task"] = executor.submit(panel["func"], config)
-
     panel_map = {}
+
+    # NOTE: 並列処理 (matplotlib はマルチスレッド対応していないので，マルチプロセス処理する)
+    start = time.perf_counter()
+    pool = multiprocessing.Pool(processes=10)
     for panel in panel_list:
-        result = panel["task"].result()
+        panel["task"] = pool.apply_async(panel["func"], (config,))
+    pool.close()
+    pool.join()
+
+    for panel in panel_list:
+        result = panel["task"].get()
         panel_map[panel["name"]] = result[0]
         logging.info(
             "elapsed time: {name} panel = {time:.3f} sec".format(
@@ -68,9 +74,6 @@ def draw_panel(config, img):
     logging.info(
         "total elapsed time: {time:.3f} sec".format(time=time.perf_counter() - start)
     )
-
-    # NOTE: matplotlib はスレッドセーフではないので，別スレッドで処理しない
-    panel_map["power"] = create_power_graph(config)
 
     draw_wall(config, img, overlay)
 
