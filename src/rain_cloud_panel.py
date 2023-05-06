@@ -324,17 +324,17 @@ def draw_caption(img, title, face_map):
             x - padding,
             y - padding,
             x + size[0] + padding - radius,
-            y + size[1] + padding,
+            y + size[1] + padding / 2,
         ),
         fill=(255, 255, 255, alpha),
     )
     draw.rectangle(
-        (x - padding, y - padding, x + size[0] + padding, y + padding),
+        (x - padding, y - padding, x + size[0] + padding, y + padding / 2),
         fill=(255, 255, 255, alpha),
     )
 
     draw.rounded_rectangle(
-        (x - padding, y - padding, x + size[0] + padding, y + size[1] + padding),
+        (x - padding, y - padding, x + size[0] + padding, y + size[1] + padding / 2),
         fill=(255, 255, 255, alpha),
         radius=radius,
     )
@@ -405,10 +405,10 @@ def draw_legend(img, bar, panel_config, face_map):
     for i in range(len(RAINFALL_INTENSITY_LEVEL)):
         draw.rectangle(
             (
-                bar_size * i,
+                max(bar_size * i - 1, 0),
                 0,
                 bar_size * (i + 1) - 1,
-                bar_size,
+                bar_size - 1,
             ),
             outline=(20, 20, 20),
         )
@@ -441,7 +441,7 @@ def draw_legend(img, bar, panel_config, face_map):
                 ),
                 face_map["legend"],
                 "center",
-                "#666",
+                "#999",
             )
 
     # RAINFALL_INTENSITY_LEVEL = [
