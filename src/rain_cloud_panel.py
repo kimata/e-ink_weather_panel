@@ -414,10 +414,13 @@ def draw_legend(img, bar, panel_config, face_map):
         )
 
     text_height = int(text_size(face_map["legend"], "0")[1] * TEXT_MARGIN)
+    unit = "mm/h"
+    unit_width = text_size(face_map["legend"], unit)[0]
+    unit_overlap = text_size(face_map["legend"], unit[0])[0]
     legend = PIL.Image.new(
         "RGBA",
         (
-            bar.size[0] + PADDING * 2,
+            bar.size[0] + PADDING * 2 + unit_width - unit_overlap,
             bar.size[1] + PADDING * 2 + text_height,
         ),
         (255, 255, 255, 0),
@@ -432,19 +435,25 @@ def draw_legend(img, bar, panel_config, face_map):
     legend.paste(bar, (PADDING, PADDING + text_height))
     for i in range(len(RAINFALL_INTENSITY_LEVEL)):
         if "value" in RAINFALL_INTENSITY_LEVEL[i]:
-            draw_text(
-                legend,
-                str(RAINFALL_INTENSITY_LEVEL[i]["value"]),
-                (
-                    PADDING + bar_size * (i + 1),
-                    bar_size - text_height,
-                ),
-                face_map["legend"],
-                "center",
-                "#999",
-            )
+            text = str(RAINFALL_INTENSITY_LEVEL[i]["value"])
+            pos_x = PADDING + bar_size * (i + 1)
+            align = "center"
+        else:
+            text = "mm/h"
+            pos_x = PADDING + bar_size * (i + 1) - unit_overlap
+            align = "left"
 
-    # RAINFALL_INTENSITY_LEVEL = [
+        draw_text(
+            legend,
+            text,
+            (
+                pos_x,
+                bar_size - text_height,
+            ),
+            face_map["legend"],
+            align,
+            "#666",
+        )
 
     alpha_paste(
         img,
