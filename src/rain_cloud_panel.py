@@ -265,9 +265,7 @@ def retouch_cloud_image(png_data):
 
     # NOTE: 降雨強度の色をグレースケール用に変換
     for i, level in enumerate(RAINFALL_INTENSITY_LEVEL):
-        img_hsv[level["func"](h, s), 0] = 0
-        img_hsv[level["func"](h, s), 1] = 80
-        img_hsv[level["func"](h, s), 2] = 255 / 16 * (16 - i * 2)
+        img_hsv[level["func"](h, s)] = (0, 80, 255 / 16 * (16 - i * 2))
         bar[0][i] = (0, 80, 255 / 16 * (16 - i * 2))
 
     # NOTE: 白地図の色をやや明るめにする
@@ -390,10 +388,6 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map):
     driver.quit()
 
     img, bar = retouch_cloud_image(img)
-
-    img.save("9.png", "PNG")
-    bar.save("L.png", "PNG")
-
     img = draw_equidistant_circle(img)
     img = draw_caption(img, sub_panel_config["title"], face_map)
 
