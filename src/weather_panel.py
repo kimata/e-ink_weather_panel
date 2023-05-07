@@ -223,7 +223,7 @@ def draw_text_info(
     return next_pos_y
 
 
-def draw_temp(img, temp, is_first, pos_x, pos_y, icon, face, underline):
+def draw_temp(img, temp, is_first, pos_x, pos_y, icon, face):
     return draw_text_info(
         img,
         temp,
@@ -233,7 +233,7 @@ def draw_temp(img, temp, is_first, pos_x, pos_y, icon, face, underline):
         pos_y,
         icon,
         face,
-        underline=underline,
+        underline=temp >= 30 or temp <= 5,
         margin_top_ratio=0.1,
     )
 
@@ -401,7 +401,6 @@ def draw_weather_info(
         next_pos_y,
         icon["thermo"],
         face_map["temp"],
-        info["temp"] >= 30 or info["temp"] < 5,
     )
     next_pos_y = draw_precip(
         img,
@@ -432,7 +431,6 @@ def draw_weather_info(
         next_pos_y,
         icon["clothes"],
         face_map["temp_sens"],
-        temp_sens >= 280 or temp_sens < 5,
     )
 
     return pos_x + (next_pos_x - pos_x) * 1.0
