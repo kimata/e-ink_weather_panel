@@ -57,13 +57,34 @@ def get_face_map(font_config):
     }
 
 
-def shape_cloud_display(driver, parts_list, width, height, is_future):
+def hide_label_and_icon(driver):
+    PARTS_LIST = [
+        {"class": "jmatile-map-title", "mode": "none"},
+        {"class": "leaflet-bar", "mode": "none"},
+        {"class": "leaflet-control-attribution", "mode": "none"},
+        {"class": "leaflet-control-scale-line", "mode": "none"},
+    ]
     SCRIPT_CHANGE_DISPAY = """
 var elements = document.getElementsByClassName("{class_name}")
     for (i = 0; i < elements.length; i++) {{
         elements[i].style.display="{mode}"
     }}
 """
+
+    wait = WebDriverWait(driver, 5)
+    for parts in PARTS_LIST:
+        wait.until(EC.presence_of_element_located((By.CLASS_NAME, parts["class"])))
+
+    for parts in PARTS_LIST:
+        driver.execute_script(
+            SCRIPT_CHANGE_DISPAY.format(
+                class_name=parts["class"],
+                mode=parts["mode"],
+            )
+        )
+
+
+def change_setting(driver):
     # driver.find_element(By.XPATH, '//a[contains(@aria-label, "地形を表示")]').click()
 
     driver.find_element(By.XPATH, '//a[contains(@aria-label, "色の濃さ")]').click()
@@ -72,13 +93,10 @@ var elements = document.getElementsByClassName("{class_name}")
     driver.find_element(By.XPATH, '//a[contains(@aria-label, "地図を切り替え")]').click()
     driver.find_element(By.XPATH, '//span[contains(text(), "地名なし")]').click()
 
-    for parts in parts_list:
-        driver.execute_script(
-            SCRIPT_CHANGE_DISPAY.format(
-                class_name=parts["class"],
-                mode=parts["mode"],
-            )
-        )
+
+def shape_cloud_display(driver, width, height, is_future):
+    change_setting(driver)
+    hide_label_and_icon(driver)
 
     if is_future:
         driver.find_element(
@@ -213,22 +231,14 @@ def change_window_size(driver, url, width, height):
 
 def fetch_cloud_image(driver, url, width, height, is_future=False):
     logging.info("fetch cloud image")
-    PARTS_LIST = [
-        {"class": "jmatile-map-title", "mode": "none"},
-        {"class": "leaflet-bar", "mode": "none"},
-        {"class": "leaflet-control-attribution", "mode": "none"},
-        {"class": "leaflet-control-scale-line", "mode": "none"},
-    ]
 
     wait = WebDriverWait(driver, 5)
 
     driver.get(url)
 
     wait.until(EC.presence_of_element_located((By.XPATH, CLOUD_IMAGE_XPATH)))
-    for parts in PARTS_LIST:
-        wait.until(EC.presence_of_element_located((By.CLASS_NAME, parts["class"])))
 
-    shape_cloud_display(driver, PARTS_LIST, width, height, is_future)
+    shape_cloud_display(driver, width, height, is_future)
 
     wait.until(
         lambda driver: driver.execute_script("return document.readyState") == "complete"
