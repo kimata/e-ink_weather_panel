@@ -39,8 +39,8 @@ def get_face_map(font_config):
         "title": get_plot_font(font_config, "JP_BOLD", 60),
         "value": get_plot_font(font_config, "EN_COND_BOLD", 80),
         "value_unit": get_plot_font(font_config, "JP_REGULAR", 18),
-        "axis_minor": get_plot_font(font_config, "JP_REGULAR", 30),
-        "axis_major": get_plot_font(font_config, "JP_REGULAR", 40),
+        "axis_minor": get_plot_font(font_config, "JP_REGULAR", 26),
+        "axis_major": get_plot_font(font_config, "JP_REGULAR", 32),
     }
 
 
@@ -75,7 +75,7 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, face_map):
         text = fmt.format(next((item for item in reversed(y) if item), None))
 
     ax.xaxis.set_minor_locator(mdates.HourLocator(byhour=range(0, 24, 6)))
-    ax.xaxis.set_minor_formatter(mdates.DateFormatter("\n%-H"))
+    ax.xaxis.set_minor_formatter(mdates.DateFormatter("%-H"))
     ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%-d日"))
 

@@ -53,13 +53,17 @@ def get_face_map(font_config):
         "date": {
             "month": get_font(font_config, "EN_COND_BOLD", 60),
             "day": get_font(font_config, "EN_BOLD", 160),
-            "wday": get_font(font_config, "JP_BOLD", 100),
+            "wday": get_font(font_config, "JP_BOLD", 80),
             "time": get_font(font_config, "EN_COND_BOLD", 40),
         },
         "hour": {
             "value": get_font(font_config, "EN_MEDIUM", 60),
         },
         "temp": {
+            "value": get_font(font_config, "EN_BOLD", 120),
+            "unit": get_font(font_config, "JP_REGULAR", 30),
+        },
+        "temp_sens": {
             "value": get_font(font_config, "EN_BOLD", 120),
             "unit": get_font(font_config, "JP_REGULAR", 30),
         },
@@ -70,7 +74,7 @@ def get_face_map(font_config):
         "wind": {
             "value": get_font(font_config, "EN_BOLD", 120),
             "unit": get_font(font_config, "JP_REGULAR", 30),
-            "dir": get_font(font_config, "JP_REGULAR", 42),
+            "dir": get_font(font_config, "JP_REGULAR", 30),
         },
         "weather": {
             "value": get_font(font_config, "JP_REGULAR", 30),
@@ -136,6 +140,15 @@ def get_image(weather_info):
     return PIL.Image.fromarray(img).convert("LA")
 
 
+def calc_misnar_formula(temp, humi, wind):
+    a = 1.76 + 1.4 * (wind ** 0.75)
+    return (
+        37
+        - (37 - temp) / (0.68 - 0.0014 * humi + 1 / a)
+        - 0.29 * temp * (1 - humi / 100)
+    )
+
+
 def draw_weather(img, weather, overlay, pos_x, pos_y, icon_margin, face_map):
     icon = get_image(weather)
 
@@ -157,15 +170,25 @@ def draw_weather(img, weather, overlay, pos_x, pos_y, icon_margin, face_map):
 
 
 def draw_text_info(
-    img, value, unit, is_first, pos_x, pos_y, icon, face, color="#000", underline=False
+    img,
+    value,
+    unit,
+    is_first,
+    pos_x,
+    pos_y,
+    icon,
+    face,
+    color="#000",
+    underline=False,
+    margin_top_ratio=0.3,
 ):
-    pos_y += text_size(face["value"], "0")[1] * 0.4  # NOTE: 上にマージンを設ける
+    pos_y += text_size(face["value"], "0")[1] * margin_top_ratio
 
     if is_first:
         img.paste(
             icon,
             (
-                int(pos_x - icon.size[0] - text_size(face["value"], "0")[0] * 0.3),
+                int(pos_x - icon.size[0] / 2 - text_size(face["value"], "0")[0]),
                 int(pos_y + (text_size(face["value"], "0")[1] - icon.size[1]) / 2.0),
             ),
         )
@@ -199,12 +222,7 @@ def draw_text_info(
     return next_pos_y
 
 
-def draw_temp(img, temp, is_first, pos_x, pos_y, thermo_icon, face_map):
-    if temp >= 30 or temp < 5:
-        underline = True
-    else:
-        underline = False
-
+def draw_temp(img, temp, is_first, pos_x, pos_y, icon, face, underline):
     return draw_text_info(
         img,
         temp,
@@ -212,13 +230,14 @@ def draw_temp(img, temp, is_first, pos_x, pos_y, thermo_icon, face_map):
         is_first,
         pos_x,
         pos_y,
-        thermo_icon,
-        face_map["temp"],
+        icon,
+        face,
         underline=underline,
+        margin_top_ratio=0.1,
     )
 
 
-def draw_precip(img, precip, is_first, pos_x, pos_y, precip_icon, face_map):
+def draw_precip(img, precip, is_first, pos_x, pos_y, precip_icon, face):
     if precip == 0:
         color = "#eee"
         underline = False
@@ -246,14 +265,13 @@ def draw_precip(img, precip, is_first, pos_x, pos_y, precip_icon, face_map):
         pos_x,
         pos_y,
         precip_icon,
-        face_map["precip"],
+        face,
         color=color,
         underline=underline,
     )
 
 
-def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face_map):
-    face = face_map["wind"]
+def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face):
     pos_y += text_size(face["value"], "0")[1] * 0.2  # NOTE: 上にマージンを設ける
 
     if wind["speed"] == 0:
@@ -295,50 +313,37 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face_map)
 
     pos_y += icon_orig_height
 
-    value_pos_x = pos_x + text_size(face["value"], "10")[0]
-    unit_pos_y = (
-        pos_y + text_size(face["value"], "0")[1] - text_size(face["unit"], "m/s")[1]
-    )
-    unit_pos_x = value_pos_x + 5
-
-    if is_first:
-        img.paste(
-            icon["wind"],
-            (
-                int(pos_x - text_size(face["value"], "0")[0] * 1.5),
-                int(
-                    pos_y
-                    + (text_size(face["value"], "0")[1] - icon["wind"].size[1]) / 2.0
-                ),
-            ),
-        )
-
-    next_pos_y = draw_text(
+    next_pos_y = draw_text_info(
         img,
-        str(wind["speed"]),
-        [value_pos_x, pos_y],
-        face["value"],
-        "right",
-        color=color,
-    )[1]
-    draw_text(img, "m/s", [unit_pos_x, unit_pos_y], face["unit"], color=color)[0]
+        wind["speed"],
+        "m/s",
+        is_first,
+        pos_x,
+        pos_y,
+        icon["wind"],
+        face,
+        margin_top_ratio=0,
+    )
 
-    next_pos_y += text_size(
-        face["dir"],
-        "南",
-        need_padding_change=False,
-    )[1]
+    next_pos_y += (
+        text_size(
+            face["dir"],
+            "南",
+            need_padding_change=False,
+        )[1]
+        * 0.2
+    )
     next_pos_y = draw_text(
         img,
         wind["dir"],
-        [value_pos_x, next_pos_y],
+        [pos_x + text_size(face["value"], "10")[0], next_pos_y],
         face["dir"],
         "right",
         color=color,
         need_padding_change=False,
     )[1]
 
-    return next_pos_y + text_size(face["value"], "南")[1]
+    return next_pos_y
 
 
 def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
@@ -387,10 +392,23 @@ def draw_weather_info(
         face_map,
     )
     next_pos_y = draw_temp(
-        img, info["temp"], is_first, pos_x, next_pos_y, icon["thermo"], face_map
+        img,
+        info["temp"],
+        is_first,
+        pos_x,
+        next_pos_y,
+        icon["thermo"],
+        face_map["temp"],
+        info["temp"] >= 30 or info["temp"] < 5,
     )
     next_pos_y = draw_precip(
-        img, info["precip"], is_first, pos_x, next_pos_y, icon["precip"], face_map
+        img,
+        info["precip"],
+        is_first,
+        pos_x,
+        next_pos_y,
+        icon["precip"],
+        face_map["precip"],
     )
     next_pos_y = draw_wind(
         img,
@@ -401,7 +419,18 @@ def draw_weather_info(
         next_pos_x - pos_x,
         overlay,
         icon,
-        face_map,
+        face_map["wind"],
+    )
+    temp_sens = calc_misnar_formula(info["temp"], info["humi"], info["wind"]["speed"])
+    next_pos_y = draw_temp(
+        img,
+        int(temp_sens),
+        is_first,
+        pos_x,
+        next_pos_y,
+        icon["clothes"],
+        face_map["temp_sens"],
+        temp_sens >= 280 or temp_sens < 5,
     )
 
     return pos_x + (next_pos_x - pos_x) * 1.0
@@ -478,7 +507,7 @@ def draw_panel_weather_day(
         weather_day_info,
         is_today,
         next_pos_x + 50,
-        pos_y + 10,
+        pos_y + 5,
         overlay,
         icon,
         face_map,
@@ -490,7 +519,7 @@ def draw_panel_weather(img, config, weather_info):
     font_config = config["FONT"]
 
     icon = {}
-    for name in ["thermo", "precip", "wind", "arrow"]:
+    for name in ["thermo", "clothes", "precip", "wind", "arrow"]:
         icon[name] = load_image(panel_config["ICON"][name.upper()])
 
     face_map = get_face_map(font_config)
