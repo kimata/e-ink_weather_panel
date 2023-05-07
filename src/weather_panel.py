@@ -214,7 +214,7 @@ def draw_text_info(
                 value_pos_x,
                 next_pos_y + 15,
             ),
-            fill=(90, 90, 90),
+            fill=(30, 30, 30),
         )
 
     draw_text(img, unit, [unit_pos_x, unit_pos_y], face["unit"], color=color)[0]
