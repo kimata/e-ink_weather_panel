@@ -429,7 +429,7 @@ def draw_legend(img, bar, panel_config, face_map):
     draw = PIL.ImageDraw.Draw(legend)
     draw.rounded_rectangle(
         (0, 0, legend.size[0], legend.size[1]),
-        radius=20,
+        radius=8,
         fill=(255, 255, 255, 200),
     )
 
