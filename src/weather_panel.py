@@ -323,6 +323,7 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face):
         pos_y,
         icon["wind"],
         face,
+        color,
         margin_top_ratio=0,
     )
 
