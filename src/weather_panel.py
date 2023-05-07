@@ -306,7 +306,7 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face):
         canvas.paste(
             arrow_icon,
             (
-                int(pos_x + width / 2.0 - arrow_icon.size[0] / 2.0),
+                int(pos_x + text_size(face["value"], "10")[0] - arrow_icon.size[0]),
                 int(pos_y + (icon_orig_height - icon["arrow"].size[1]) / 2.0),
             ),
         )

@@ -59,10 +59,10 @@ def plot_item(ax, title, unit, data, ylabel, ylim, fmt, face_map):
         color="#CCCCCC",
         marker="o",
         markevery=[len(y) - 1],
-        markersize=5,
-        markerfacecolor="#666666",
+        markersize=8,
+        markerfacecolor="#999999",
         markeredgewidth=3,
-        markeredgecolor="#333333",
+        markeredgecolor="#666666",
         linewidth=3.0,
         linestyle="solid",
     )
