@@ -368,7 +368,7 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map):
     )
     # NOTE: 同時アクセスを避ける
     if sub_panel_config["is_future"]:
-        time.sleep(1)
+        time.sleep(2)
 
     driver = create_driver()
     change_window_size(
