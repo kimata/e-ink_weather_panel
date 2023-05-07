@@ -140,6 +140,7 @@ def get_image(weather_info):
     return PIL.Image.fromarray(img).convert("LA")
 
 
+# NOTE: 体感温度の計算 (Gregorczuk, 1972)
 def calc_misnar_formula(temp, humi, wind):
     a = 1.76 + 1.4 * (wind ** 0.75)
     return (
