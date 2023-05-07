@@ -44,6 +44,9 @@ WEATHER:
     THERMO:
       PATH: ../img/thermo.png
       BRIGHTNESS: 1.2
+    CLOTHES:
+      PATH: ../img/clothes.png
+      BRIGHTNESS: 1.2
     PRECIP:
       PATH: ../img/precip.png
       BRIGHTNESS: 1.3
