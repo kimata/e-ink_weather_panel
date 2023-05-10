@@ -15,6 +15,7 @@ import logger
 from config import load_config
 import notify_slack
 
+NOTIFY_THRESHOLD = 2
 CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
 
 
@@ -81,14 +82,21 @@ logging.info("Raspberry Pi hostname: %s" % (rasp_hostname))
 
 config = load_config()
 
+fail_count = 0
 while True:
     try:
         display_image(config)
+        fail_count = 0
     except:
-        notify_slack.error(
-            config["SLACK"]["BOT_TOKEN"],
-            config["SLACK"]["ERROR"]["CHANNEL"],
-            traceback.format_exc(),
-            config["SLACK"]["ERROR"]["INTERVAL_MIN"],
-        )
-        raise
+        fail_count += 1
+        if fail_count >= NOTIFY_THRESHOLD:
+            time.sleep(1)
+            pass
+        else:
+            notify_slack.error(
+                config["SLACK"]["BOT_TOKEN"],
+                config["SLACK"]["ERROR"]["CHANNEL"],
+                traceback.format_exc(),
+                config["SLACK"]["ERROR"]["INTERVAL_MIN"],
+            )
+            raise
