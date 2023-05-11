@@ -90,7 +90,7 @@ while True:
     except:
         fail_count += 1
         if fail_count >= NOTIFY_THRESHOLD:
-            time.sleep(1)
+            time.sleep(10)
             pass
         else:
             notify_slack.error(
