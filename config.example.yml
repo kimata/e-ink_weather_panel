@@ -2,12 +2,7 @@ LIVENESS:
   FILE: /dev/shm/healthz
 
 PANEL:
-  SERVER:
-    IP: 192.168.0.10
-    API_KEY: e7b98bfjdfldkfkd
-    API_SECRET: gfklgjdgskjfsgfdgsdhfgfgsfdgfsgsdffdsgfgsdg
   DEVICE:
-    UUID: 10003300-0007-0030-0003-000000000000
     WIDTH: 3200
     HEIGHT: 1800
   UPDATE:
@@ -15,8 +10,8 @@ PANEL:
 
 INFLUXDB:
   URL: http://proxy.green-rabbit.net:8086
-  TOKEN: fffjkjkgfklhjglkjiojtroijojhkljhklghklfjklhhlnklhnklfgnhklgnhgfdlhfgnhlkngdfnfnhgdkfnh==
   ORG: home
+  TOKEN: strBCB9segqccgxsR5Xe_9RnCqkBFYX9aOKvxVR4lr3iLEb7HXuGqsN40YU6DIb6TZm9bvKLW5OWQS7sB8AQbQ==
   BUCKET: sensor
 
 WALL:
@@ -172,13 +167,24 @@ RAIN_CLOUD:
 FONT:
   PATH: ../font/ # スクリプトのフォルダからの相対パス
   MAP:
-    JP_REGULAR: A-OTF-UDShinGoPr6N-Regular.otf
-    JP_MEDIUM: A-OTF-UDShinGoPr6N-Medium.otf
-    JP_BOLD: A-OTF-UDShinGoPr6N-Bold.otf
+    JP_REGULAR: migmix-1p-regular.ttf
+    JP_MEDIUM: migmix-1p-regular.ttf
+    JP_BOLD: migmix-1p-bold.ttf
 
-    EN_COND_BOLD: FuturaStd-CondensedBold.otf
-    EN_COND: FuturaStd-Condensed.otf
+    EN_COND_BOLD: Antonio-Bold.ttf
+    EN_COND: Antonio-Regular.ttf
     
-    EN_MEDIUM: FuturaStd-Medium.otf
-    EN_BOLD: FrutigerNeueLTW1G-Bold.otf
+    EN_MEDIUM: migmix-1p-regular.ttf
+    EN_BOLD: migmix-1p-bold.ttf
+
+    
+    # JP_REGULAR: A-OTF-UDShinGoPr6N-Regular.otf
+    # JP_MEDIUM: A-OTF-UDShinGoPr6N-Medium.otf
+    # JP_BOLD: A-OTF-UDShinGoPr6N-Bold.otf
+
+    # EN_COND_BOLD: FuturaStd-CondensedBold.otf
+    # EN_COND: FuturaStd-Condensed.otf
+    
+    # EN_MEDIUM: FuturaStd-Medium.otf
+    # EN_BOLD: FrutigerNeueLTW1G-Bold.otf
 

@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+電子ペーパ表示用の画像を生成します．
+
+Usage:
+  create_image.py [-f CONFIG]
+
+Options:
+  -f CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yml]
+"""
+
+from docopt import docopt
 
 import sys
 import PIL.Image
@@ -102,11 +113,13 @@ def draw_panel(config, img):
 
 
 ######################################################################
+args = docopt(__doc__)
+
 logger.init("panel.e-ink.weather", level=logging.INFO)
 
 logging.info("start to create image")
 
-config = load_config()
+config = load_config(args["-f"])
 
 img = PIL.Image.new(
     "RGBA",
@@ -114,6 +127,7 @@ img = PIL.Image.new(
     (255, 255, 255, 255),
 )
 
+status = 0
 try:
     draw_panel(config, img)
 except:
@@ -147,7 +161,8 @@ except:
             config["SLACK"]["ERROR"]["INTERVAL_MIN"],
         )
     print(traceback.format_exc(), file=sys.stderr)
+    status = -1
 
 convert_to_gray(img).save(sys.stdout.buffer, "PNG")
 
-exit(0)
+exit(status)
