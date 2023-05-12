@@ -4,20 +4,17 @@ stages:
   - test
   - build
 
-variables:
-  NAME: e-ink_weather_panel
-  
 # サンプル設定ファイルで，問題なく動くかチェック
-check-sample:
+test-sample:
   stage: test
     
   script:
-    - docker build . -t ${NAME}
-    - docker run -t ${NAME} src/create_image.py -f config.example.yaml > /dev/null
+    - docker build . -t ${CI_REGISTRY_IMAGE}
+    - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.example.yaml > /dev/null
 
 # 本番設定ファイルで，問題なく動くかチェック
-check-regular:
-  stage: test
+build-image:
+  stage: build
   image: ubuntu:22.04
 
   script:
@@ -27,6 +24,22 @@ check-regular:
     - mv panel_config/e-ink_weather.yaml config.yaml
     - rm -rf font
     - git clone http://gitlab.green-rabbit.net/kimata/font.git
-    - docker build . -t ${NAME}
-    - docker run -t ${NAME} src/create_image.py -f config.yaml > /dev/null
+    - docker build . -t ${CI_REGISTRY_IMAGE}
+    - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.yaml > /dev/null
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
