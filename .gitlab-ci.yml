@@ -25,4 +25,4 @@ check-regular:
     - mv panel_config/e-ink_weather.yaml config.yaml
     - find ./
     - docker build . -t e-ink_weather_panel
-    - docker run -t e-ink_weather_panel src/create_image.py -f config.yaml > /dev/null
+    - docker run -t e-ink_weather_panel src/create_image.py -f config.yaml
