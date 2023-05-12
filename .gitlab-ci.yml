@@ -20,7 +20,7 @@ check-regular:
 
   script:
     - apt update
-    - apt install -y docker git
+    - apt install -y docker.io git
     - docker build . -t e-ink_weather_panel
     - git clone http://gitlab.green-rabbit.net/kimata/panel_config.git
     - mv panel_config/e-ink_weather.yaml config.yaml
