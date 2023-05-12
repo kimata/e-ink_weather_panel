@@ -1,0 +1,24 @@
+image: docker:23.0
+
+stages:
+  - check-sample
+  - check-regular
+
+build:
+  # サンプル設定ファイルで，問題なく動くかチェック
+  stage: check-sample
+    
+  script:
+    - docker build . -t e-ink_weather_panel
+    - docker run -t e-ink_weather_panel src/create_image.py -f config.example.yaml > /dev/null
+
+  # サンプル設定ファイルで，問題なく動くかチェック
+  stage: check-regular
+    
+  script:
+    - docker build . -t e-ink_weather_panel
+    - git clone http://gitlab.green-rabbit.net/kimata/panel_config.git
+    - mv panel_config/e-ink_weather.yaml config.yaml
+    - docker run -t e-ink_weather_panel src/create_image.py -f config.yaml > /dev/null
+
+      
