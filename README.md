@@ -47,9 +47,9 @@ apt-get install -y fbi
 ## 設定
 
 ### 設定ファイルの編集
-`config.yml` に記述します．サンプルを `config.example.yml` として登録してありますので参考にしてください．
+`config.yaml` に記述します．サンプルを `config.example.yaml` として登録してありますので参考にしてください．
 
-Raspberry Pi のホスト名については，`docker-compose.yml` の RASP_HOSTNAME にて設定します．
+Raspberry Pi のホスト名については，`docker-compose.yaml` の RASP_HOSTNAME にて設定します．
 
 Influx DB からセンサー情報を取得する部分( `sensor_data.py` の `fetch_data` )はお手元の環境に合わせて修正が必要かもしれません．
 
