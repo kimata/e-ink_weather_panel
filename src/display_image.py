@@ -57,7 +57,8 @@ def display_image(config, args):
     proc.wait()
     ssh_stdin.close()
 
-    if proc.returncode != 0:
+    # NOTE: -24 は create_image.py の異常時の終了コードに合わせる．
+    if proc.returncode != 0 and proc.returncode != 222:
         logging.error(
             "Failed to create image. (code: {code})".format(code=proc.returncode)
         )

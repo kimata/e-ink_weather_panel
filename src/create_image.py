@@ -161,7 +161,9 @@ except:
             config["SLACK"]["ERROR"]["INTERVAL_MIN"],
         )
     print(traceback.format_exc(), file=sys.stderr)
-    status = -1
+    # NOTE: 使われてなさそうな値にしておく．
+    # display_image.py と合わせる必要あり．
+    status = 222
 
 convert_to_gray(img).save(sys.stdout.buffer, "PNG")
 
