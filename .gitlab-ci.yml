@@ -26,6 +26,7 @@ build-image:
     - git clone http://gitlab.green-rabbit.net/kimata/font.git
     - docker build . -t ${CI_REGISTRY_IMAGE}
     - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.yaml > /dev/null
+    - docker push ${CI_REGISTRY_IMAGE}
 
     
 
