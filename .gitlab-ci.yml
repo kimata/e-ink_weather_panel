@@ -3,15 +3,17 @@ image: docker:23.0
 stages:
   - test
   - build
-  
 
+variables:
+  NAME: e-ink_weather_panel
+  
 # サンプル設定ファイルで，問題なく動くかチェック
 check-sample:
   stage: test
     
   script:
-    - docker build . -t e-ink_weather_panel
-    - docker run -t e-ink_weather_panel src/create_image.py -f config.example.yaml > /dev/null
+    - docker build . -t ${NAME}
+    - docker run -t ${NAME} src/create_image.py -f config.example.yaml > /dev/null
 
 # 本番設定ファイルで，問題なく動くかチェック
 check-regular:
@@ -25,5 +27,6 @@ check-regular:
     - mv panel_config/e-ink_weather.yaml config.yaml
     - rm -rf font
     - git clone http://gitlab.green-rabbit.net/kimata/font.git
-    - docker build . -t e-ink_weather_panel
-    - docker run -t e-ink_weather_panel src/create_image.py -f config.yaml
+    - docker build . -t ${NAME}
+    - docker run -t ${NAME} src/create_image.py -f config.yaml > /dev/null
+
