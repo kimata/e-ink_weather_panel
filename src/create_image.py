@@ -7,7 +7,7 @@ Usage:
   create_image.py [-f CONFIG]
 
 Options:
-  -f CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yml]
+  -f CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
 """
 
 from docopt import docopt

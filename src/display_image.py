@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+電子ペーパ表示用の画像を表示します．
+
+Usage:
+  display_image.py [-f CONFIG]
+
+Options:
+  -f CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
+"""
+
+from docopt import docopt
 
 import paramiko
 import datetime
@@ -32,14 +43,16 @@ def ssh_connect(hostname, key_filename):
     return ssh
 
 
-def display_image(config):
+def display_image(config, args):
     ssh = ssh_connect(rasp_hostname, key_file_path)
 
     ssh_stdin = ssh.exec_command(
         "cat - > /dev/shm/display.png && sudo fbi -1 -T 1 -d /dev/fb0 --noverbose /dev/shm/display.png; echo $?"
     )[0]
 
-    proc = subprocess.Popen(["python3", CREATE_IMAGE], stdout=subprocess.PIPE)
+    proc = subprocess.Popen(
+        ["python3", CREATE_IMAGE, "-f", args["-f"]], stdout=subprocess.PIPE
+    )
     ssh_stdin.write(proc.communicate()[0])
     proc.wait()
     ssh_stdin.close()
@@ -68,6 +81,9 @@ def display_image(config):
     ssh.close()
 
 
+######################################################################
+args = docopt(__doc__)
+
 logger.init("panel.e-ink.weather", level=logging.INFO)
 
 rasp_hostname = os.environ.get(
@@ -80,12 +96,12 @@ key_file_path = os.environ.get(
 
 logging.info("Raspberry Pi hostname: %s" % (rasp_hostname))
 
-config = load_config()
+config = load_config(args["-f"])
 
 fail_count = 0
 while True:
     try:
-        display_image(config)
+        display_image(config, args)
         fail_count = 0
     except:
         fail_count += 1
