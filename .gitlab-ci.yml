@@ -22,6 +22,8 @@ build-image:
     - apt install -y docker.io git
     - git clone http://gitlab.green-rabbit.net/kimata/panel_config.git
     - mv panel_config/e-ink_weather.yaml config.yaml
+    - mkdir key
+    - mv panel_config/panel.id_rsa key
     - rm -rf font
     - git clone http://gitlab.green-rabbit.net/kimata/font.git
     - docker build . -t ${CI_REGISTRY_IMAGE}
