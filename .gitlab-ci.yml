@@ -41,7 +41,7 @@ deploy:
     # - kubectl config set-cluster gitlab --certificate-authority="${CA_CERT}"
     - kubectl config get-contexts
     - kubectl config use-context kimata/e-ink_weather_panel:pod-rollout 
-    - kubectl get pods -A
+    - kubectl --insecure-skip-tls-verify=true get pods -A
 
 
 
