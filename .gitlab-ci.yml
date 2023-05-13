@@ -9,7 +9,10 @@ before_script:
   - |
       for i in {0..30}
       do
-          docker info
+          if docker info > /dev/null 2>&1; then
+              break
+          fi
+          echo 'Waiting docker daemon...'
           sleep 2
       done
 
