@@ -5,9 +5,6 @@ stages:
   - build
   - deploy
 
-before_script:
-  - docker info
-
 # サンプル設定ファイルで，問題なく動くかチェック
 test-sample:
   stage: test
