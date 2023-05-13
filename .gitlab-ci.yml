@@ -6,7 +6,12 @@ stages:
   - deploy
 
 before_script:
-  - docker info
+  - |
+      for i in {0..30}
+      do
+          docker info
+          sleep 2
+      done
 
 # サンプル設定ファイルで，問題なく動くかチェック
 test-sample:
