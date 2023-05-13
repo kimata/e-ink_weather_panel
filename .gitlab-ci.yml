@@ -3,6 +3,7 @@ image: docker:23.0
 stages:
   - test
   - build
+  - deploy
 
 # サンプル設定ファイルで，問題なく動くかチェック
 test-sample:
@@ -30,7 +31,14 @@ build-image:
     - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.yaml > /dev/null
     - docker push ${CI_REGISTRY_IMAGE}
 
-    
+deploy:
+  stage: deploy
+  image:
+    name: bitnami/kubectl:latest
+    entrypoint: ['']
+  script:
+    - kubectl config get-contexts
+
 
 
 
