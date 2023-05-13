@@ -6,15 +6,16 @@ stages:
   - deploy
 
 before_script:
-  - |
-      for i in {0..30}
-      do
-          if docker info > /dev/null 2>&1; then
-              break
-          fi
-          echo 'Waiting docker daemon...'
-          sleep 2
-      done
+  - sleep 30
+  # - |
+      # for i in {1..30}
+      # do
+      #     if docker info > /dev/null 2>&1; then
+      #         break
+      #     fi
+      #     echo 'Waiting docker daemon...'
+      #     sleep 2
+      # done
 
 # サンプル設定ファイルで，問題なく動くかチェック
 test-sample:
