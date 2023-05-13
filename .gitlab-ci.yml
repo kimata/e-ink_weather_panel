@@ -40,8 +40,8 @@ deploy:
   variables:
     CA_CERTIFICATE: "$CA_CERTIFICATE"
   script:
-    - echo "$CA_CERTIFICATE" > /usr/local/share/ca-certificates/ca.crt
-    - update-ca-certificates
+    - echo "$CA_CERTIFICATE" | sudo tee /usr/local/share/ca-certificates/ca.crt
+    - sudo update-ca-certificates
     - kubectl config get-contexts
     - kubectl config use-context kimata/e-ink_weather_panel:pod-rollout 
     - kubectl --insecure-skip-tls-verify get pods -A
