@@ -6,16 +6,7 @@ stages:
   - deploy
 
 before_script:
-  - sleep 60
-  # - |
-      # for i in {1..30}
-      # do
-      #     if docker info > /dev/null 2>&1; then
-      #         break
-      #     fi
-      #     echo 'Waiting docker daemon...'
-      #     sleep 2
-      # done
+  - docker info
 
 # サンプル設定ファイルで，問題なく動くかチェック
 test-sample:
@@ -33,12 +24,12 @@ build-image:
   script:
     - apt update
     - apt install -y docker.io git
-    - git clone http://gitlab.green-rabbit.net/kimata/panel_config.git
+    - git clone https://gitlab.green-rabbit.net/kimata/panel_config.git
     - mv panel_config/e-ink_weather.yaml config.yaml
     - mkdir key
     - mv panel_config/panel.id_rsa key
     - rm -rf font
-    - git clone http://gitlab.green-rabbit.net/kimata/font.git
+    - git clone https://gitlab.green-rabbit.net/kimata/font.git
     - docker build . -t ${CI_REGISTRY_IMAGE}
     - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.yaml > /dev/null
     - docker push ${CI_REGISTRY_IMAGE}
