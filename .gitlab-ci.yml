@@ -6,7 +6,7 @@ stages:
   - deploy
 
 before_script:
-  - sleep 30
+  - sleep 60
   # - |
       # for i in {1..30}
       # do
