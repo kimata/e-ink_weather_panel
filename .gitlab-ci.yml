@@ -42,7 +42,8 @@ deploy:
     - cat /builds/kimata/e-ink_weather_panel.tmp/KUBECONFIG
     - kubectl config get-contexts
     - kubectl config use-context kimata/e-ink_weather_panel:pod-rollout 
-    - kubectl --insecure-skip-tls-verify=true get pods -A -v=10
+    - kubectl get pods -A -v=10
+    # - kubectl --insecure-skip-tls-verify=true get pods -A -v=10
 
 
 
