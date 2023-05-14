@@ -141,6 +141,7 @@ def change_window_size_impl(driver, url, width, height):
         driver.set_window_size(target_window_width, height)
     driver.refresh()
     wait.until(EC.presence_of_element_located((By.XPATH, CLOUD_IMAGE_XPATH)))
+    time.sleep(1)
 
     # NOTE: 次に縦サイズを調整
     window_size = driver.get_window_size()
@@ -167,7 +168,7 @@ def change_window_size_impl(driver, url, width, height):
         )
     driver.refresh()
     wait.until(EC.presence_of_element_located((By.XPATH, CLOUD_IMAGE_XPATH)))
-    time.sleep(0.5)
+    time.sleep(1)
 
     window_size = driver.get_window_size()
     element_size = driver.find_element(By.XPATH, CLOUD_IMAGE_XPATH).size
