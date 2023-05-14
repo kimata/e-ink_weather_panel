@@ -38,24 +38,6 @@ deploy:
     name: registry.green-rabbit.net/library/kubectl_image:230514_2246
     entrypoint: ['']
   script:
-#    - kubectl config set-cluster gitlab --certificate-authority="${CA_CERT}"
-    # - cat /builds/kimata/e-ink_weather_panel.tmp/KUBECONFIG
     - kubectl config get-contexts
     - kubectl config use-context kimata/e-ink_weather_panel:pod-rollout 
-    - kubectl get pods -A -v=10
-    # - kubectl --insecure-skip-tls-verify=true get pods -A -v=10
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    - kubectl rollout restart -n panel deployment e-ink-weather-panel-deployment
