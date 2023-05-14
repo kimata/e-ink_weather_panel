@@ -35,7 +35,7 @@ build-image:
 deploy:
   stage: deploy
   image:
-    name: registry.green-rabbit.net/library/kubectl_image:latest
+    name: registry.green-rabbit.net/library/kubectl_image:230514_2246
     entrypoint: ['']
   script:
 #    - kubectl config set-cluster gitlab --certificate-authority="${CA_CERT}"
