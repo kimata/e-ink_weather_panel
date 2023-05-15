@@ -10,8 +10,10 @@ test-sample:
   stage: test
     
   script:
+    - docker pull ${CI_REGISTRY_IMAGE} || true
     - docker build . -t ${CI_REGISTRY_IMAGE}
     - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.example.yaml > /dev/null
+    - docker push ${CI_REGISTRY_IMAGE}
 
 # 本番設定ファイルで，問題なく動くかチェック
 build-image:
@@ -28,6 +30,7 @@ build-image:
     - mv panel_config/panel.id_rsa key
     - rm -rf font
     - git clone https://gitlab.green-rabbit.net/kimata/font.git
+    - docker pull ${CI_REGISTRY_IMAGE} || true
     - docker build . -t ${CI_REGISTRY_IMAGE}
     - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.yaml > /dev/null
     - docker push ${CI_REGISTRY_IMAGE}
