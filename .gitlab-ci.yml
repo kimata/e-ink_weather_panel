@@ -35,7 +35,7 @@ build-image:
 deploy:
   stage: deploy
   image:
-    name: bitnami/kubectl:latest
+    name: registry.green-rabbit.net:5000/kimata/kubectl_image:1.27.1-local
     entrypoint: ['']
   script:
     - kubectl config get-contexts
