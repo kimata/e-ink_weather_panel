@@ -35,9 +35,10 @@ build-image:
 deploy:
   stage: deploy
   image:
-    name: registry.green-rabbit.net:5000/kimata/kubectl_image:1.27.1-local
+    name: bitnami/kubectl:latest
+    # name: registry.green-rabbit.net:5000/kimata/kubectl_image:1.27.1-local
     entrypoint: ['']
   script:
     - kubectl config get-contexts
     - kubectl config use-context kimata/e-ink_weather_panel:pod-rollout
-    - kubectl rollout restart -n panel deployment e-ink-weather-panel-deployment
+    - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-panel-deployment
