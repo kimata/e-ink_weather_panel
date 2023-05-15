@@ -561,6 +561,7 @@ def create_rain_cloud_panel(config):
             logging.error(error_text)
             pass
         logging.warn("retry")
+        time.sleep(5)
 
     return (error_image(config, error_text), time.perf_counter() - start)
 
