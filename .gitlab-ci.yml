@@ -35,9 +35,9 @@ build-image:
 deploy:
   stage: deploy
   image:
-    name: registry.green-rabbit.net/library/kubectl_image:230514_2246
+    name: bitnami/kubectl:latest
     entrypoint: ['']
   script:
     - kubectl config get-contexts
-    - kubectl config use-context kimata/e-ink_weather_panel:pod-rollout 
+    - kubectl config use-context kimata/e-ink_weather_panel:pod-rollout
     - kubectl rollout restart -n panel deployment e-ink-weather-panel-deployment
