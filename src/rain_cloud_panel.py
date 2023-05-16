@@ -7,6 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import PIL.Image
 import PIL.ImageDraw
 
+import io
 import os
 import cv2
 import pathlib
@@ -21,7 +22,8 @@ import time
 import logging
 
 from selenium_util import create_driver
-from pil_util import get_font, draw_text, text_size, alpha_paste, convert_to_gray
+from pil_util import get_font, draw_text, text_size, alpha_paste
+import notify_slack
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
 WINDOW_SIZE_CACHE = DATA_PATH / "window_size.cache"
@@ -361,7 +363,7 @@ def draw_caption(img, title, face_map):
     return img
 
 
-def create_rain_cloud_img(panel_config, sub_panel_config, face_map):
+def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config):
     logging.info(
         "create rain cloud image ({type})".format(
             type="future" if sub_panel_config["is_future"] else "current"
@@ -378,13 +380,27 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map):
         int(panel_config["PANEL"]["WIDTH"] / 2),
         panel_config["PANEL"]["HEIGHT"],
     )
-    img = fetch_cloud_image(
-        driver,
-        panel_config["DATA"]["JMA"]["URL"],
-        int(panel_config["PANEL"]["WIDTH"] / 2),
-        panel_config["PANEL"]["HEIGHT"],
-        sub_panel_config["is_future"],
-    )
+    try:
+        img = fetch_cloud_image(
+            driver,
+            panel_config["DATA"]["JMA"]["URL"],
+            int(panel_config["PANEL"]["WIDTH"] / 2),
+            panel_config["PANEL"]["HEIGHT"],
+            sub_panel_config["is_future"],
+        )
+    except:
+        notify_slack.error(
+            slack_config["BOT_TOKEN"],
+            slack_config["ERROR"]["CHANNEL"]["NAME"],
+            slack_config["ERROR"]["CHANNEL"]["ID"],
+            traceback.format_exc(),
+            {
+                "data": PIL.Image.open((io.BytesIO(driver.get_screenshot_as_png()))),
+                "text": "エラー時のスクリーンショット",
+            },
+            interval_min=slack_config["ERROR"]["INTERVAL_MIN"],
+        )
+        pass
 
     driver.quit()
 
@@ -500,7 +516,11 @@ def create_rain_cloud_panel_impl(config):
         for sub_panel_config in SUB_PANEL_CONFIG_LIST:
             task_list.append(
                 executor.submit(
-                    create_rain_cloud_img, panel_config, sub_panel_config, face_map
+                    create_rain_cloud_img,
+                    panel_config,
+                    sub_panel_config,
+                    face_map,
+                    config["SLACK"],
                 )
             )
 

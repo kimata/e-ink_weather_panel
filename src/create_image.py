@@ -156,9 +156,9 @@ except:
     if "SLACK" in config:
         notify_slack.error(
             config["SLACK"]["BOT_TOKEN"],
-            config["SLACK"]["ERROR"]["CHANNEL"],
+            config["SLACK"]["ERROR"]["CHANNEL"]["NAME"],
             traceback.format_exc(),
-            config["SLACK"]["ERROR"]["INTERVAL_MIN"],
+            interval_min=config["SLACK"]["ERROR"]["INTERVAL_MIN"],
         )
     print(traceback.format_exc(), file=sys.stderr)
     # NOTE: 使われてなさそうな値にしておく．

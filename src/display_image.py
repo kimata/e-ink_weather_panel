@@ -112,8 +112,8 @@ while True:
         else:
             notify_slack.error(
                 config["SLACK"]["BOT_TOKEN"],
-                config["SLACK"]["ERROR"]["CHANNEL"],
+                config["SLACK"]["ERROR"]["CHANNEL"]["NAME"],
                 traceback.format_exc(),
-                config["SLACK"]["ERROR"]["INTERVAL_MIN"],
+                interval_min=config["SLACK"]["ERROR"]["INTERVAL_MIN"],
             )
             raise

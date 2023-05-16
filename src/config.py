@@ -5,7 +5,7 @@ import pathlib
 import yaml
 import os
 
-CONFIG_PATH = "config.yml"
+CONFIG_PATH = "config.yaml"
 
 
 def load_config(config_path=CONFIG_PATH):
