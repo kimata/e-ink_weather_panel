@@ -68,9 +68,7 @@ def draw_text(
 
 
 def load_image(img_config):
-    img = PIL.Image.open(
-        str(pathlib.Path(os.path.dirname(__file__), img_config["PATH"]))
-    )
+    img = PIL.Image.open(pathlib.Path(os.path.dirname(__file__), img_config["PATH"]))
 
     if "RESIZE" in img_config:
         img = img.resize(
