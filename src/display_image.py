@@ -4,11 +4,12 @@
 電子ペーパ表示用の画像を表示します．
 
 Usage:
-  display_image.py [-f CONFIG] [-h HOSTNAME]
+  display_image.py [-f CONFIG] [-h HOSTNAME] [-c COUNT]
 
 Options:
   -f CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
-  -f HOSTNAME  : 表示を行う Raspberry Pi のホスト名．
+  -h HOSTNAME  : 表示を行う Raspberry Pi のホスト名．
+  -c COUNT     : 表示を行う回数．指定しない場合は無限．
 """
 
 from docopt import docopt
@@ -69,15 +70,6 @@ def display_image(config, args):
 
     pathlib.Path(config["LIVENESS"]["FILE"]).touch()
 
-    # 更新されていることが直感的に理解しやすくなるように，更新タイミングを 0 秒
-    # に合わせる
-    # (例えば，1分間隔更新だとして，1分40秒に更新されると，2分40秒まで更新されないので
-    # 2分45秒くらいに表示を見た人は本当に1分間隔で更新されているのか心配になる)
-    sleep_time = config["PANEL"]["UPDATE"]["INTERVAL"] - datetime.datetime.now().second
-    logging.info("sleep {sleep_time} sec...".format(sleep_time=sleep_time))
-    sys.stderr.flush()
-    time.sleep(sleep_time)
-
     # NOTE: fbi コマンドのプロセスが残るので強制終了させる
     ssh.exec_command("sudo killall -9 fbi")
     ssh.close()
@@ -96,10 +88,16 @@ key_file_path = os.environ.get(
 
 logging.info("Raspberry Pi hostname: %s" % (rasp_hostname))
 
-config = load_config(args["-f"][0])
+config = load_config(args["-f"])
+if args["-c"] is None:
+    loop = float("inf")
+else:
+    loop = int(args["-c"])
 
+count = 0
 fail_count = 0
 while True:
+    count += 1
     try:
         display_image(config, args)
         fail_count = 0
@@ -116,3 +114,15 @@ while True:
                 interval_min=config["SLACK"]["ERROR"]["INTERVAL_MIN"],
             )
             raise
+
+    if count >= loop:
+        break
+
+    # 更新されていることが直感的に理解しやすくなるように，更新タイミングを 0 秒
+    # に合わせる
+    # (例えば，1分間隔更新だとして，1分40秒に更新されると，2分40秒まで更新されないので
+    # 2分45秒くらいに表示を見た人は本当に1分間隔で更新されているのか心配になる)
+    sleep_time = config["PANEL"]["UPDATE"]["INTERVAL"] - datetime.datetime.now().second
+    logging.info("sleep {sleep_time} sec...".format(sleep_time=sleep_time))
+    sys.stderr.flush()
+    time.sleep(sleep_time)
