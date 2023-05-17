@@ -4,10 +4,11 @@
 電子ペーパ表示用の画像を表示します．
 
 Usage:
-  display_image.py [-f CONFIG]
+  display_image.py [-f CONFIG] [-h HOSTNAME]
 
 Options:
   -f CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
+  -f HOSTNAME  : 表示を行う Raspberry Pi のホスト名．
 """
 
 from docopt import docopt
@@ -87,9 +88,7 @@ args = docopt(__doc__)
 
 logger.init("panel.e-ink.weather", level=logging.INFO)
 
-rasp_hostname = os.environ.get(
-    "RASP_HOSTNAME", sys.argv[1] if len(sys.argv) != 1 else None
-)
+rasp_hostname = os.environ.get("RASP_HOSTNAME", args["-h"])
 key_file_path = os.environ.get(
     "SSH_KEY",
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/key/panel.id_rsa",
