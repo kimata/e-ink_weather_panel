@@ -4,7 +4,7 @@
 電子ペーパ表示用の画像を生成します．
 
 Usage:
-  create_image.py [-f CONFIG] [-f PNG_FILE]
+  create_image.py [-f CONFIG] [-o PNG_FILE]
 
 Options:
   -f CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
