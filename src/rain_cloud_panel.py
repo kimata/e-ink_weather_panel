@@ -257,7 +257,7 @@ def fetch_cloud_image(driver, url, width, height, is_future=False):
 
 def retouch_cloud_image(png_data):
     logging.info("retouch image")
-    gamma = 0.8
+    gamma = 0.7
 
     img_rgb = cv2.imdecode(
         np.asarray(bytearray(png_data), dtype=np.uint8), cv2.IMREAD_COLOR
