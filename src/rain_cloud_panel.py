@@ -393,6 +393,8 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
         int(panel_config["PANEL"]["WIDTH"] / 2),
         panel_config["PANEL"]["HEIGHT"],
     )
+
+    img = None
     try:
         img = fetch_cloud_image(
             driver,
@@ -416,7 +418,7 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
                 },
                 interval_min=slack_config["ERROR"]["INTERVAL_MIN"],
             )
-        pass
+        raise
 
     driver.quit()
 
