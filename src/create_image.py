@@ -120,7 +120,7 @@ logger.init("panel.e-ink.weather", level=logging.INFO)
 
 logging.info("start to create image")
 
-config = load_config(args["-f"][0])
+config = load_config(args["-f"])
 
 img = PIL.Image.new(
     "RGBA",
@@ -167,7 +167,7 @@ except:
     status = 222
 
 if "-o" in args:
-    out_file = args["-o"][0]
+    out_file = args["-o"]
 else:
     out_file = sys.stdout.buffer
 
