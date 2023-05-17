@@ -97,14 +97,18 @@ def change_setting(driver):
 
 
 def shape_cloud_display(driver, width, height, is_future):
-    change_setting(driver)
-
     if is_future:
+        button = '//div[@class="jmatile-control"]//div[contains(text(), " +1時間 ")]'
+
+        WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((By.XPATH, button))
+        )
         driver.find_element(
             By.XPATH,
-            '//div[@class="jmatile-control"]//div[contains(text(), " +1時間 ")]',
+            button,
         ).click()
 
+    change_setting(driver)
     hide_label_and_icon(driver)
 
 
