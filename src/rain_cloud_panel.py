@@ -98,13 +98,14 @@ def change_setting(driver):
 
 def shape_cloud_display(driver, width, height, is_future):
     change_setting(driver)
-    hide_label_and_icon(driver)
 
     if is_future:
         driver.find_element(
             By.XPATH,
             '//div[@class="jmatile-control"]//div[contains(text(), " +1時間 ")]',
         ).click()
+
+    hide_label_and_icon(driver)
 
 
 def change_window_size_impl(driver, url, width, height):
