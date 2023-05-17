@@ -97,7 +97,7 @@ key_file_path = os.environ.get(
 
 logging.info("Raspberry Pi hostname: %s" % (rasp_hostname))
 
-config = load_config(args["-f"])
+config = load_config(args["-f"][0])
 
 fail_count = 0
 while True:

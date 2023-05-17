@@ -30,7 +30,7 @@ build-image:
     - git clone https://gitlab.green-rabbit.net/kimata/font.git
     - docker pull ${CI_REGISTRY_IMAGE} || true
     - docker build . -t ${CI_REGISTRY_IMAGE}
-    - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.yaml > panel.png
+    - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.yaml -o panel.png
     - docker push ${CI_REGISTRY_IMAGE}
 
   artifacts:

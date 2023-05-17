@@ -4,10 +4,11 @@
 電子ペーパ表示用の画像を生成します．
 
 Usage:
-  create_image.py [-f CONFIG]
+  create_image.py [-f CONFIG] [-f PNG_FILE]
 
 Options:
   -f CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
+  -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
 """
 
 from docopt import docopt
@@ -119,7 +120,7 @@ logger.init("panel.e-ink.weather", level=logging.INFO)
 
 logging.info("start to create image")
 
-config = load_config(args["-f"])
+config = load_config(args["-f"][0])
 
 img = PIL.Image.new(
     "RGBA",
@@ -165,6 +166,11 @@ except:
     # display_image.py と合わせる必要あり．
     status = 222
 
-convert_to_gray(img).save(sys.stdout.buffer, "PNG")
+if "-o" in args:
+    out_file = args["-o"][0]
+else:
+    out_file = sys.stdout.buffer
+
+convert_to_gray(img).save(out_file, "PNG")
 
 exit(status)
