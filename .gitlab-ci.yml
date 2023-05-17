@@ -16,7 +16,7 @@ test-sample:
     - docker build . -t ${CI_REGISTRY_IMAGE}
     - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.example.yaml -o test-sample.png
     - docker push ${CI_REGISTRY_IMAGE}
-    - docker cp test-sample.png .
+    - docker cp -t ${CI_REGISTRY_IMAGE} test-sample.png .
     - export
 
   artifacts:
