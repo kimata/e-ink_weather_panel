@@ -4,11 +4,11 @@
 電子ペーパ表示用の画像を表示します．
 
 Usage:
-  display_image.py [-f CONFIG] [-h HOSTNAME] [-c COUNT]
+  display_image.py [-f CONFIG] [-t HOSTNAME] [-c COUNT]
 
 Options:
   -f CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
-  -h HOSTNAME  : 表示を行う Raspberry Pi のホスト名．
+  -t HOSTNAME  : 表示を行う Raspberry Pi のホスト名．
   -c COUNT     : 表示を行う回数．指定しない場合は無限．
 """
 
