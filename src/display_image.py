@@ -71,6 +71,9 @@ def display_image(config, args, is_onece):
     pathlib.Path(config["LIVENESS"]["FILE"]).touch()
 
     if is_onece:
+        # NOTE: 表示がされるまで待つ
+        sleep_time = 5
+    else:
         # NOTE: 更新されていることが直感的に理解しやすくなるように，
         # 更新タイミングを 0 秒に合わせる
         # (例えば，1分間隔更新だとして，1分40秒に更新されると，2分40秒まで更新されないので
@@ -79,9 +82,6 @@ def display_image(config, args, is_onece):
             config["PANEL"]["UPDATE"]["INTERVAL"] - datetime.datetime.now().second
         )
         logging.info("sleep {sleep_time} sec...".format(sleep_time=sleep_time))
-    else:
-        # NOTE: 表示がされるまで待つ
-        sleep_time = 5
 
     sys.stderr.flush()
     time.sleep(sleep_time)
