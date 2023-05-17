@@ -10,14 +10,16 @@ test-sample:
   stage: test
     
   script:
+    - id
+    - ls -la
     - docker pull ${CI_REGISTRY_IMAGE} || true
     - docker build . -t ${CI_REGISTRY_IMAGE}
-    - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.example.yaml -o /tmp/test-sample.png
+    - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.example.yaml -o test-sample.png
     - docker push ${CI_REGISTRY_IMAGE}
 
   artifacts:
     paths:
-      - /tmp/test-sample.png
+      - test-sample.png
     
 # 本番設定ファイルで，問題なく動くかチェック
 build-image:
@@ -25,6 +27,8 @@ build-image:
   image: registry.green-rabbit.net:5000/kimata/ubuntu-docker-build:latest
 
   script:
+    - id
+    - ls -la
     - export GIT_SSL_NO_VERIFY=1
     - git clone https://gitlab.green-rabbit.net/kimata/panel_config.git
     - mv panel_config/e-ink_weather.yaml config.yaml
@@ -34,12 +38,12 @@ build-image:
     - git clone https://gitlab.green-rabbit.net/kimata/font.git
     - docker pull ${CI_REGISTRY_IMAGE} || true
     - docker build . -t ${CI_REGISTRY_IMAGE}
-    - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.yaml -o /tmp/build-image.png
+    - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.yaml -o build-image.png
     - docker push ${CI_REGISTRY_IMAGE}
 
   artifacts:
     paths:
-      - /tmp/build-image.png
+      - build-image.png
 
 deploy:
   stage: deploy
