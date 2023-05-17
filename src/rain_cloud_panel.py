@@ -399,17 +399,20 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
             sub_panel_config["is_future"],
         )
     except:
-        notify_slack.error(
-            slack_config["BOT_TOKEN"],
-            slack_config["ERROR"]["CHANNEL"]["NAME"],
-            slack_config["ERROR"]["CHANNEL"]["ID"],
-            traceback.format_exc(),
-            {
-                "data": PIL.Image.open((io.BytesIO(driver.get_screenshot_as_png()))),
-                "text": "エラー時のスクリーンショット",
-            },
-            interval_min=slack_config["ERROR"]["INTERVAL_MIN"],
-        )
+        if slack_config is not None:
+            notify_slack.error(
+                slack_config["BOT_TOKEN"],
+                slack_config["ERROR"]["CHANNEL"]["NAME"],
+                slack_config["ERROR"]["CHANNEL"]["ID"],
+                traceback.format_exc(),
+                {
+                    "data": PIL.Image.open(
+                        (io.BytesIO(driver.get_screenshot_as_png()))
+                    ),
+                    "text": "エラー時のスクリーンショット",
+                },
+                interval_min=slack_config["ERROR"]["INTERVAL_MIN"],
+            )
         pass
 
     driver.quit()
@@ -530,7 +533,7 @@ def create_rain_cloud_panel_impl(config):
                     panel_config,
                     sub_panel_config,
                     face_map,
-                    config["SLACK"],
+                    config["SLACK"] if "SLACK" in config else None,
                 )
             )
 
