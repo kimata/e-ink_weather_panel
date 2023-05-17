@@ -166,7 +166,7 @@ except:
     # display_image.py と合わせる必要あり．
     status = 222
 
-if "-o" in args:
+if args["-o"] is not None:
     out_file = args["-o"]
 else:
     out_file = sys.stdout.buffer
