@@ -257,6 +257,7 @@ def fetch_cloud_image(driver, url, width, height, is_future=False):
 
 def retouch_cloud_image(png_data):
     logging.info("retouch image")
+    gamma = 0.8
 
     img_rgb = cv2.imdecode(
         np.asarray(bytearray(png_data), dtype=np.uint8), cv2.IMREAD_COLOR
@@ -268,8 +269,17 @@ def retouch_cloud_image(png_data):
 
     # NOTE: 降雨強度の色をグレースケール用に変換
     for i, level in enumerate(RAINFALL_INTENSITY_LEVEL):
-        img_hsv[level["func"](h, s)] = (0, 80, 255 / 16 * (16 - i * 2))
-        bar[0][i] = (0, 80, 255 / 16 * (16 - i * 2))
+        color = (
+            0,
+            80,
+            255
+            * (
+                ((len(RAINFALL_INTENSITY_LEVEL) - i) / len(RAINFALL_INTENSITY_LEVEL))
+                ** gamma
+            ),
+        )
+        img_hsv[level["func"](h, s)] = color
+        bar[0][i] = color
 
     # NOTE: 白地図の色をやや明るめにする
     img_hsv[s < 30, 2] = np.clip(pow(v[(s < 30)], 1.35) * 0.3, 0, 255)
