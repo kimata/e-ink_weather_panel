@@ -10,13 +10,11 @@ test-sample:
   stage: test
     
   script:
-    - id
-    - ls -la
     - docker pull ${CI_REGISTRY_IMAGE} || true
     - docker build . -t ${CI_REGISTRY_IMAGE}
     - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.example.yaml -o test-sample.png
     - docker push ${CI_REGISTRY_IMAGE}
-    - docker cp -t ${CI_REGISTRY_IMAGE} test-sample.png .
+    - docker cp `docker ps -l -q`:/opt/e-ink_weather/test-sample.png .
     - export
 
   artifacts:
