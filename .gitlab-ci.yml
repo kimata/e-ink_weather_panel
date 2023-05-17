@@ -18,11 +18,9 @@ test-sample:
 # 本番設定ファイルで，問題なく動くかチェック
 build-image:
   stage: build
-  image: ubuntu:22.04
+  image: registry.green-rabbit.net:5000/kimata/ubuntu-docker-build:latest
 
   script:
-    - apt update
-    - apt install -y docker.io git
     - export GIT_SSL_NO_VERIFY=1
     - git clone https://gitlab.green-rabbit.net/kimata/panel_config.git
     - mv panel_config/e-ink_weather.yaml config.yaml
@@ -39,7 +37,6 @@ deploy:
   stage: deploy
   image:
     name: bitnami/kubectl:latest
-    # name: registry.green-rabbit.net:5000/kimata/kubectl_image:1.27.1-local
     entrypoint: ['']
   script:
     - kubectl config get-contexts
