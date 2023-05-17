@@ -80,7 +80,7 @@ args = docopt(__doc__)
 
 logger.init("panel.e-ink.weather", level=logging.INFO)
 
-rasp_hostname = os.environ.get("RASP_HOSTNAME", args["-h"])
+rasp_hostname = os.environ.get("RASP_HOSTNAME", args["-t"])
 key_file_path = os.environ.get(
     "SSH_KEY",
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/key/panel.id_rsa",
