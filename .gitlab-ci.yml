@@ -12,9 +12,13 @@ test-sample:
   script:
     - docker pull ${CI_REGISTRY_IMAGE} || true
     - docker build . -t ${CI_REGISTRY_IMAGE}
-    - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.example.yaml > /dev/null
+    - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.example.yaml -o /tmp/test-sample.png
     - docker push ${CI_REGISTRY_IMAGE}
 
+  artifacts:
+    paths:
+      - /tmp/test-sample.png
+    
 # 本番設定ファイルで，問題なく動くかチェック
 build-image:
   stage: build
@@ -30,12 +34,12 @@ build-image:
     - git clone https://gitlab.green-rabbit.net/kimata/font.git
     - docker pull ${CI_REGISTRY_IMAGE} || true
     - docker build . -t ${CI_REGISTRY_IMAGE}
-    - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.yaml -o panel.png
+    - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.yaml -o /tmp/build-image.png
     - docker push ${CI_REGISTRY_IMAGE}
 
   artifacts:
     paths:
-      - panel.png
+      - /tmp/build-image.png
 
 deploy:
   stage: deploy
