@@ -27,7 +27,7 @@ RUN locale-gen en_US.UTF-8
 RUN useradd -m ubuntu
 
 RUN mkdir -p data
-RUN chown ubuntu:ubuntu data
+RUN chown -R ubuntu:ubuntu .
 
 USER ubuntu
 
