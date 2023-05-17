@@ -16,6 +16,8 @@ test-sample:
     - docker build . -t ${CI_REGISTRY_IMAGE}
     - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.example.yaml -o test-sample.png
     - docker push ${CI_REGISTRY_IMAGE}
+    - docker cp test-sample.png .
+    - export
 
   artifacts:
     paths:
@@ -40,6 +42,7 @@ build-image:
     - docker build . -t ${CI_REGISTRY_IMAGE}
     - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.yaml -o build-image.png
     - docker push ${CI_REGISTRY_IMAGE}
+    - docker cp test-sample.png .
 
   artifacts:
     paths:
