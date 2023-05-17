@@ -274,7 +274,10 @@ def retouch_cloud_image(png_data):
             80,
             255
             * (
-                ((len(RAINFALL_INTENSITY_LEVEL) - i) / len(RAINFALL_INTENSITY_LEVEL))
+                (
+                    float(len(RAINFALL_INTENSITY_LEVEL) - i)
+                    / len(RAINFALL_INTENSITY_LEVEL)
+                )
                 ** gamma
             ),
         )
