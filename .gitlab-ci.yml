@@ -12,14 +12,13 @@ test-sample:
   script:
     - docker pull ${CI_REGISTRY_IMAGE} || true
     - docker build . -t ${CI_REGISTRY_IMAGE}
-    - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.example.yaml -o test-sample.png
+    - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.example.yaml -o ${CI_JOB_NAME}.png
     - docker push ${CI_REGISTRY_IMAGE}
-    - docker cp `docker ps -l -q`:/opt/e-ink_weather/test-sample.png .
-    - export
+    - docker cp `docker ps -l -q`:/opt/e-ink_weather/${CI_JOB_NAME}.png .
 
   artifacts:
     paths:
-      - test-sample.png
+      - ${CI_JOB_NAME}.png
     
 # 本番設定ファイルで，問題なく動くかチェック
 build-image:
@@ -38,13 +37,13 @@ build-image:
     - git clone https://gitlab.green-rabbit.net/kimata/font.git
     - docker pull ${CI_REGISTRY_IMAGE} || true
     - docker build . -t ${CI_REGISTRY_IMAGE}
-    - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.yaml -o build-image.png
+    - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.yaml -o ${CI_JOB_NAME}.png
     - docker push ${CI_REGISTRY_IMAGE}
-    - docker cp test-sample.png .
+    - docker cp `docker ps -l -q`:/opt/e-ink_weather/${CI_JOB_NAME}.png .
 
   artifacts:
     paths:
-      - build-image.png
+      - ${CI_JOB_NAME}.png
 
 deploy:
   stage: deploy
