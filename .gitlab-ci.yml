@@ -41,7 +41,7 @@ build-image:
     - docker build . -t ${CI_REGISTRY_IMAGE}
     - docker run -t ${CI_REGISTRY_IMAGE} src/create_image.py -f config.yaml -o ${CI_JOB_NAME}.png
     - docker cp `docker ps -l -q`:/opt/e-ink_weather/${CI_JOB_NAME}.png .
-    - docker run -t ${CI_REGISTRY_IMAGE} src/display_image.py -f config.yaml -t ${RASP_HOSTNAME} -c 1
+    - docker run -t ${CI_REGISTRY_IMAGE} src/display_image.py -f config.yaml -t ${RASP_HOSTNAME} -s
     - docker push ${CI_REGISTRY_IMAGE}
 
   artifacts:
