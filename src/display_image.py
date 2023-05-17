@@ -28,6 +28,7 @@ import logger
 from config import load_config
 import notify_slack
 
+DISPLAY_WAIT = 5
 NOTIFY_THRESHOLD = 2
 CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
 
@@ -67,6 +68,8 @@ def display_image(config, args):
         sys.exit(proc.returncode)
 
     logging.info("Finish.")
+
+    time.sleep(DISPLAY_WAIT)
 
     pathlib.Path(config["LIVENESS"]["FILE"]).touch()
 
