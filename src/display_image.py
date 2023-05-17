@@ -45,7 +45,7 @@ def ssh_connect(hostname, key_filename):
     return ssh
 
 
-def display_image(config, args):
+def display_image(config, args, is_onece):
     ssh = ssh_connect(rasp_hostname, key_file_path)
 
     ssh_stdin = ssh.exec_command(
@@ -70,12 +70,19 @@ def display_image(config, args):
 
     pathlib.Path(config["LIVENESS"]["FILE"]).touch()
 
-    # 更新されていることが直感的に理解しやすくなるように，更新タイミングを 0 秒
-    # に合わせる
-    # (例えば，1分間隔更新だとして，1分40秒に更新されると，2分40秒まで更新されないので
-    # 2分45秒くらいに表示を見た人は本当に1分間隔で更新されているのか心配になる)
-    sleep_time = config["PANEL"]["UPDATE"]["INTERVAL"] - datetime.datetime.now().second
-    logging.info("sleep {sleep_time} sec...".format(sleep_time=sleep_time))
+    if is_onece:
+        # NOTE: 更新されていることが直感的に理解しやすくなるように，
+        # 更新タイミングを 0 秒に合わせる
+        # (例えば，1分間隔更新だとして，1分40秒に更新されると，2分40秒まで更新されないので
+        # 2分45秒くらいに表示を見た人は本当に1分間隔で更新されているのか心配になる)
+        sleep_time = (
+            config["PANEL"]["UPDATE"]["INTERVAL"] - datetime.datetime.now().second
+        )
+        logging.info("sleep {sleep_time} sec...".format(sleep_time=sleep_time))
+    else:
+        # NOTE: 表示がされるまで待つ
+        sleep_time = 5
+
     sys.stderr.flush()
     time.sleep(sleep_time)
 
@@ -89,6 +96,7 @@ args = docopt(__doc__)
 
 logger.init("panel.e-ink.weather", level=logging.INFO)
 
+is_onece = args["-s"]
 rasp_hostname = os.environ.get("RASP_HOSTNAME", args["-t"])
 key_file_path = os.environ.get(
     "SSH_KEY",
@@ -102,7 +110,7 @@ config = load_config(args["-f"])
 fail_count = 0
 while True:
     try:
-        display_image(config, args)
+        display_image(config, args, is_onece)
         fail_count = 0
     except:
         fail_count += 1
@@ -117,5 +125,5 @@ while True:
                 interval_min=config["SLACK"]["ERROR"]["INTERVAL_MIN"],
             )
             raise
-    if args["-s"]:
+    if is_onece:
         break
