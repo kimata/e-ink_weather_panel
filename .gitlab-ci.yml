@@ -17,8 +17,8 @@ build-image:
     - mv panel_config/e-ink_weather.yaml config.yaml
     - mkdir key
     - mv panel_config/panel.id_rsa key
-    - rm -rf font
-    - git clone https://gitlab.green-rabbit.net/kimata/font.git
+    - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
+    - mv private_font/* font
     - docker pull ${CI_REGISTRY_IMAGE} || true
     - docker build . -t ${CI_REGISTRY_IMAGE}
     - docker push ${CI_REGISTRY_IMAGE}
