@@ -83,10 +83,10 @@ def xpath_exists(driver, xpath):
     return len(driver.find_elements(By.XPATH, xpath)) != 0
 
 
-def click_xpath(driver, xpath, wait=None, move=False, is_warn=True):
+def click_xpath(driver, xpath, wait=None, is_warn=True):
     if wait is not None:
         wait.until(EC.element_to_be_clickable((By.XPATH, xpath)))
-        time.sleep(0.5)
+        time.sleep(0.05)
 
     if xpath_exists(driver, xpath):
         elem = driver.find_element(By.XPATH, xpath)

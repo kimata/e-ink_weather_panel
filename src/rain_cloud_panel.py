@@ -21,7 +21,7 @@ from concurrent import futures
 import time
 import logging
 
-from selenium_util import create_driver
+from selenium_util import create_driver, click_xpath
 from pil_util import get_font, draw_text, text_size, alpha_paste
 import notify_slack
 
@@ -86,27 +86,43 @@ var elements = document.getElementsByClassName("{class_name}")
         )
 
 
-def change_setting(driver):
+def change_setting(driver, wait):
     # driver.find_element(By.XPATH, '//a[contains(@aria-label, "地形を表示")]').click()
 
-    driver.find_element(By.XPATH, '//a[contains(@aria-label, "色の濃さ")]').click()
-    driver.find_element(By.XPATH, '//span[contains(text(), "濃い")]').click()
+    click_xpath(
+        driver,
+        '//a[contains(@aria-label, "色の濃さ")]',
+        wait,
+        True,
+    )
+    click_xpath(
+        driver,
+        '//span[contains(text(), "濃い")]',
+        wait,
+        True,
+    )
+    click_xpath(
+        driver,
+        '//a[contains(@aria-label, "地図を切り替え")]',
+        wait,
+        True,
+    )
+    click_xpath(
+        driver,
+        '//span[contains(text(), "地名なし")]',
+        wait,
+        True,
+    )
 
-    driver.find_element(By.XPATH, '//a[contains(@aria-label, "地図を切り替え")]').click()
-    driver.find_element(By.XPATH, '//span[contains(text(), "地名なし")]').click()
 
-
-def shape_cloud_display(driver, width, height, is_future):
+def shape_cloud_display(driver, wait, width, height, is_future):
     if is_future:
-        button = '//div[@class="jmatile-control"]//div[contains(text(), " +1時間 ")]'
-
-        WebDriverWait(driver, 5).until(
-            EC.presence_of_element_located((By.XPATH, button))
+        click_xpath(
+            driver,
+            '//div[@class="jmatile-control"]//div[contains(text(), " +1時間 ")]',
+            wait,
+            True,
         )
-        driver.find_element(
-            By.XPATH,
-            button,
-        ).click()
 
     change_setting(driver)
     hide_label_and_icon(driver)
@@ -246,7 +262,7 @@ def fetch_cloud_image(driver, url, width, height, is_future=False):
 
     wait.until(EC.presence_of_element_located((By.XPATH, CLOUD_IMAGE_XPATH)))
 
-    shape_cloud_display(driver, width, height, is_future)
+    shape_cloud_display(driver, wait, width, height, is_future)
 
     wait.until(
         lambda driver: driver.execute_script("return document.readyState") == "complete"
