@@ -54,6 +54,7 @@ def display_image(config, args, is_onece):
         "cat - > /dev/shm/display.png && sudo fbi -1 -T 1 -d /dev/fb0 --noverbose /dev/shm/display.png; echo $?"
     )[0]
 
+    logging.info("Start drawing.")
     proc = subprocess.Popen(
         ["python3", CREATE_IMAGE, "-f", args["-f"]], stdout=subprocess.PIPE
     )
