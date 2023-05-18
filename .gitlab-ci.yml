@@ -23,6 +23,8 @@ build-image:
     - docker push ${CI_REGISTRY_IMAGE}
 
 # 雨雲レーダ画像のテスト
+# NOTE: 通常モードだと，雨雲レーダ画像の生成に失敗してもスクリプトはエラー画像を生成して
+# 正常終了するので，別建ててテストを実施する．
 test-rain-cloud:
   stage: test
   
