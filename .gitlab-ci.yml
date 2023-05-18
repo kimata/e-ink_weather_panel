@@ -32,7 +32,7 @@ test-rain-cloud:
   script:
     - docker pull ${CI_REGISTRY_IMAGE}
     - docker run -t --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/rain_cloud_panel.py -f config.yaml -o ${CI_JOB_NAME}.png
-    - CID=`docker ps -q -l -f "name=${CI_REGISTRY_IMAGE}" -f "label=job=${CI_JOB_NAME}"`
+    - CID=`docker ps -q -l -f "ancestor=${CI_REGISTRY_IMAGE}" -f "label=job=${CI_JOB_NAME}"`
     - docker wait ${CID}
     - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
   artifacts:
@@ -46,7 +46,7 @@ test-sample:
   script:
     - docker pull ${CI_REGISTRY_IMAGE}
     - docker run -t --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/create_image.py -f config.example.yaml -o ${CI_JOB_NAME}.png
-    - CID=`docker ps -q -l -f "name=${CI_REGISTRY_IMAGE}" -f "label=job=${CI_JOB_NAME}"`
+    - CID=`docker ps -q -l -f "ancestor=${CI_REGISTRY_IMAGE}" -f "label=job=${CI_JOB_NAME}"`
     - docker wait ${CID}
     - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
 
