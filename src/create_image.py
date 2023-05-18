@@ -171,6 +171,7 @@ if args["-o"] is not None:
 else:
     out_file = sys.stdout.buffer
 
+logging.info("Save {out_file}.".format(out_file=str(out_file)))
 convert_to_gray(img).save(out_file, "PNG")
 
 exit(status)
