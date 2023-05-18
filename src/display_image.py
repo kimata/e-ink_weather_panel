@@ -33,6 +33,8 @@ CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
 
 
 def ssh_connect(hostname, key_filename):
+    logging.info("Connect to {hostname}".format(hostname=hostname))
+
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.connect(
@@ -60,13 +62,15 @@ def display_image(config, args, is_onece):
     ssh_stdin.close()
 
     # NOTE: -24 は create_image.py の異常時の終了コードに合わせる．
-    if proc.returncode != 0 and proc.returncode != 222:
+    if proc.returncode == 0:
+        logging.info("Success.")
+    elif proc.returncode != 222:
+        logging.warn("Finish. (something is wrong)")
+    else:
         logging.error(
             "Failed to create image. (code: {code})".format(code=proc.returncode)
         )
         sys.exit(proc.returncode)
-
-    logging.info("Finish.")
 
     pathlib.Path(config["LIVENESS"]["FILE"]).touch()
 
