@@ -124,7 +124,7 @@ def shape_cloud_display(driver, wait, width, height, is_future):
             True,
         )
 
-    change_setting(driver)
+    change_setting(driver, wait)
     hide_label_and_icon(driver)
 
 
