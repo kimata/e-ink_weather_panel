@@ -31,7 +31,7 @@ test-rain-cloud:
   
   script:
     - docker pull ${CI_REGISTRY_IMAGE}
-    - docker run -d -t ${CI_REGISTRY_IMAGE}
+    - docker run -d
     - CID=`docker ps -q -l`
     - docker exec -t ${CID} src/rain_cloud_panel.py -f config.yaml -o ${CI_JOB_NAME}.png
     - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
@@ -45,7 +45,7 @@ test-sample:
     
   script:
     - docker pull ${CI_REGISTRY_IMAGE}
-    - docker run -d -t ${CI_REGISTRY_IMAGE}
+    - docker run -d
     - CID=`docker ps -q -l`
     - docker exec -t ${CID} src/create_image.py -f config.example.yaml -o ${CI_JOB_NAME}.png
     - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
