@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
 # - coding: utf-8 --
+"""
+雨雲レーダー画像を生成します．
+
+Usage:
+  rain_cloud_panel.py [-f CONFIG] -o PNG_FILE
+
+Options:
+  -f CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
+  -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
+"""
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -626,18 +637,20 @@ def create_rain_cloud_panel(config):
 
 
 if __name__ == "__main__":
+    from docopt import docopt
+
     import logger
     from config import load_config
 
-    logger.init("test")
-    logging.info("Test")
+    args = docopt(__doc__)
 
-    config = load_config()
+    logger.init("test", level=logging.INFO)
 
-    result = create_rain_cloud_panel(config)
+    config = load_config(args["-f"])
+    out_file = args["-o"]
 
-    logging.info("elapsed time: {time:.3f} sec".format(time=result[1]))
+    img = create_rain_cloud_panel_impl(config)
 
-    result[0].save("test_rain_cloud_panel.png", "PNG")
+    img.save(out_file, "PNG")
 
     print("Finish.")
