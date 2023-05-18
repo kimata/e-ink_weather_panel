@@ -651,6 +651,7 @@ if __name__ == "__main__":
 
     img = create_rain_cloud_panel_impl(config)
 
+    logging.info("Save {out_file}.".format(out_file=out_file))
     img.save(out_file, "PNG")
 
     print("Finish.")
