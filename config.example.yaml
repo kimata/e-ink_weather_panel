@@ -57,7 +57,7 @@ POWER:
   DATA:
     HOST:
       NAME: rasp-meter-5
-      TYPE: rasp
+      TYPE: sensor.rasp
     PARAM:
       NAME: power
       FORMAT: '{:,.0f}'
@@ -75,45 +75,45 @@ SENSOR:
     - LABEL: 屋外
       HOST:
         - NAME: ESP32-outdoor-1
-          TYPE: esp32
+          TYPE: sensor.esp32
         - NAME: rasp-meter-8
-          TYPE: rasp
+          TYPE: sensor.rasp
       ICON: off
     - LABEL: リビング
       HOST:
         - NAME: rpi-cm4-sensor-6
-          TYPE: rasp
+          TYPE: sensor.rasp
       ICON: on
     - LABEL: 和室
       TYPE: rasp
       HOST:
         - NAME: rasp-meter-2
-          TYPE: rasp
+          TYPE: sensor.rasp
       ICON: on
     - LABEL: 洋室A
       HOST:
         - NAME: rpi-cm4-sensor-1
-          TYPE: rasp
+          TYPE: sensor.rasp
       ICON: on
     - LABEL: 洋室B
       HOST:
         - NAME: rpi-cm4-sensor-2
-          TYPE: rasp
+          TYPE: sensor.rasp
       ICON: on
     - LABEL: 洋室C
       HOST:
         - NAME: rpi-cm4-sensor-3
-          TYPE: rasp
+          TYPE: sensor.rasp
       ICON: on
     - LABEL: 家事室
       HOST:
         - NAME: rpi-cm4-sensor-4
-          TYPE: rasp
+          TYPE: sensor.rasp
       ICON: on
     - LABEL: 書斎
       HOST:
         - NAME: rasp-meter-3
-          TYPE: rasp
+          TYPE: sensor.rasp
       ICON: on
   PARAM_LIST:
     - NAME: temp

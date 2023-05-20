@@ -3,6 +3,7 @@
 import os
 import pathlib
 import PIL.ImageDraw
+import logging
 
 # NOTE: 詳細追えてないものの，英語フォントでボディサイズがおかしいものがあったので，
 # 補正できるようにする．
@@ -10,14 +11,15 @@ EN_FONT_HEIGHT_FACTOR = 0.75
 
 
 def get_font(config, font_type, size):
-    return PIL.ImageFont.truetype(
-        str(
-            pathlib.Path(
-                os.path.dirname(__file__), config["PATH"], config["MAP"][font_type]
-            )
-        ),
-        size,
+    font_path = str(
+        pathlib.Path(
+            os.path.dirname(__file__), config["PATH"], config["MAP"][font_type]
+        )
     )
+
+    logging.info("Load font: {path}".format(path=font_path))
+
+    return PIL.ImageFont.truetype(font_path, size)
 
 
 def text_size(font, text, need_padding_change=True):

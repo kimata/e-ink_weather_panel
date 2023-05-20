@@ -26,14 +26,15 @@ EMPTY_VALUE = -100.0
 
 
 def get_plot_font(config, font_type, size):
-    return FontProperties(
-        fname=str(
-            pathlib.Path(
-                os.path.dirname(__file__), config["PATH"], config["MAP"][font_type]
-            )
-        ),
-        size=size,
+    font_path = str(
+        pathlib.Path(
+            os.path.dirname(__file__), config["PATH"], config["MAP"][font_type]
+        )
     )
+
+    logging.info("Load font: {path}".format(path=font_path))
+
+    return FontProperties(fname=font_path, size=size)
 
 
 def get_face_map(font_config):
@@ -48,6 +49,8 @@ def get_face_map(font_config):
 
 
 def plot_item(ax, title, unit, data, xbegin, ylabel, ylim, fmt, scale, small, face_map):
+    logging.info("Plot {title}".format(title=title))
+
     x = data["time"]
     y = data["value"]
 
