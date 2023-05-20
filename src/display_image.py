@@ -32,6 +32,15 @@ NOTIFY_THRESHOLD = 2
 CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
 
 
+def notify_error(config):
+    notify_slack.error(
+        config["SLACK"]["BOT_TOKEN"],
+        config["SLACK"]["ERROR"]["CHANNEL"],
+        traceback.format_exc(),
+        config["SLACK"]["ERROR"]["INTERVAL_MIN"],
+    )
+
+
 def ssh_connect(hostname, key_filename):
     logging.info("Connect to {hostname}".format(hostname=hostname))
 
@@ -117,18 +126,15 @@ while True:
     try:
         display_image(config, args, is_onece)
         fail_count = 0
+
+        if is_onece:
+            break
     except:
         fail_count += 1
-        if fail_count >= NOTIFY_THRESHOLD:
+        if is_onece or (fail_count >= NOTIFY_THRESHOLD):
+            notify_error(config)
+            logging.error("エラーが続いたので終了します．")
+            raise
+        else:
             time.sleep(10)
             pass
-        else:
-            notify_slack.error(
-                config["SLACK"]["BOT_TOKEN"],
-                config["SLACK"]["ERROR"]["CHANNEL"]["NAME"],
-                traceback.format_exc(),
-                interval_min=config["SLACK"]["ERROR"]["INTERVAL_MIN"],
-            )
-            raise
-    if is_onece:
-        break
