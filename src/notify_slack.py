@@ -18,9 +18,9 @@ SIMPLE_TMPL = """\
 [
     {{
         "type": "header",
-	"text": {{
+    "text": {{
             "type": "plain_text",
-	    "text": "{title}",
+        "text": "{title}",
             "emoji": true
         }}
     }},
@@ -28,8 +28,8 @@ SIMPLE_TMPL = """\
         "type": "section",
         "text": {{
             "type": "mrkdwn",
-	    "text": {message}
-	}}
+        "text": {message}
+    }}
     }}
 ]
 """
@@ -59,6 +59,8 @@ def send(token, ch_name, message):
 
 def split_send(token, ch_name, title, message, formatter=format_simple):
     LINE_SPLIT = 20
+
+    logging.info("Post slack channel: {ch_name}".format(ch_name=ch_name))
 
     message_lines = message.splitlines()
     for i in range(0, len(message_lines), LINE_SPLIT):
@@ -114,7 +116,7 @@ def error(
     title = "Error"
 
     if not check_interval(interval_min):
-        logging.warning("RETURN")
+        logging.warning("Interval is too short. Skipping.")
         return
 
     split_send(token, ch_name, title, message, formatter)
@@ -135,7 +137,7 @@ def error_with_image(
     title = "Error"
 
     if not check_interval(interval_min):
-        logging.warning("RETURN")
+        logging.warning("Interval is too short. Skipping.")
         return
 
     split_send(token, ch_name, title, message, formatter)
@@ -156,7 +158,7 @@ if __name__ == "__main__":
     import PIL.Image
     from config import load_config
 
-    logger.init("test", level=logging.WARNING)
+    logger.init("test", level=logging.INFO)
     logging.info("Test")
 
     config = load_config()
@@ -182,8 +184,16 @@ if __name__ == "__main__":
         error(
             config["SLACK"]["BOT_TOKEN"],
             config["SLACK"]["ERROR"]["CHANNEL"]["NAME"],
+            "エラーメッセージ",
+            0,
+        )
+
+    if "ERROR" in config["SLACK"]:
+        error_with_image(
+            config["SLACK"]["BOT_TOKEN"],
+            config["SLACK"]["ERROR"]["CHANNEL"]["NAME"],
             config["SLACK"]["ERROR"]["CHANNEL"]["ID"],
             "エラーメッセージ",
             {"data": img, "text": "エラー時のスクリーンショット"},
-            interval_min=config["SLACK"]["ERROR"]["INTERVAL_MIN"],
+            0,
         )
