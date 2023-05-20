@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# - coding: utf-8 --
+# -*- coding: utf-8 -*-
 """
 雨雲レーダー画像を生成します．
 
@@ -437,10 +437,11 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
         )
     except:
         if slack_config is not None:
-            notify_slack.error(
+            notify_slack.error_with_image(
                 slack_config["BOT_TOKEN"],
                 slack_config["ERROR"]["CHANNEL"]["NAME"],
                 slack_config["ERROR"]["CHANNEL"]["ID"],
+                config["SLACK"]["NAME"],
                 traceback.format_exc(),
                 {
                     "data": PIL.Image.open(
