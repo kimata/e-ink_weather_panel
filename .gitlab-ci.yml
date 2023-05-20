@@ -28,7 +28,7 @@ build-image:
 # 正常終了するので，別建ててテストを実施する．
 test-rain-cloud:
   stage: test
-  
+
   script:
     - docker pull ${CI_REGISTRY_IMAGE}
     - docker run -t --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/rain_cloud_panel.py -f config.yaml -o ${CI_JOB_NAME}.png
@@ -38,11 +38,11 @@ test-rain-cloud:
   artifacts:
     paths:
       - ${CI_JOB_NAME}.png
-    
+
 # サンプル設定ファイルで，問題なく動くかチェック
 test-sample:
   stage: test
-    
+
   script:
     - docker pull ${CI_REGISTRY_IMAGE}
     - docker run -t --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/create_image.py -f config.example.yaml -o ${CI_JOB_NAME}.png
@@ -72,7 +72,7 @@ test-regular:
 # 本番設定ファイルで，問題なく動くかチェック
 test-display:
   stage: test
-  
+
   variables:
     RASP_HOSTNAME: rasp-meter-1
 
