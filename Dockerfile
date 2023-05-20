@@ -3,6 +3,11 @@ FROM ubuntu:22.04
 ENV TZ=Asia/Tokyo
 ENV DEBIAN_FRONTEND=noninteractive
 
+RUN apt-get update && apt-get install -y \
+    curl
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
 RUN curl -O  https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 
 RUN apt-get update && apt-get install -y \
