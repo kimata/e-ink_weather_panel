@@ -11,7 +11,7 @@ build-image:
   image: registry.green-rabbit.net:5000/kimata/ubuntu-docker-build:latest
 
   script:
-    - docker ps -aq --filter 'status=exited' | xargs docker rm -f;
+    # - docker rm $(docker ps -a --filter 'status=exited' -q) || true
     - export GIT_SSL_NO_VERIFY=1
     - git clone https://gitlab.green-rabbit.net/kimata/panel_config.git
     - mv panel_config/e-ink_weather.yaml config.yaml
