@@ -60,7 +60,7 @@ Influx DB からセンサー情報を取得する部分( `sensor_data.py` の `f
 ## 実行方法
 
 ```bash:bash
-./src/update.py
+./src/display_image.py
 ```
 
 Docker で実行する場合，下記のようにします．
