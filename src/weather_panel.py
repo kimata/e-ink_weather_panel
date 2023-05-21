@@ -25,7 +25,7 @@ from weather_data import get_weather_yahoo
 ICON_MARGIN = 0.48
 
 # NOTE: 現在の時間に対応する時間帯に描画する円の大きさ比率
-HOUR_CIRCLE_RATIO = 1.6
+HOUR_CIRCLE_RATIO = 1.55
 
 ROTATION_MAP = {
     "静穏": None,
