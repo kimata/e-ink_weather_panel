@@ -18,7 +18,7 @@ import os
 import pathlib
 import logging
 
-from pil_util import get_font, text_size, draw_text, load_image
+from pil_util import get_font, text_size, draw_text, load_image, alpha_paste
 from weather_data import get_weather_yahoo
 
 # NOTE: 天気アイコンの周りにアイコンサイズの何倍の空きを確保するか
@@ -190,13 +190,14 @@ def draw_text_info(
     pos_y += text_size(face["value"], "0", EN_FONT_HEIGHT_FACTOR)[1] * margin_top_ratio
 
     if is_first:
-        img.paste(
+        alpha_paste(
+            img,
             icon,
             (
                 int(
                     pos_x
                     - icon.size[0] / 2
-                    - text_size(face["value"], "0", EN_FONT_HEIGHT_FACTOR)[0]
+                    - text_size(face["value"], "0", EN_FONT_HEIGHT_FACTOR)[0] * 0.7
                 ),
                 int(
                     pos_y
@@ -537,7 +538,7 @@ def draw_date(img, pos_x, pos_y, date, face_map):
         date.strftime("(%a)"),
         [
             text_pos_x,
-            next_pos_y + text_size(face["day"], "31", EN_FONT_HEIGHT_FACTOR)[1] * 0.4,
+            next_pos_y + text_size(face["day"], "31", EN_FONT_HEIGHT_FACTOR)[1] * 0.2,
         ],
         face["wday"],
         "center",
@@ -571,7 +572,7 @@ def draw_panel_weather_day(
     )
 
 
-def draw_panel_weather(img, config, weather_info):
+def draw_panel_weather(img, config, weather_info, is_side_by_side):
     panel_config = config["WEATHER"]
     font_config = config["FONT"]
 
@@ -583,6 +584,7 @@ def draw_panel_weather(img, config, weather_info):
 
     pos_x = 10
     pos_y = 20
+
     draw_panel_weather_day(
         img,
         pos_x,
@@ -593,9 +595,14 @@ def draw_panel_weather(img, config, weather_info):
         icon,
         face_map,
     )
+    if is_side_by_side:
+        pos_x += panel_config["PANEL"]["WIDTH"] / 2.0
+    else:
+        pos_y += panel_config["PANEL"]["HEIGHT"] / 2.0
+
     draw_panel_weather_day(
         img,
-        pos_x + panel_config["PANEL"]["WIDTH"] / 2.0,
+        pos_x,
         pos_y,
         weather_info["tommorow"],
         False,
@@ -605,7 +612,7 @@ def draw_panel_weather(img, config, weather_info):
     )
 
 
-def create_weather_panel(config):
+def create_weather_panel(config, is_side_by_side=True):
     logging.info("draw weather panel")
     start = time.perf_counter()
 
@@ -616,6 +623,6 @@ def create_weather_panel(config):
         (255, 255, 255, 0),
     )
 
-    draw_panel_weather(img, config, weather_info)
+    draw_panel_weather(img, config, weather_info, is_side_by_side)
 
     return (img, time.perf_counter() - start)

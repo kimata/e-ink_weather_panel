@@ -45,10 +45,11 @@ def draw_panel_time(img, config):
 
     face_map = get_face_map(font_config)
 
+    # 右下に描画する
     draw_time(
         img,
-        config["PANEL"]["DEVICE"]["WIDTH"] - panel_config["PANEL"]["MARGIN_X"],
-        config["PANEL"]["DEVICE"]["HEIGHT"] - panel_config["PANEL"]["MARGIN_Y"],
+        panel_config["PANEL"]["WIDTH"],
+        panel_config["PANEL"]["HEIGHT"],
         face_map["time"],
     )
 
@@ -59,7 +60,7 @@ def create_time_panel(config):
 
     img = PIL.Image.new(
         "RGBA",
-        (config["PANEL"]["DEVICE"]["WIDTH"], config["PANEL"]["DEVICE"]["HEIGHT"]),
+        (config["TIME"]["PANEL"]["WIDTH"], config["TIME"]["PANEL"]["HEIGHT"]),
         (255, 255, 255, 0),
     )
 

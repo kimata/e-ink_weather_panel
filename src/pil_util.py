@@ -71,7 +71,8 @@ def load_image(img_config):
             (
                 int(img.size[0] * img_config["SCALE"]),
                 int(img.size[1] * img_config["SCALE"]),
-            )
+            ),
+            PIL.Image.LANCZOS,
         )
     if "BRIGHTNESS" in img_config:
         img = PIL.ImageEnhance.Brightness(img).enhance(img_config["BRIGHTNESS"])

@@ -422,8 +422,8 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
     change_window_size(
         driver,
         panel_config["DATA"]["JMA"]["URL"],
-        int(panel_config["PANEL"]["WIDTH"] / 2),
-        panel_config["PANEL"]["HEIGHT"],
+        sub_panel_config["width"],
+        sub_panel_config["height"],
     )
 
     img = None
@@ -431,8 +431,8 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
         img = fetch_cloud_image(
             driver,
             panel_config["DATA"]["JMA"]["URL"],
-            int(panel_config["PANEL"]["WIDTH"] / 2),
-            panel_config["PANEL"]["HEIGHT"],
+            sub_panel_config["width"],
+            sub_panel_config["height"],
             sub_panel_config["is_future"],
         )
     except:
@@ -541,16 +541,37 @@ def draw_legend(img, bar, panel_config, face_map):
     return img
 
 
-def create_rain_cloud_panel_impl(config):
+def create_rain_cloud_panel_impl(config, is_side_by_side):
     panel_config = config["RAIN_CLOUD"]
     font_config = config["FONT"]
 
+    if is_side_by_side:
+        sub_width = int(panel_config["PANEL"]["WIDTH"] / 2)
+        sub_height = panel_config["PANEL"]["HEIGHT"]
+        offset_x = int(panel_config["PANEL"]["WIDTH"] / 2)
+        offset_y = 0
+    else:
+        sub_width = panel_config["PANEL"]["WIDTH"]
+        sub_height = int(panel_config["PANEL"]["HEIGHT"] / 2)
+        offset_x = 0
+        offset_y = int(panel_config["PANEL"]["HEIGHT"] / 2)
+
     SUB_PANEL_CONFIG_LIST = [
-        {"is_future": False, "title": "現在", "offset_x": 0},
+        {
+            "is_future": False,
+            "title": "現在",
+            "width": sub_width,
+            "height": sub_height,
+            "offset_x": 0,
+            "offset_y": 0,
+        },
         {
             "is_future": True,
             "title": "１時間後",
-            "offset_x": int(panel_config["PANEL"]["WIDTH"] / 2),
+            "width": sub_width,
+            "height": sub_height,
+            "offset_x": offset_x,
+            "offset_y": offset_y,
         },
     ]
 
@@ -577,7 +598,7 @@ def create_rain_cloud_panel_impl(config):
 
     for i, sub_panel_config in enumerate(SUB_PANEL_CONFIG_LIST):
         sub_img, bar = task_list[i].result()
-        img.paste(sub_img, (sub_panel_config["offset_x"], 0))
+        img.paste(sub_img, (sub_panel_config["offset_x"], sub_panel_config["offset_y"]))
 
     img = draw_legend(img, bar, panel_config, face_map)
 
@@ -619,14 +640,17 @@ def error_image(config, error_text):
     return img
 
 
-def create_rain_cloud_panel(config):
+def create_rain_cloud_panel(config, is_side_by_side=True):
     logging.info("create rain cloud panel")
     start = time.perf_counter()
 
     error_text = None
     for i in range(5):
         try:
-            return (create_rain_cloud_panel_impl(config), time.perf_counter() - start)
+            return (
+                create_rain_cloud_panel_impl(config, is_side_by_side),
+                time.perf_counter() - start,
+            )
         except:
             error_text = traceback.format_exc()
             logging.error(error_text)

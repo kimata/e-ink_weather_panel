@@ -4,10 +4,11 @@
 電子ペーパ表示用の画像を生成します．
 
 Usage:
-  create_image.py [-f CONFIG] [-o PNG_FILE]
+  create_image.py [-f CONFIG] [-s] [-o PNG_FILE]
 
 Options:
   -f CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
+  -s           : 小型ディスプレイモードで実行します．
   -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
 """
 
@@ -54,14 +55,21 @@ def draw_wall(config, img):
         )
 
 
-def draw_panel(config, img):
-    panel_list = [
-        {"name": "rain_cloud", "func": create_rain_cloud_panel},
-        {"name": "sensor", "func": create_sensor_graph},
-        {"name": "power", "func": create_power_graph},
-        {"name": "weather", "func": create_weather_panel},
-        {"name": "time", "func": create_time_panel},
-    ]
+def draw_panel(config, img, is_small_mode=False):
+    if is_small_mode:
+        panel_list = [
+            {"name": "RAIN_CLOUD", "func": create_rain_cloud_panel, "arg": (False,)},
+            {"name": "WEATHER", "func": create_weather_panel, "arg": (False,)},
+            {"name": "TIME", "func": create_time_panel},
+        ]
+    else:
+        panel_list = [
+            {"name": "RAIN_CLOUD", "func": create_rain_cloud_panel},
+            {"name": "SENSOR", "func": create_sensor_graph},
+            {"name": "POWER", "func": create_power_graph},
+            {"name": "WEATHER", "func": create_weather_panel},
+            {"name": "TIME", "func": create_time_panel},
+        ]
 
     panel_map = {}
 
@@ -69,16 +77,31 @@ def draw_panel(config, img):
     start = time.perf_counter()
     pool = multiprocessing.Pool(processes=len(panel_list))
     for panel in panel_list:
-        panel["task"] = pool.apply_async(panel["func"], (config,))
+        arg = (config,)
+        if "arg" in panel:
+            arg += panel["arg"]
+        panel["task"] = pool.apply_async(panel["func"], arg)
     pool.close()
     pool.join()
 
     for panel in panel_list:
         result = panel["task"].get()
-        panel_map[panel["name"]] = result[0]
+        panel_img, elapsed = result
+
+        if "SCALE" in config[panel["name"]]["PANEL"]:
+            panel_img = panel_img.resize(
+                (
+                    int(panel_img.size[0] * config[panel["name"]]["PANEL"]["SCALE"]),
+                    int(panel_img.size[1] * config[panel["name"]]["PANEL"]["SCALE"]),
+                ),
+                PIL.Image.LANCZOS,
+            )
+
+        panel_map[panel["name"]] = panel_img
+
         logging.info(
             "elapsed time: {name} panel = {time:.3f} sec".format(
-                name=panel["name"], time=result[1]
+                name=panel["name"], time=elapsed
             )
         )
     logging.info(
@@ -87,40 +110,18 @@ def draw_panel(config, img):
 
     draw_wall(config, img)
 
-    alpha_paste(
-        img,
-        panel_map["power"],
-        (
-            0,
-            config["WEATHER"]["PANEL"]["HEIGHT"] - config["POWER"]["PANEL"]["OVERLAP"],
-        ),
-    )
+    for name in ["POWER", "WEATHER", "SENSOR", "RAIN_CLOUD", "TIME"]:
+        if name not in panel_map:
+            continue
 
-    img.alpha_composite(panel_map["weather"], (0, 0))
-    alpha_paste(
-        img,
-        panel_map["sensor"],
-        (
-            0,
-            config["WEATHER"]["PANEL"]["HEIGHT"]
-            + config["POWER"]["PANEL"]["HEIGHT"]
-            - config["POWER"]["PANEL"]["OVERLAP"]
-            - config["SENSOR"]["PANEL"]["OVERLAP"],
-        ),
-    )
-    alpha_paste(
-        img,
-        panel_map["rain_cloud"],
-        (
-            config["RAIN_CLOUD"]["PANEL"]["OFFSET_X"],
-            config["RAIN_CLOUD"]["PANEL"]["OFFSET_Y"],
-        ),
-    )
-    alpha_paste(
-        img,
-        panel_map["time"],
-        (0, 0),
-    )
+        alpha_paste(
+            img,
+            panel_map[name],
+            (
+                config[name]["PANEL"]["OFFSET_X"],
+                config[name]["PANEL"]["OFFSET_Y"],
+            ),
+        )
 
 
 ######################################################################
@@ -131,6 +132,7 @@ logger.init("panel.e-ink.weather", level=logging.INFO)
 logging.info("start to create image")
 
 config = load_config(args["-f"])
+is_small_mode = args["-s"]
 
 img = PIL.Image.new(
     "RGBA",
@@ -140,7 +142,7 @@ img = PIL.Image.new(
 
 status = 0
 try:
-    draw_panel(config, img)
+    draw_panel(config, img, is_small_mode)
 except:
     draw = PIL.ImageDraw.Draw(img)
     draw.rectangle(
