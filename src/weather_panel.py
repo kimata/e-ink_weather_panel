@@ -27,6 +27,9 @@ ICON_MARGIN = 0.48
 # NOTE: 現在の時間に対応する時間帯に描画する円の大きさ比率
 HOUR_CIRCLE_RATIO = 1.55
 
+# NOTE: FuturaStd の場合，PIL の get_size で取れる高さが変なので補正する
+EN_FONT_HEIGHT_FACTOR = 0.75
+
 ROTATION_MAP = {
     "静穏": None,
     "東": 90,
@@ -165,6 +168,7 @@ def draw_weather(img, weather, overlay, pos_x, pos_y, icon_margin, face_map):
         [pos_x + icon.size[0] / 2.0, next_pos_y],
         face_map["weather"]["value"],
         "center",
+        font_height_scale=EN_FONT_HEIGHT_FACTOR,
     )[1]
 
     return [pos_x + icon.size[0] * (1 + icon_margin), next_pos_y]
@@ -183,34 +187,54 @@ def draw_text_info(
     underline=False,
     margin_top_ratio=0.3,
 ):
-    pos_y += text_size(face["value"], "0")[1] * margin_top_ratio
+    pos_y += text_size(face["value"], "0", EN_FONT_HEIGHT_FACTOR)[1] * margin_top_ratio
 
     if is_first:
         img.paste(
             icon,
             (
-                int(pos_x - icon.size[0] / 2 - text_size(face["value"], "0")[0]),
-                int(pos_y + (text_size(face["value"], "0")[1] - icon.size[1]) / 2.0),
+                int(
+                    pos_x
+                    - icon.size[0] / 2
+                    - text_size(face["value"], "0", EN_FONT_HEIGHT_FACTOR)[0]
+                ),
+                int(
+                    pos_y
+                    + (
+                        text_size(face["value"], "0", EN_FONT_HEIGHT_FACTOR)[1]
+                        - icon.size[1]
+                    )
+                    / 2.0
+                ),
             ),
         )
 
-    value_pos_x = pos_x + text_size(face["value"], "10")[0]
+    value_pos_x = pos_x + text_size(face["value"], "10", EN_FONT_HEIGHT_FACTOR)[0]
     unit_pos_y = (
-        pos_y + text_size(face["value"], "0")[1] - text_size(face["unit"], "℃")[1]
+        pos_y
+        + text_size(face["value"], "0", EN_FONT_HEIGHT_FACTOR)[1]
+        - text_size(face["unit"], "℃", EN_FONT_HEIGHT_FACTOR)[1]
     )
     unit_pos_x = value_pos_x + 5
 
     draw_text(
-        img, str(value), [value_pos_x, pos_y], face["value"], "right", color=color
+        img,
+        str(value),
+        [value_pos_x, pos_y],
+        face["value"],
+        "right",
+        color,
+        font_height_scale=EN_FONT_HEIGHT_FACTOR,
     )
 
-    next_pos_y = pos_y + text_size(face["value"], "0")[1]
+    next_pos_y = pos_y + text_size(face["value"], "0", EN_FONT_HEIGHT_FACTOR)[1]
 
     if underline:
         draw = PIL.ImageDraw.Draw(img)
         draw.rectangle(
             (
-                value_pos_x - text_size(face["value"], str(value))[0],
+                value_pos_x
+                - text_size(face["value"], str(value), EN_FONT_HEIGHT_FACTOR)[0],
                 next_pos_y + 8,
                 value_pos_x,
                 next_pos_y + 15,
@@ -218,7 +242,14 @@ def draw_text_info(
             fill=(30, 30, 30),
         )
 
-    draw_text(img, unit, [unit_pos_x, unit_pos_y], face["unit"], color=color)[0]
+    draw_text(
+        img,
+        unit,
+        [unit_pos_x, unit_pos_y],
+        face["unit"],
+        color,
+        font_height_scale=EN_FONT_HEIGHT_FACTOR,
+    )
 
     return next_pos_y
 
@@ -273,7 +304,9 @@ def draw_precip(img, precip, is_first, pos_x, pos_y, precip_icon, face):
 
 
 def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face):
-    pos_y += text_size(face["value"], "0")[1] * 0.2  # NOTE: 上にマージンを設ける
+    pos_y += (
+        text_size(face["value"], "0", EN_FONT_HEIGHT_FACTOR)[1] * 0.2
+    )  # NOTE: 上にマージンを設ける
 
     if wind["speed"] == 0:
         color = "#eee"
@@ -306,7 +339,11 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face):
         canvas.paste(
             arrow_icon,
             (
-                int(pos_x + text_size(face["value"], "10")[0] - arrow_icon.size[0]),
+                int(
+                    pos_x
+                    + text_size(face["value"], "10", EN_FONT_HEIGHT_FACTOR)[0]
+                    - arrow_icon.size[0]
+                ),
                 int(pos_y + (icon_orig_height - icon["arrow"].size[1]) / 2.0),
             ),
         )
@@ -331,18 +368,19 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face):
         text_size(
             face["dir"],
             "南",
-            need_padding_change=False,
         )[1]
         * 0.2
     )
     next_pos_y = draw_text(
         img,
         wind["dir"],
-        [pos_x + text_size(face["value"], "10")[0], next_pos_y],
+        [
+            pos_x + text_size(face["value"], "10", EN_FONT_HEIGHT_FACTOR)[0],
+            next_pos_y,
+        ],
         face["dir"],
         "right",
         color=color,
-        need_padding_change=False,
     )[1]
 
     return next_pos_y
@@ -358,7 +396,7 @@ def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
         or (21 <= cur_hour and hour == 21)
     ):
         draw = PIL.ImageDraw.Draw(img)
-        circle_height = text_size(face["value"], str(21))[1]
+        circle_height = text_size(face["value"], str(21), EN_FONT_HEIGHT_FACTOR)[1]
 
         draw.ellipse(
             (
@@ -369,18 +407,35 @@ def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
             ),
             fill=(128, 128, 128),
         )
-        draw_text(img, str(hour), [pos_x, pos_y], face["value"], "center", "#FFF")
+        draw_text(
+            img,
+            str(hour),
+            [pos_x, pos_y],
+            face["value"],
+            "center",
+            "#FFF",
+            font_height_scale=EN_FONT_HEIGHT_FACTOR,
+        )
     else:
-        draw_text(img, str(hour), [pos_x, pos_y], face["value"], "center")
+        draw_text(
+            img,
+            str(hour),
+            [pos_x, pos_y],
+            face["value"],
+            "center",
+            font_height_scale=EN_FONT_HEIGHT_FACTOR,
+        )
 
-    return pos_y + text_size(face["value"], "0")[1]
+    return pos_y + text_size(face["value"], "0", EN_FONT_HEIGHT_FACTOR)[1]
 
 
 def draw_weather_info(
     img, info, is_today, is_first, pos_x, pos_y, overlay, icon, face_map
 ):
     next_pos_y = (
-        pos_y + text_size(face_map["hour"]["value"], "0")[1] * HOUR_CIRCLE_RATIO
+        pos_y
+        + text_size(face_map["hour"]["value"], "0", EN_FONT_HEIGHT_FACTOR)[1]
+        * HOUR_CIRCLE_RATIO
     )
     next_pos_x, next_pos_y = draw_weather(
         img, info["weather"], overlay, pos_x, next_pos_y, ICON_MARGIN, face_map
@@ -455,7 +510,7 @@ def draw_day_weather(img, info, is_today, pos_x, pos_y, overlay, icon, face_map)
 def draw_date(img, pos_x, pos_y, date, face_map):
     face = face_map["date"]
 
-    next_pos_x = pos_x + text_size(face["day"], "31")[0]
+    next_pos_x = pos_x + text_size(face["day"], "31", EN_FONT_HEIGHT_FACTOR)[0]
     text_pos_x = (pos_x + next_pos_x) / 2.0
 
     locale.setlocale(locale.LC_TIME, "en_US.UTF-8")
@@ -466,7 +521,6 @@ def draw_date(img, pos_x, pos_y, date, face_map):
         face["month"],
         "center",
         "#666",
-        need_padding_change=False,
     )[1]
     next_pos_y = draw_text(
         img,
@@ -475,16 +529,19 @@ def draw_date(img, pos_x, pos_y, date, face_map):
         face["day"],
         "center",
         "#666",
+        font_height_scale=EN_FONT_HEIGHT_FACTOR,
     )[1]
     locale.setlocale(locale.LC_TIME, "ja_JP.UTF-8")
     draw_text(
         img,
         date.strftime("(%a)"),
-        [text_pos_x, next_pos_y + text_size(face["day"], "31")[1] * 0.4],
+        [
+            text_pos_x,
+            next_pos_y + text_size(face["day"], "31", EN_FONT_HEIGHT_FACTOR)[1] * 0.4,
+        ],
         face["wday"],
         "center",
         "#666",
-        need_padding_change=False,
     )[0]
 
     return next_pos_x

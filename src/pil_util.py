@@ -5,10 +5,6 @@ import pathlib
 import PIL.ImageDraw
 import logging
 
-# NOTE: 詳細追えてないものの，英語フォントでボディサイズがおかしいものがあったので，
-# 補正できるようにする．
-EN_FONT_HEIGHT_FACTOR = 0.75
-
 
 def get_font(config, font_type, size):
     font_path = str(
@@ -22,15 +18,14 @@ def get_font(config, font_type, size):
     return PIL.ImageFont.truetype(font_path, size)
 
 
-def text_size(font, text, need_padding_change=True):
+def text_size(font, text, font_height_scale=1.0):
     size = font.getsize(text)
 
-    if need_padding_change:
-        return (size[0], size[1] * EN_FONT_HEIGHT_FACTOR)
-    else:
-        return size
+    return (size[0], size[1] * font_height_scale)
 
 
+# NOTE: 詳細追えてないものの，英語フォントでボディサイズがおかしいものがあったので，
+# font_height_scale で補正できるようにしている．FuturaStd とかだと 0.75 が良さそう．
 def draw_text(
     img,
     text,
@@ -38,7 +33,7 @@ def draw_text(
     font,
     align="left",
     color="#000",
-    need_padding_change=True,
+    font_height_scale=1.0,
     stroke_width=0,
     stroke_fill=None,
 ):
@@ -49,11 +44,10 @@ def draw_text(
     elif align == "right":
         pos = (int(pos[0] - text_size(font, text)[0]), int(pos[1]))
 
-    if need_padding_change:
-        pos = (
-            pos[0],
-            int(pos[1] - font.getsize(text)[1] * (1 - EN_FONT_HEIGHT_FACTOR)),
-        )
+    pos = (
+        pos[0],
+        int(pos[1] - font.getsize(text)[1] * (1 - font_height_scale)),
+    )
 
     draw.text(
         pos,
@@ -72,7 +66,7 @@ def draw_text(
 def load_image(img_config):
     img = PIL.Image.open(pathlib.Path(os.path.dirname(__file__), img_config["PATH"]))
 
-    if "RESIZE" in img_config:
+    if "SCALE" in img_config:
         img = img.resize(
             (
                 int(img.size[0] * img_config["SCALE"]),

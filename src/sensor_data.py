@@ -45,7 +45,7 @@ from(bucket: "{bucket}")
 
 
 def fetch_data_impl(
-    config,
+    db_config,
     template,
     sensor_type,
     hostname,
@@ -56,10 +56,10 @@ def fetch_data_impl(
     create_empty,
 ):
     try:
-        token = os.environ.get("INFLUXDB_TOKEN", config["TOKEN"])
+        token = os.environ.get("INFLUXDB_TOKEN", db_config["token"])
 
         query = template.format(
-            bucket=config["BUCKET"],
+            bucket=db_config["bucket"],
             sensor_type=sensor_type,
             hostname=hostname,
             param=param,
@@ -70,7 +70,7 @@ def fetch_data_impl(
         )
         logging.debug("Flux query = {query}".format(query=query))
         client = influxdb_client.InfluxDBClient(
-            url=config["URL"], token=token, org=config["ORG"]
+            url=db_config["url"], token=token, org=db_config["org"]
         )
         query_api = client.query_api()
 
@@ -82,7 +82,7 @@ def fetch_data_impl(
 
 
 def fetch_data(
-    config,
+    db_config,
     sensor_type,
     hostname,
     param,
@@ -109,7 +109,7 @@ def fetch_data(
 
     try:
         table_list = fetch_data_impl(
-            config,
+            db_config,
             FLUX_QUERY,
             sensor_type,
             hostname,
@@ -186,8 +186,8 @@ def get_equip_on_minutes(
             hostname,
             param,
             period,
-            every,
-            window,
+            every_min,
+            window_min,
             create_empty,
         )
 
@@ -214,7 +214,7 @@ def get_equip_on_minutes(
             if record.get_value() >= threshold:
                 count += 1
 
-        return count * int(every)
+        return count * int(every_min)
     except:
         logging.warning(traceback.format_exc())
         return 0
@@ -371,6 +371,13 @@ if __name__ == "__main__":
     param = config["USAGE"]["TARGET"]["PARAM"]
     threshold = config["USAGE"]["TARGET"]["THRESHOLD"]["WORK"]
     period = config["GRAPH"]["PARAM"]["PERIOD"]
+
+    db_config = {
+        "token": config["INFLUXDB"]["TOKEN"],
+        "bucket": config["INFLUXDB"]["BUCKET"],
+        "url": config["INFLUXDB"]["URL"],
+        "org": config["INFLUXDB"]["ORG"],
+    }
 
     dump_data(
         fetch_data(

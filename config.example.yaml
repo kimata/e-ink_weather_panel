@@ -177,7 +177,6 @@ FONT:
     EN_MEDIUM: migmix-1p-regular.ttf
     EN_BOLD: migmix-1p-bold.ttf
 
-
     # JP_REGULAR: A-OTF-UDShinGoPr6N-Regular.otf
     # JP_MEDIUM: A-OTF-UDShinGoPr6N-Medium.otf
     # JP_BOLD: A-OTF-UDShinGoPr6N-Bold.otf
@@ -185,5 +184,5 @@ FONT:
     # EN_COND_BOLD: FuturaStd-CondensedBold.otf
     # EN_COND: FuturaStd-Condensed.otf
 
-    # EN_MEDIUM: FuturaStd-Medium.otf
+    # EN_MEDIUM: FrutigerNeueLTW1G-Medium.otf
     # EN_BOLD: FrutigerNeueLTW1G-Bold.otf

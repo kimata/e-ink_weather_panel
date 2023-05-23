@@ -17,7 +17,7 @@ from pandas.plotting import register_matplotlib_converters
 
 register_matplotlib_converters()
 from matplotlib.font_manager import FontProperties
-
+from config import get_db_config
 from sensor_data import fetch_data
 
 IMAGE_DPI = 100.0
@@ -122,7 +122,7 @@ def create_power_graph(config):
     logging.info("draw power graph")
     start = time.perf_counter()
 
-    db_config = config["INFLUXDB"]
+    db_config = get_db_config(config)
     panel_config = config["POWER"]
     font_config = config["FONT"]
 

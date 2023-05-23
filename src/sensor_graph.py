@@ -19,6 +19,7 @@ from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 from matplotlib.font_manager import FontProperties
 
+from config import get_db_config
 from sensor_data import fetch_data
 
 IMAGE_DPI = 100.0
@@ -156,10 +157,10 @@ def draw_light_icon(config, ax, y):
     ax.add_artist(ab)
 
 
-def sensor_data(config, host_specify_list, param, period="60h"):
+def sensor_data(db_config, host_specify_list, param, period="60h"):
     for host_specify in host_specify_list:
         data = fetch_data(
-            config, host_specify["TYPE"], host_specify["NAME"], param, period
+            db_config, host_specify["TYPE"], host_specify["NAME"], param, period
         )
         if data["valid"]:
             return data
@@ -193,7 +194,7 @@ def create_sensor_graph(config):
 
         for col in range(0, len(room_list)):
             data = sensor_data(
-                config["INFLUXDB"],
+                get_db_config(config),
                 room_list[col]["HOST"],
                 param["NAME"],
             )
@@ -228,7 +229,7 @@ def create_sensor_graph(config):
 
         for col in range(0, len(room_list)):
             data = sensor_data(
-                config["INFLUXDB"],
+                get_db_config(config),
                 room_list[col]["HOST"],
                 param["NAME"],
             )
