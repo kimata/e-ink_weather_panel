@@ -53,9 +53,52 @@ Raspberry Pi のホスト名については，`docker-compose.yaml` の RASP_HOS
 
 Influx DB からセンサー情報を取得する部分( `sensor_data.py` の `fetch_data` )はお手元の環境に合わせて修正が必要かもしれません．
 
+### Raspberry Pi の解像度変更
+
+Raspberry Pi から電子ペーパデバイスの解像度で HDMI 出力するため，
+`/boot/firmware/config.txt` に設定を記載します．
+
+設定例を紹介します．
+
+BOOX Mira Pro の場合，解像度が 3200x1800 なので，次のようにします．
+
+```bash:text
+framebuffer_width=3200
+framebuffer_height=1800
+max_framebuffer_width=3200
+max_framebuffer_height=1800
+hdmi_group=2
+hdmi_mode=87
+hdmi_timings=3200 1 48 32 80 1800 1 3 5 54 0 0 0 10 0 183422400 3
+```
+
+BOOX Mira 33の場合，解像度が 2200x1650 なので，次のようにします．
+
+```bash:text
+framebuffer_width=2200
+framebuffer_height=1650
+max_framebuffer_width=2200
+max_framebuffer_height=1650
+hdmi_group=2
+hdmi_mode=87
+hdmi_timings=2200 1 48 32 80 1650 1 3 5 54 0 0 0 10 0 160000000 1
+```
+
+
 ### Raspberry Pi の画面消灯禁止
 
 `/boot/firmware/cmdline.txt` に `consoleblank=0` を追記して画面が消灯しないようにします
+
+### 描画用 SSH 公開鍵のコピー
+
+`display_image.py` は Raspberry Pi にログインする際に，`key/panel.id_rsa` を使います．
+そのため，次のようにして秘密鍵を Raspberry Pi にコピーしておきます．
+
+```bash:bash
+ssh-copy-id -i key/panel.id_rsa.pub ubuntu@"Raspberry Pi のホスト名"
+```
+
+Raspberry Pi が外部からアクセスできる場合，SSH 用の鍵は再生成お願いします．
 
 ## 実行方法
 

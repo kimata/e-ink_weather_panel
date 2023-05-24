@@ -131,8 +131,11 @@ logger.init("panel.e-ink.weather", level=logging.INFO)
 
 logging.info("start to create image")
 
+logging.info("Using config config: {config_file}".format(config_file=args["-f"]))
 config = load_config(args["-f"])
+
 is_small_mode = args["-s"]
+logging.info("Mode : {mode}".format(mode="small" if is_small_mode else "normal"))
 
 img = PIL.Image.new(
     "RGBA",

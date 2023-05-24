@@ -15,6 +15,7 @@ build-image:
     - export GIT_SSL_NO_VERIFY=1
     - git clone https://gitlab.green-rabbit.net/kimata/panel_config.git
     - mv panel_config/e-ink_weather.yaml config.yaml
+    - mv panel_config/e-ink_weather-small.yaml config-small.yaml
     - mkdir key
     - mv panel_config/panel.id_rsa key
     - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
@@ -54,6 +55,21 @@ test-sample:
     paths:
       - ${CI_JOB_NAME}.png
 
+test-sample-small:
+  stage: test
+
+  script:
+    - docker pull ${CI_REGISTRY_IMAGE}
+    - docker run -t --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/create_image.py -s -f config-small.example.yaml -o ${CI_JOB_NAME}.png
+    - CID=`docker ps -q -l -f "ancestor=${CI_REGISTRY_IMAGE}" -f "label=job=${CI_JOB_NAME}"`
+    - docker wait ${CID}
+    - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
+
+  artifacts:
+    paths:
+      - ${CI_JOB_NAME}.png
+
+
 # 本番設定ファイルで，問題なく動くかチェック
 test-regular:
   stage: test
@@ -61,6 +77,20 @@ test-regular:
   script:
     - docker pull ${CI_REGISTRY_IMAGE}
     - docker run -t --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/create_image.py -o ${CI_JOB_NAME}.png
+    - CID=`docker ps -q -l -f "ancestor=${CI_REGISTRY_IMAGE}" -f "label=job=${CI_JOB_NAME}"`
+    - docker wait ${CID}
+    - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
+
+  artifacts:
+    paths:
+      - ${CI_JOB_NAME}.png
+
+test-regular-small:
+  stage: test
+
+  script:
+    - docker pull ${CI_REGISTRY_IMAGE}
+    - docker run -t --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/create_image.py -s -f config-small.yaml -o ${CI_JOB_NAME}.png
     - CID=`docker ps -q -l -f "ancestor=${CI_REGISTRY_IMAGE}" -f "label=job=${CI_JOB_NAME}"`
     - docker wait ${CID}
     - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
@@ -78,7 +108,17 @@ test-display:
 
   script:
     - docker pull ${CI_REGISTRY_IMAGE}
-    - docker run -t ${CI_REGISTRY_IMAGE} src/display_image.py -f config.yaml -t ${RASP_HOSTNAME} -s
+    - docker run -t ${CI_REGISTRY_IMAGE} src/display_image.py -f config.yaml -t ${RASP_HOSTNAME} -O
+
+test-display-small:
+  stage: test
+
+  variables:
+    RASP_HOSTNAME: rasp-display-2
+
+  script:
+    - docker pull ${CI_REGISTRY_IMAGE}
+    - docker run -t ${CI_REGISTRY_IMAGE} src/display_image.py -s -f config-small.yaml -t ${RASP_HOSTNAME} -O
 
 deploy:
   stage: deploy

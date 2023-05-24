@@ -4,12 +4,13 @@
 電子ペーパ表示用の画像を表示します．
 
 Usage:
-  display_image.py [-f CONFIG] [-t HOSTNAME] [-s]
+  display_image.py [-f CONFIG] [-t HOSTNAME] [-s] [-O]
 
 Options:
   -f CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
+  -s           : 小型ディスプレイモードで実行します．
   -t HOSTNAME  : 表示を行う Raspberry Pi のホスト名．
-  -s           : 1回のみ表示
+  -O           : 1回のみ表示
 """
 
 from docopt import docopt
@@ -36,7 +37,7 @@ def notify_error(config):
     notify_slack.error(
         config["SLACK"]["BOT_TOKEN"],
         config["SLACK"]["ERROR"]["CHANNEL"],
-        config["SLACK"]["NAME"],
+        "E-Ink Weather Panel",
         traceback.format_exc(),
         config["SLACK"]["ERROR"]["INTERVAL_MIN"],
     )
@@ -57,7 +58,7 @@ def ssh_connect(hostname, key_filename):
     return ssh
 
 
-def display_image(config, args, is_onece):
+def display_image(config, args, is_small_mode, is_onece):
     ssh = ssh_connect(rasp_hostname, key_file_path)
 
     ssh_stdin = ssh.exec_command(
@@ -65,9 +66,10 @@ def display_image(config, args, is_onece):
     )[0]
 
     logging.info("Start drawing.")
-    proc = subprocess.Popen(
-        ["python3", CREATE_IMAGE, "-f", args["-f"]], stdout=subprocess.PIPE
-    )
+    cmd = ["python3", CREATE_IMAGE, "-f", args["-f"]]
+    if is_small_mode:
+        cmd.append("-s")
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     ssh_stdin.write(proc.communicate()[0])
     proc.wait()
     ssh_stdin.close()
@@ -111,7 +113,8 @@ args = docopt(__doc__)
 
 logger.init("panel.e-ink.weather", level=logging.INFO)
 
-is_onece = args["-s"]
+is_onece = args["-O"]
+is_small_mode = args["-s"]
 rasp_hostname = os.environ.get("RASP_HOSTNAME", args["-t"])
 key_file_path = os.environ.get(
     "SSH_KEY",
@@ -125,7 +128,7 @@ config = load_config(args["-f"])
 fail_count = 0
 while True:
     try:
-        display_image(config, args, is_onece)
+        display_image(config, args, is_small_mode, is_onece)
         fail_count = 0
 
         if is_onece:
@@ -133,7 +136,8 @@ while True:
     except:
         fail_count += 1
         if is_onece or (fail_count >= NOTIFY_THRESHOLD):
-            notify_error(config)
+            if "SLACK" in config:
+                notify_error(config)
             logging.error("エラーが続いたので終了します．")
             raise
         else:
