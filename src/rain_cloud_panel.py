@@ -675,7 +675,7 @@ if __name__ == "__main__":
     config = load_config(args["-f"])
     out_file = args["-o"]
 
-    img = create_rain_cloud_panel_impl(config)
+    img = create_rain_cloud_panel_impl(config, True)
 
     logging.info("Save {out_file}.".format(out_file=out_file))
     convert_to_gray(img).save(out_file, "PNG")
