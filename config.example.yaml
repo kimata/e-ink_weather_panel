@@ -18,8 +18,9 @@ WALL:
   IMAGE:
     - PATH: ../img/mascot.png
       BRIGHTNESS: 2
-      OFFSET_X: 1550
-      OFFSET_Y: 580
+      OFFSET_X: 1540
+      OFFSET_Y: 565
+
 
 TIME:
   PANEL:
@@ -32,6 +33,8 @@ WEATHER:
   PANEL:
     WIDTH: 3200
     HEIGHT: 1000
+    OFFSET_X: 0
+    OFFSET_Y: 0
   DATA:
     YAHOO:
       URL: https://weather.yahoo.co.jp/weather/jp/13/4410/13113.html
@@ -55,7 +58,9 @@ POWER:
   PANEL:
     WIDTH: 1600
     HEIGHT: 510
-    OVERLAP: 380
+    OFFSET_X: 0
+    OFFSET_Y: 620
+
   DATA:
     HOST:
       NAME: rasp-meter-5
@@ -72,7 +77,9 @@ SENSOR:
   PANEL:
     WIDTH: 1600
     HEIGHT: 690
-    OVERLAP: 10
+    OFFSET_X: 0
+    OFFSET_Y: 1120
+
   ROOM_LIST:
     - LABEL: 屋外
       HOST:
@@ -154,14 +161,14 @@ SENSOR:
 
 RAIN_CLOUD:
   PANEL:
-    OFFSET_X: 1650
-    OFFSET_Y: 900
-    WIDTH: 1550
-    HEIGHT: 910
+    OFFSET_X: 1604
+    OFFSET_Y: 960
+    WIDTH: 1596
+    HEIGHT: 860
   LEGEND:
     BAR_SIZE: 50
-    OFFSET_X: 290
-    OFFSET_Y: 870
+    OFFSET_X: 296
+    OFFSET_Y: 800
   DATA:
     JMA:
       URL: https://www.jma.go.jp/bosai/nowc/#zoom:12/lat:35.682677/lon:139.762230/colordepth:deep/elements:hrpns&slmcs
