@@ -1,0 +1,112 @@
+LIVENESS:
+  FILE: /dev/shm/healthz
+
+PANEL:
+  DEVICE:
+    WIDTH: 2200
+    HEIGHT: 1650
+  UPDATE:
+    INTERVAL: 120
+
+INFLUXDB:
+  URL: http://proxy.green-rabbit.net:8086
+  ORG: home
+  TOKEN: strBCB9segqccgxsR5Xe_9RnCqkBFYX9aOKvxVR4lr3iLEb7HXuGqsN40YU6DIb6TZm9bvKLW5OWQS7sB8AQbQ==
+  BUCKET: sensor
+
+WALL:
+  IMAGE:
+    - PATH: ../img/mascot.png
+      BRIGHTNESS: 2
+      OFFSET_X: 1550
+      OFFSET_Y: 565
+
+TIME:
+  PANEL:
+    WIDTH: 400
+    HEIGHT: 100
+    OFFSET_X: 1980
+    OFFSET_Y: 20
+    SCALE: 0.5
+
+WEATHER:
+  PANEL:
+    WIDTH: 2200
+    HEIGHT: 2000
+    OFFSET_X: 0
+    OFFSET_Y: 0
+    SCALE: 0.84
+  DATA:
+    YAHOO:
+      URL: https://weather.yahoo.co.jp/weather/jp/13/4410/13113.html
+
+  ICON:
+    ARROW:
+      PATH: ../img/arrow.png
+    THERMO:
+      PATH: ../img/thermo.png
+      BRIGHTNESS: 1.2
+    CLOTHES:
+      PATH: ../img/clothes.png
+      BRIGHTNESS: 1.2
+    PRECIP:
+      PATH: ../img/precip.png
+      BRIGHTNESS: 1.3
+    WIND:
+      PATH: ../img/wind.png
+      BRIGHTNESS: 1.3
+
+POWER:
+  PANEL:
+    WIDTH: 1600
+    HEIGHT: 510
+    OVERLAP: 380
+  DATA:
+    HOST:
+      NAME: rasp-meter-5
+      TYPE: sensor.rasp
+    PARAM:
+      NAME: power
+      FORMAT: '{:,.0f}'
+      UNIT: W
+      RANGE:
+        - 0
+        - 5000
+
+RAIN_CLOUD:
+  PANEL:
+    OFFSET_X: 1340
+    OFFSET_Y: 0
+    WIDTH: 860
+    HEIGHT: 1650
+  LEGEND:
+    BAR_SIZE: 50
+    OFFSET_X: 370
+    OFFSET_Y: 1610
+  DATA:
+    JMA:
+      URL:
+        https://www.jma.go.jp/bosai/nowc/#zoom:12/lat:35.682677/lon:139.762230/colordepth:deep/elements:hrpns&slmcs
+
+FONT:
+  PATH: ../font/ # スクリプトのフォルダからの相対パス
+  MAP:
+    JP_REGULAR: migmix-1p-regular.ttf
+    JP_MEDIUM: migmix-1p-regular.ttf
+    JP_BOLD: migmix-1p-bold.ttf
+
+    EN_COND_BOLD: Antonio-Bold.ttf
+    EN_COND: Antonio-Regular.ttf
+
+    EN_MEDIUM: migmix-1p-regular.ttf
+    EN_BOLD: migmix-1p-bold.ttf
+
+    # JP_REGULAR: A-OTF-UDShinGoPr6N-Regular.otf
+    # JP_MEDIUM: A-OTF-UDShinGoPr6N-Medium.otf
+    # JP_BOLD: A-OTF-UDShinGoPr6N-Bold.otf
+
+    # EN_COND_BOLD: FuturaStd-CondensedBold.otf
+    # EN_COND: FuturaStd-Condensed.otf
+
+    # EN_MEDIUM: FrutigerNeueLTW1G-Medium.otf
+    # EN_BOLD: FrutigerNeueLTW1G-Bold.otf
