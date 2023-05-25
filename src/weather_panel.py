@@ -584,7 +584,7 @@ def draw_panel_weather_day(
         else datetime.datetime.now() + datetime.timedelta(days=1),
         face_map,
     )
-    draw_clothing(img, text_pos_x, next_pos_y + 20, clothing_info, icon)
+    draw_clothing(img, text_pos_x, next_pos_y + 50, clothing_info, icon)
     draw_day_weather(
         img,
         weather_day_info,
