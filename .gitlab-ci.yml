@@ -5,7 +5,6 @@ stages:
   - test
   - deploy
 
-# 本番設定ファイルで，問題なく動くかチェック
 build-image:
   stage: build
   image: registry.green-rabbit.net:5000/kimata/ubuntu-docker-build:latest
