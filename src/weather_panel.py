@@ -551,7 +551,7 @@ def draw_clothing(img, pos_x, pos_y, clothing_info, icon):
     icon_width, icon_height = icon["clothing-full"].size
     full_icon = icon["clothing-full"]
     half_icon = icon["clothing-half"]
-    shadow_icon = PIL.ImageEnhance.Brightness(full_icon).enhance(4)
+    shadow_icon = PIL.ImageEnhance.Brightness(full_icon).enhance(3)
 
     for i in range(5):
         if clothing_info >= 20 * (i + 1):
