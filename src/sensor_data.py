@@ -54,6 +54,7 @@ def fetch_data_impl(
     every,
     window,
     create_empty,
+    last=False,
 ):
     try:
         token = os.environ.get("INFLUXDB_TOKEN", db_config["token"])
@@ -68,6 +69,9 @@ def fetch_data_impl(
             window=window,
             create_empty=str(create_empty).lower(),
         )
+        if last:
+            query += " |> last()"
+
         logging.debug("Flux query = {query}".format(query=query))
         client = influxdb_client.InfluxDBClient(
             url=db_config["url"], token=token, org=db_config["org"]
@@ -90,12 +94,13 @@ def fetch_data(
     every_min=1,
     window_min=5,
     create_empty=True,
+    last=False,
 ):
     logging.info(
         (
             "Fetch data (measure: {measure}, host: {host}, field: {field}, "
             + "period: {period}, every: {every}min, window: {window}min, "
-            + "create_empty: {create_empty})"
+            + "create_empty: {create_empty}, last: {last})"
         ).format(
             measure=measure,
             host=hostname,
@@ -104,6 +109,7 @@ def fetch_data(
             every=every_min,
             window=window_min,
             create_empty=create_empty,
+            last=last,
         )
     )
 
@@ -118,6 +124,7 @@ def fetch_data(
             every_min,
             window_min,
             create_empty,
+            last,
         )
         data = []
         time = []
@@ -128,11 +135,12 @@ def fetch_data(
                 # NOTE: aggregateWindow(createEmpty: true) と fill(usePrevious: true) の組み合わせ
                 # だとタイミングによって，先頭に None が入る
                 if record.get_value() is None:
+                    logging.info("DELETE")
                     continue
                 data.append(record.get_value())
                 time.append(record.get_time() + localtime_offset)
 
-        if create_empty:
+        if create_empty and not last:
             # NOTE: aggregateWindow(createEmpty: true) と timedMovingAverage を使うと，
             # 末尾に余分なデータが入るので取り除く
             every_min = int(every_min)
