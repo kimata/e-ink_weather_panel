@@ -165,11 +165,11 @@ RAIN_CLOUD:
     OFFSET_Y: 960
     WIDTH: 1596
     HEIGHT: 860
-    GAMMA: 0.6
   LEGEND:
     BAR_SIZE: 50
     OFFSET_X: 296
     OFFSET_Y: 800
+    GAMMA: 0.6
   DATA:
     JMA:
       URL: https://www.jma.go.jp/bosai/nowc/#zoom:12/lat:35.682677/lon:139.762230/colordepth:deep/elements:hrpns&slmcs
