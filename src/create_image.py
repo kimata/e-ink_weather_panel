@@ -129,12 +129,14 @@ args = docopt(__doc__)
 
 logger.init("panel.e-ink.weather", level=logging.INFO)
 
-logging.info("start to create image")
+logging.info("Start to create image")
 
-logging.info("Using config config: {config_file}".format(config_file=args["-f"]))
-config = load_config(args["-f"])
-
+config_file = args["-f"]
 is_small_mode = args["-s"]
+
+logging.info("Using config config: {config_file}".format(config_file=config_file))
+config = load_config(config_file)
+
 logging.info("Mode : {mode}".format(mode="small" if is_small_mode else "normal"))
 
 img = PIL.Image.new(

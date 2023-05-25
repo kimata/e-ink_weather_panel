@@ -23,9 +23,9 @@ import traceback
 FLUX_QUERY = """
 from(bucket: "{bucket}")
 |> range(start: -{period})
-    |> filter(fn:(r) => r._measurement == "{sensor_type}")
+    |> filter(fn:(r) => r._measurement == "{measure}")
     |> filter(fn: (r) => r.hostname == "{hostname}")
-    |> filter(fn: (r) => r["_field"] == "{param}")
+    |> filter(fn: (r) => r["_field"] == "{field}")
     |> aggregateWindow(every: {window}m, fn: mean, createEmpty: {create_empty})
     |> fill(usePrevious: true)
     |> timedMovingAverage(every: {every}m, period: {window}m)
@@ -34,9 +34,9 @@ from(bucket: "{bucket}")
 FLUX_SUM_QUERY = """
 from(bucket: "{bucket}")
     |> range(start: -{period})
-    |> filter(fn:(r) => r._measurement == "{sensor_type}")
+    |> filter(fn:(r) => r._measurement == "{measure}")
     |> filter(fn: (r) => r.hostname == "{hostname}")
-    |> filter(fn: (r) => r["_field"] == "{param}")
+    |> filter(fn: (r) => r["_field"] == "{field}")
     |> reduce(
         fn: (r, accumulator) => ({{sum: r._value + accumulator.sum, count: accumulator.count + 1}}),
         identity: {{sum: 0.0, count: 0}},
@@ -47,9 +47,9 @@ from(bucket: "{bucket}")
 def fetch_data_impl(
     db_config,
     template,
-    sensor_type,
+    measure,
     hostname,
-    param,
+    field,
     period,
     every,
     window,
@@ -60,9 +60,9 @@ def fetch_data_impl(
 
         query = template.format(
             bucket=db_config["bucket"],
-            sensor_type=sensor_type,
+            measure=measure,
             hostname=hostname,
-            param=param,
+            field=field,
             period=period,
             every=every,
             window=window,
@@ -83,9 +83,9 @@ def fetch_data_impl(
 
 def fetch_data(
     db_config,
-    sensor_type,
+    measure,
     hostname,
-    param,
+    field,
     period="30h",
     every_min=1,
     window_min=5,
@@ -93,13 +93,13 @@ def fetch_data(
 ):
     logging.info(
         (
-            "Fetch data (type: {type}, host: {host}, param: {param}, "
+            "Fetch data (measure: {measure}, host: {host}, field: {field}, "
             + "period: {period}, every: {every}min, window: {window}min, "
             + "create_empty: {create_empty})"
         ).format(
-            type=sensor_type,
+            measure=measure,
             host=hostname,
-            param=param,
+            field=field,
             period=period,
             every=every_min,
             window=window_min,
@@ -111,9 +111,9 @@ def fetch_data(
         table_list = fetch_data_impl(
             db_config,
             FLUX_QUERY,
-            sensor_type,
+            measure,
             hostname,
-            param,
+            field,
             period,
             every_min,
             window_min,
@@ -152,9 +152,9 @@ def fetch_data(
 
 def get_equip_on_minutes(
     config,
-    sensor_type,
+    measure,
     hostname,
-    param,
+    field,
     threshold,
     period="30h",
     every_min=1,
@@ -163,13 +163,13 @@ def get_equip_on_minutes(
 ):
     logging.info(
         (
-            "Get on minutes (type: {type}, host: {host}, param: {param}, "
+            "Get on minutes (type: {type}, host: {host}, field: {field}, "
             + "threshold: {threshold}, period: {period}, every: {every}min, "
             + "window: {window}min, create_empty: {create_empty})"
         ).format(
-            type=sensor_type,
+            type=measure,
             host=hostname,
-            param=param,
+            field=field,
             threshold=threshold,
             period=period,
             every=every_min,
@@ -182,9 +182,9 @@ def get_equip_on_minutes(
         table_list = fetch_data_impl(
             config,
             FLUX_QUERY,
-            sensor_type,
+            measure,
             hostname,
-            param,
+            field,
             period,
             every_min,
             window_min,
@@ -222,9 +222,9 @@ def get_equip_on_minutes(
 
 def get_equip_mode_period(
     config,
-    sensor_type,
+    measure,
     hostname,
-    param,
+    field,
     threshold,
     period="30h",
     every_min=1,
@@ -233,13 +233,13 @@ def get_equip_mode_period(
 ):
     logging.info(
         (
-            "Get equipment mode period (type: {type}, host: {host}, param: {param}, "
+            "Get equipment mode period (type: {type}, host: {host}, field: {field}, "
             + "threshold: {threshold}, period: {period}, every: {every}min, "
             + "window: {window}min, create_empty: {create_empty})"
         ).format(
-            type=sensor_type,
+            type=measure,
             host=hostname,
-            param=param,
+            field=field,
             threshold=threshold,
             period=period,
             every=every_min,
@@ -252,9 +252,9 @@ def get_equip_mode_period(
         table_list = fetch_data_impl(
             config,
             FLUX_QUERY,
-            sensor_type,
+            measure,
             hostname,
-            param,
+            field,
             period,
             every_min,
             window_min,
@@ -326,14 +326,14 @@ def get_equip_mode_period(
         return []
 
 
-def get_today_sum(config, sensor_type, hostname, param):
+def get_today_sum(config, measure, hostname, field):
     try:
         now = datetime.datetime.now()
 
         period = "{hour}h{minute}m".format(hour=now.hour, minute=now.minute)
 
         table_list = fetch_data_impl(
-            config, FLUX_SUM_QUERY, sensor_type, hostname, param, period
+            config, FLUX_SUM_QUERY, measure, hostname, field, period
         )
 
         count, total = table_list.to_values(columns=["count", "sum"])[0]
@@ -366,11 +366,11 @@ if __name__ == "__main__":
     window = args["-w"]
 
     now = datetime.datetime.now()
-    sensor_type = config["USAGE"]["TARGET"]["TYPE"]
+    measure = config["USAGE"]["TARGET"]["TYPE"]
     hostname = config["USAGE"]["TARGET"]["HOST"]
-    param = config["USAGE"]["TARGET"]["PARAM"]
+    field = config["USAGE"]["TARGET"]["FIELD"]
     threshold = config["USAGE"]["TARGET"]["THRESHOLD"]["WORK"]
-    period = config["GRAPH"]["PARAM"]["PERIOD"]
+    period = config["GRAPH"]["FIELD"]["PERIOD"]
 
     db_config = {
         "token": config["INFLUXDB"]["TOKEN"],
@@ -380,9 +380,7 @@ if __name__ == "__main__":
     }
 
     dump_data(
-        fetch_data(
-            config["INFLUXDB"], sensor_type, hostname, param, period, every, window
-        )
+        fetch_data(config["INFLUXDB"], measure, hostname, field, period, every, window)
     )
 
     period = "{hour}h{minute}m".format(hour=now.hour, minute=now.minute)
@@ -392,9 +390,9 @@ if __name__ == "__main__":
             period=period,
             minutes=get_equip_on_minutes(
                 config["INFLUXDB"],
-                sensor_type,
+                measure,
                 hostname,
-                param,
+                field,
                 threshold,
                 period,
                 every,
@@ -403,17 +401,17 @@ if __name__ == "__main__":
         )
     )
 
-    sensor_type = config["GRAPH"]["VALVE"]["TYPE"]
+    measure = config["GRAPH"]["VALVE"]["TYPE"]
     hostname = config["GRAPH"]["VALVE"]["HOST"]
-    param = config["GRAPH"]["VALVE"]["PARAM"]
+    field = config["GRAPH"]["VALVE"]["FIELD"]
     threshold = config["GRAPH"]["VALVE"]["THRESHOLD"]
-    period = config["GRAPH"]["PARAM"]["PERIOD"]
+    period = config["GRAPH"]["FIELD"]["PERIOD"]
 
     logging.info(
         "Valve on period = {range_list}".format(
             range_list=json.dumps(
                 get_equip_mode_period(
-                    config["INFLUXDB"], sensor_type, hostname, param, threshold, period
+                    config["INFLUXDB"], measure, hostname, field, threshold, period
                 ),
                 indent=2,
                 default=str,
@@ -423,6 +421,6 @@ if __name__ == "__main__":
 
     # logging.info(
     #     "Amount of cooling water used today = {water:0f} L".format(
-    #         water=get_today_sum(config["INFLUXDB"], sensor_type, hostname, param)
+    #         water=get_today_sum(config["INFLUXDB"], measure, hostname, field)
     #     )
     # )
