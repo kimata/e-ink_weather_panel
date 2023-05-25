@@ -43,12 +43,15 @@ WEATHER:
   ICON:
     ARROW:
       PATH: ../img/arrow.png
+      SCALE: 0.7
     THERMO:
       PATH: ../img/thermo.png
       BRIGHTNESS: 1.2
+      SCALE: 0.7
     CLOTHES:
       PATH: ../img/clothes.png
       BRIGHTNESS: 1.2
+      SCALE: 0.7
     CLOTHING-FULL:
       PATH: ../img/clothing-full.png
       BRIGHTNESS: 3
@@ -60,9 +63,11 @@ WEATHER:
     PRECIP:
       PATH: ../img/precip.png
       BRIGHTNESS: 1.3
+      SCALE: 0.7
     WIND:
       PATH: ../img/wind.png
       BRIGHTNESS: 1.3
+      SCALE: 0.7
 
 POWER:
   PANEL:
