@@ -48,6 +48,8 @@ def notify_error(config):
 
 
 def draw_wall(config, img):
+    if "WALL" not in config:
+        return
     for wall_config in config["WALL"]["IMAGE"]:
         alpha_paste(
             img,
