@@ -287,9 +287,8 @@ def fetch_cloud_image(driver, url, width, height, is_future=False):
     return png_data
 
 
-def retouch_cloud_image(png_data):
+def retouch_cloud_image(png_data, panel_config):
     logging.info("retouch image")
-    gamma = 0.6
 
     img_rgb = cv2.imdecode(
         np.asarray(bytearray(png_data), dtype=np.uint8), cv2.IMREAD_COLOR
@@ -310,9 +309,10 @@ def retouch_cloud_image(png_data):
                     float(len(RAINFALL_INTENSITY_LEVEL) - i)
                     / len(RAINFALL_INTENSITY_LEVEL)
                 )
-                ** gamma
+                ** panel_config["LEGEND"]["GAMMA"]
             ),
         )
+
         img_hsv[level["func"](h, s)] = color
         bar[0][i] = color
 
@@ -455,7 +455,7 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
 
     driver.quit()
 
-    img, bar = retouch_cloud_image(img)
+    img, bar = retouch_cloud_image(img, panel_config)
     img = draw_equidistant_circle(img)
     img = draw_caption(img, sub_panel_config["title"], face_map)
 
