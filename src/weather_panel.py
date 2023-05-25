@@ -550,7 +550,7 @@ def draw_date(img, pos_x, pos_y, date, face_map):
 def draw_clothing(img, pos_x, pos_y, clothing_info, icon):
     icon_width, icon_height = icon["clothing"].size
     full_icon = icon["clothing"]
-    half_icon = PIL.ImageEnhance.Brightness(full_icon).enhance(3)
+    half_icon = PIL.ImageEnhance.Brightness(full_icon).enhance(3.5)
 
     for i in range(5):
         if clothing_info >= 20 * (i + 1):
