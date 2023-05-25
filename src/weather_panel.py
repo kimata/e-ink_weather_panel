@@ -548,9 +548,9 @@ def draw_date(img, pos_x, pos_y, date, face_map):
 
 
 def draw_clothing(img, pos_x, pos_y, clothing_info, icon):
-    icon_width, icon_height = icon["clothing"].size
-    full_icon = icon["clothing"]
-    half_icon = PIL.ImageEnhance.Brightness(full_icon).enhance(3.5)
+    icon_width, icon_height = icon["clothing-full"].size
+    full_icon = icon["clothing-full"]
+    half_icon = icon["clothing-half"]
 
     for i in range(5):
         if clothing_info >= 20 * (i + 1):
@@ -599,7 +599,15 @@ def draw_panel_weather(img, config, weather_info, clothing_info, is_side_by_side
     font_config = config["FONT"]
 
     icon = {}
-    for name in ["thermo", "clothes", "precip", "wind", "arrow", "clothing"]:
+    for name in [
+        "thermo",
+        "clothes",
+        "precip",
+        "wind",
+        "arrow",
+        "clothing-full",
+        "clothing-half",
+    ]:
         icon[name] = load_image(panel_config["ICON"][name.upper()])
 
     face_map = get_face_map(font_config)
