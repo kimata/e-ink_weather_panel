@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
     import logging
 
-    logger.init("test")
+    logger.init("test", level=logging.INFO)
 
     config = load_config()
 
