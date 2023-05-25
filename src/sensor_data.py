@@ -96,7 +96,7 @@ def fetch_data(
     create_empty=True,
     last=False,
 ):
-    logging.info(
+    logging.debug(
         (
             "Fetch data (measure: {measure}, host: {host}, field: {field}, "
             + "period: {period}, every: {every}min, window: {window}min, "
@@ -135,7 +135,7 @@ def fetch_data(
                 # NOTE: aggregateWindow(createEmpty: true) と fill(usePrevious: true) の組み合わせ
                 # だとタイミングによって，先頭に None が入る
                 if record.get_value() is None:
-                    logging.info("DELETE")
+                    logging.debug("DELETE")
                     continue
                 data.append(record.get_value())
                 time.append(record.get_time() + localtime_offset)
@@ -149,7 +149,7 @@ def fetch_data(
                 data = data[: (every_min - window_min)]
                 time = time[: (every_min - window_min)]
 
-        logging.info("data count = {count}".format(count=len(time)))
+        logging.debug("data count = {count}".format(count=len(time)))
 
         return {"value": data, "time": time, "valid": len(time) != 0}
     except:

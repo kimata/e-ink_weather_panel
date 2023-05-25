@@ -4,12 +4,13 @@
 電子ペーパ表示用の画像を生成します．
 
 Usage:
-  create_image.py [-f CONFIG] [-s] [-o PNG_FILE]
+  create_image.py [-f CONFIG] [-s] [-o PNG_FILE] [-d]
 
 Options:
   -f CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
   -s           : 小型ディスプレイモードで実行します．
   -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
+  -d           : デバッグモード．
 """
 
 from docopt import docopt
@@ -127,12 +128,18 @@ def draw_panel(config, img, is_small_mode=False):
 ######################################################################
 args = docopt(__doc__)
 
-logger.init("panel.e-ink.weather", level=logging.INFO)
-
-logging.info("Start to create image")
-
 config_file = args["-f"]
 is_small_mode = args["-s"]
+debug_mode = args["-d"]
+
+if debug_mode:
+    log_level = logging.DEBUG
+else:
+    log_level = logging.INFO
+
+logger.init("panel.e-ink.weather", level=log_level)
+
+logging.info("Start to create image")
 
 logging.info("Using config config: {config_file}".format(config_file=config_file))
 config = load_config(config_file)
