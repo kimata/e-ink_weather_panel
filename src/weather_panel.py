@@ -336,8 +336,8 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face):
             resample=PIL.Image.BICUBIC,
         )
 
-        canvas = overlay.copy()
-        canvas.paste(
+        alpha_paste(
+            img,
             arrow_icon,
             (
                 int(
@@ -348,7 +348,6 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face):
                 int(pos_y + (icon_orig_height - icon["arrow"].size[1]) / 2.0),
             ),
         )
-        img.alpha_composite(canvas, (0, 0))
 
     pos_y += icon_orig_height
 
