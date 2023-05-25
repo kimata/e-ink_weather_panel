@@ -19,7 +19,7 @@ import pathlib
 import logging
 
 from pil_util import get_font, text_size, draw_text, load_image, alpha_paste
-from weather_data import get_weather_yahoo
+from weather_data import get_weather_yahoo, get_clothing_yahoo
 
 # NOTE: 天気アイコンの周りにアイコンサイズの何倍の空きを確保するか
 ICON_MARGIN = 0.48
@@ -533,7 +533,7 @@ def draw_date(img, pos_x, pos_y, date, face_map):
         font_height_scale=EN_FONT_HEIGHT_FACTOR,
     )[1]
     locale.setlocale(locale.LC_TIME, "ja_JP.UTF-8")
-    draw_text(
+    next_pos_y = draw_text(
         img,
         date.strftime("(%a)"),
         [
@@ -543,15 +543,37 @@ def draw_date(img, pos_x, pos_y, date, face_map):
         face["wday"],
         "center",
         "#666",
-    )[0]
+    )[1]
 
-    return next_pos_x
+    return (next_pos_x, next_pos_y, text_pos_x)
+
+
+def draw_clothing(img, pos_x, pos_y, clothing_info, icon):
+    icon_width, icon_height = icon["clothing"].size
+    full_icon = icon["clothing"]
+    half_icon = PIL.ImageEnhance.Brightness(full_icon).enhance(3)
+
+    for i in range(5):
+        if clothing_info >= 20 * (i + 1):
+            alpha_paste(img, full_icon, (int(pos_x - icon_width / 2), int(pos_y)))
+        elif clothing_info >= (20 * i + 10):
+            alpha_paste(img, half_icon, (int(pos_x - icon_width / 2), int(pos_y)))
+
+        pos_y += icon_height
 
 
 def draw_panel_weather_day(
-    img, pos_x, pos_y, weather_day_info, is_today, overlay, icon, face_map
+    img,
+    pos_x,
+    pos_y,
+    weather_day_info,
+    clothing_info,
+    is_today,
+    overlay,
+    icon,
+    face_map,
 ):
-    next_pos_x = draw_date(
+    next_pos_x, next_pos_y, text_pos_x = draw_date(
         img,
         pos_x,
         pos_y,
@@ -560,6 +582,7 @@ def draw_panel_weather_day(
         else datetime.datetime.now() + datetime.timedelta(days=1),
         face_map,
     )
+    draw_clothing(img, text_pos_x, next_pos_y + 20, clothing_info, icon)
     draw_day_weather(
         img,
         weather_day_info,
@@ -572,12 +595,12 @@ def draw_panel_weather_day(
     )
 
 
-def draw_panel_weather(img, config, weather_info, is_side_by_side):
+def draw_panel_weather(img, config, weather_info, clothing_info, is_side_by_side):
     panel_config = config["WEATHER"]
     font_config = config["FONT"]
 
     icon = {}
-    for name in ["thermo", "clothes", "precip", "wind", "arrow"]:
+    for name in ["thermo", "clothes", "precip", "wind", "arrow", "clothing"]:
         icon[name] = load_image(panel_config["ICON"][name.upper()])
 
     face_map = get_face_map(font_config)
@@ -590,6 +613,7 @@ def draw_panel_weather(img, config, weather_info, is_side_by_side):
         pos_x,
         pos_y,
         weather_info["today"],
+        clothing_info["today"],
         True,
         img.copy(),
         icon,
@@ -605,6 +629,7 @@ def draw_panel_weather(img, config, weather_info, is_side_by_side):
         pos_x,
         pos_y,
         weather_info["tommorow"],
+        clothing_info["tommorow"],
         False,
         img.copy(),
         icon,
@@ -617,12 +642,13 @@ def create_weather_panel(config, is_side_by_side=True):
     start = time.perf_counter()
 
     weather_info = get_weather_yahoo(config["WEATHER"]["DATA"]["YAHOO"])
+    clothing_info = get_clothing_yahoo(config["WEATHER"]["DATA"]["YAHOO"])
     img = PIL.Image.new(
         "RGBA",
         (config["WEATHER"]["PANEL"]["WIDTH"], config["WEATHER"]["PANEL"]["HEIGHT"]),
         (255, 255, 255, 0),
     )
 
-    draw_panel_weather(img, config, weather_info, is_side_by_side)
+    draw_panel_weather(img, config, weather_info, clothing_info, is_side_by_side)
 
     return (img, time.perf_counter() - start)

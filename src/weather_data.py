@@ -59,6 +59,16 @@ def parse_table(content, index):
     return day_info_list
 
 
+def parse_clothing(content, index):
+    table_xpath = (
+        '(//dl[contains(@class, "indexList_item-clothing")])[{index}]'
+        + "//dd/p[1]/@class"
+    ).format(index=index)
+    index = int(content.xpath(table_xpath)[0].split("-", 1)[1])
+
+    return index
+
+
 def get_weather_yahoo(config):
     data = request.urlopen(config["URL"])
     content = html.fromstring(data.read().decode("UTF-8"))
@@ -66,6 +76,16 @@ def get_weather_yahoo(config):
     return {
         "today": parse_table(content, 1),
         "tommorow": parse_table(content, 2),
+    }
+
+
+def get_clothing_yahoo(config):
+    data = request.urlopen(config["URL"])
+    content = html.fromstring(data.read().decode("UTF-8"))
+
+    return {
+        "today": parse_clothing(content, 1),
+        "tommorow": parse_clothing(content, 2),
     }
 
 
@@ -80,5 +100,6 @@ if __name__ == "__main__":
     config = load_config()
 
     logging.info(get_weather_yahoo(config["WEATHER"]["DATA"]["YAHOO"]))
+    logging.info(get_clothing_yahoo(config["WEATHER"]["DATA"]["YAHOO"]))
 
     logging.info("Fnish.")
