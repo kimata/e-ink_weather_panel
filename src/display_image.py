@@ -58,7 +58,7 @@ def ssh_connect(hostname, key_filename):
     return ssh
 
 
-def display_image(config, args, is_small_mode, is_onece):
+def display_image(config, args, is_small_mode, is_one_time):
     ssh = ssh_connect(rasp_hostname, key_file_path)
 
     ssh_stdin = ssh.exec_command(
@@ -87,7 +87,7 @@ def display_image(config, args, is_small_mode, is_onece):
 
     pathlib.Path(config["LIVENESS"]["FILE"]).touch()
 
-    if is_onece:
+    if is_one_time:
         # NOTE: 表示がされるまで待つ
         sleep_time = 5
     else:
@@ -113,7 +113,7 @@ args = docopt(__doc__)
 
 logger.init("panel.e-ink.weather", level=logging.INFO)
 
-is_onece = args["-O"]
+is_one_time = args["-O"]
 is_small_mode = args["-s"]
 rasp_hostname = os.environ.get("RASP_HOSTNAME", args["-t"])
 key_file_path = os.environ.get(
@@ -128,14 +128,14 @@ config = load_config(args["-f"])
 fail_count = 0
 while True:
     try:
-        display_image(config, args, is_small_mode, is_onece)
+        display_image(config, args, is_small_mode, is_one_time)
         fail_count = 0
 
-        if is_onece:
+        if is_one_time:
             break
     except:
         fail_count += 1
-        if is_onece or (fail_count >= NOTIFY_THRESHOLD):
+        if is_one_time or (fail_count >= NOTIFY_THRESHOLD):
             if "SLACK" in config:
                 notify_error(config)
             logging.error("エラーが続いたので終了します．")
