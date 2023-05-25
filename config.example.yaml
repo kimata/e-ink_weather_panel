@@ -49,11 +49,11 @@ WEATHER:
       BRIGHTNESS: 1.2
     CLOTHING-FULL:
       PATH: ../img/clothing-full.png
-      BRIGHTNESS: 1.4
+      BRIGHTNESS: 2
       SCALE: 0.6
     CLOTHING-HALF:
       PATH: ../img/clothing-half.png
-      BRIGHTNESS: 1.4
+      BRIGHTNESS: 2
       SCALE: 0.6
     PRECIP:
       PATH: ../img/precip.png
