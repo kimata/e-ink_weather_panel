@@ -36,7 +36,7 @@ CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
 def notify_error(config):
     notify_slack.error(
         config["SLACK"]["BOT_TOKEN"],
-        config["SLACK"]["ERROR"]["CHANNEL"],
+        config["SLACK"]["ERROR"]["CHANNEL"]["NAME"],
         "E-Ink Weather Panel",
         traceback.format_exc(),
         config["SLACK"]["ERROR"]["INTERVAL_MIN"],
