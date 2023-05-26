@@ -197,7 +197,7 @@ def draw_text_info(
                 int(
                     pos_x
                     - icon.size[0] / 2
-                    - text_size(face["value"], "0", EN_FONT_HEIGHT_FACTOR)[0] * 0.7
+                    - text_size(face["value"], "0", EN_FONT_HEIGHT_FACTOR)[0] * 0.5
                 ),
                 int(pos_y + (text_size(face["value"], "0")[1] - icon.size[1]) / 2.0),
             ),
@@ -541,10 +541,17 @@ def draw_date(img, pos_x, pos_y, date, face_map):
 
 
 def draw_clothing(img, pos_x, pos_y, clothing_info, icon):
-    icon_width, icon_height = icon["clothing-full"].size
-    full_icon = icon["clothing-full"]
-    half_icon = icon["clothing-half"]
-    shadow_icon = PIL.ImageEnhance.Brightness(full_icon).enhance(2.2)
+    icon_index = math.ceil(clothing_info / 20)
+    if icon_index == 0:
+        icon_index += 1
+
+    full_icon = icon["clothing-full-{index}".format(index=icon_index)]
+    half_icon = icon["clothing-half-{index}".format(index=icon_index)]
+    icon_width, icon_height = full_icon.size
+
+    shadow_icon = PIL.ImageEnhance.Brightness(full_icon).enhance(3)
+
+    clothing_info = 30
 
     for i in range(5):
         if clothing_info >= 20 * (i + 1):
@@ -554,7 +561,7 @@ def draw_clothing(img, pos_x, pos_y, clothing_info, icon):
         else:
             alpha_paste(img, shadow_icon, (int(pos_x - icon_width / 2), int(pos_y)))
 
-        pos_y += icon_height
+        pos_y += icon_height * 1.05
 
 
 def draw_panel_weather_day(
@@ -582,7 +589,7 @@ def draw_panel_weather_day(
         img,
         weather_day_info,
         is_today,
-        next_pos_x + 50,
+        next_pos_x + 30,
         pos_y + 5,
         overlay,
         icon,
@@ -601,8 +608,16 @@ def draw_panel_weather(img, config, weather_info, clothing_info, is_side_by_side
         "precip",
         "wind",
         "arrow",
-        "clothing-full",
-        "clothing-half",
+        "clothing-full-1",
+        "clothing-full-2",
+        "clothing-full-3",
+        "clothing-full-4",
+        "clothing-full-5",
+        "clothing-half-1",
+        "clothing-half-2",
+        "clothing-half-3",
+        "clothing-half-4",
+        "clothing-half-5",
     ]:
         icon[name] = load_image(panel_config["ICON"][name.upper()])
 

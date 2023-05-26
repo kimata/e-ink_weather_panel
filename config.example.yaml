@@ -49,14 +49,36 @@ WEATHER:
       PATH: ../img/clothes.png
       BRIGHTNESS: 1.2
       SCALE: 0.7
-    CLOTHING-FULL:
-      PATH: ../img/clothing-full.png
-      BRIGHTNESS: 3
-      SCALE: 0.7
-    CLOTHING-HALF:
-      PATH: ../img/clothing-half.png
-      BRIGHTNESS: 3
-      SCALE: 0.7
+    CLOTHING-FULL-1:
+      PATH: ../img/cloching_icon_1_full.png
+      SCALE: 0.5
+    CLOTHING-FULL-2:
+      PATH: ../img/cloching_icon_2_full.png
+      SCALE: 0.5
+    CLOTHING-FULL-3:
+      PATH: ../img/cloching_icon_3_full.png
+      SCALE: 0.45
+    CLOTHING-FULL-4:
+      PATH: ../img/cloching_icon_4_full.png
+      SCALE: 0.45
+    CLOTHING-FULL-5:
+      PATH: ../img/cloching_icon_5_full.png
+      SCALE: 0.5
+    CLOTHING-HALF-1:
+      PATH: ../img/cloching_icon_1_half.png
+      SCALE: 0.5
+    CLOTHING-HALF-2:
+      PATH: ../img/cloching_icon_2_half.png
+      SCALE: 0.5
+    CLOTHING-HALF-3:
+      PATH: ../img/cloching_icon_3_half.png
+      SCALE: 0.45
+    CLOTHING-HALF-4:
+      PATH: ../img/cloching_icon_4_half.png
+      SCALE: 0.45
+    CLOTHING-HALF-5:
+      PATH: ../img/cloching_icon_5_half.png
+      SCALE: 0.5
     PRECIP:
       PATH: ../img/precip.png
       BRIGHTNESS: 1.3
