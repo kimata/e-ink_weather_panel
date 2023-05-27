@@ -568,7 +568,7 @@ def draw_clothing(img, pos_x, pos_y, clothing_info, icon):
         # NOTE: サイズ違いの場合，やや上寄りにする
         icon_pos = (
             int(pos_x - icon_width / 2),
-            int(pos_y + (icon_height_max - draw_icon.size[1]) / 2.5),
+            int(pos_y + (icon_height_max - draw_icon.size[1]) / 3),
         )
 
         alpha_paste(img, draw_icon, icon_pos)
