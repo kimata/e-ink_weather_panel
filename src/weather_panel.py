@@ -545,6 +545,12 @@ def draw_clothing(img, pos_x, pos_y, clothing_info, icon):
     if icon_index == 0:
         icon_index += 1
 
+    icon_height_max = 0
+    for i in range(1, 6):
+        icon_height_max = max(
+            icon["clothing-full-{index}".format(index=i)].size[1], icon_height_max
+        )
+
     full_icon = icon["clothing-full-{index}".format(index=icon_index)]
     half_icon = icon["clothing-half-{index}".format(index=icon_index)]
     icon_width, icon_height = full_icon.size
@@ -553,13 +559,21 @@ def draw_clothing(img, pos_x, pos_y, clothing_info, icon):
 
     for i in range(5):
         if clothing_info >= 20 * (i + 1):
-            alpha_paste(img, full_icon, (int(pos_x - icon_width / 2), int(pos_y)))
+            draw_icon = full_icon
         elif clothing_info >= (20 * i + 10):
-            alpha_paste(img, half_icon, (int(pos_x - icon_width / 2), int(pos_y)))
+            draw_icon = half_icon
         else:
-            alpha_paste(img, shadow_icon, (int(pos_x - icon_width / 2), int(pos_y)))
+            draw_icon = shadow_icon
 
-        pos_y += icon_height * 1.05
+        # NOTE: サイズ違いの場合，やや上寄りにする
+        icon_pos = (
+            int(pos_x - icon_width / 2),
+            int(pos_y + (icon_height_max - draw_icon.size[1]) / 2.5),
+        )
+
+        alpha_paste(img, draw_icon, icon_pos)
+
+        pos_y += icon_height_max * 1.05
 
 
 def draw_panel_weather_day(
