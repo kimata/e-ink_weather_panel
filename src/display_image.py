@@ -4,10 +4,10 @@
 電子ペーパ表示用の画像を表示します．
 
 Usage:
-  display_image.py [-f CONFIG] [-t HOSTNAME] [-s] [-O]
+  display_image.py [-c CONFIG] [-t HOSTNAME] [-s] [-O]
 
 Options:
-  -f CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
+  -c CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
   -s           : 小型ディスプレイモードで実行します．
   -t HOSTNAME  : 表示を行う Raspberry Pi のホスト名．
   -O           : 1回のみ表示
@@ -66,7 +66,7 @@ def display_image(config, args, is_small_mode, is_one_time):
     )[0]
 
     logging.info("Start drawing.")
-    cmd = ["python3", CREATE_IMAGE, "-f", args["-f"]]
+    cmd = ["python3", CREATE_IMAGE, "-c", args["-c"]]
     if is_small_mode:
         cmd.append("-s")
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
@@ -123,7 +123,7 @@ key_file_path = os.environ.get(
 
 logging.info("Raspberry Pi hostname: %s" % (rasp_hostname))
 
-config = load_config(args["-f"])
+config = load_config(args["-c"])
 
 fail_count = 0
 while True:

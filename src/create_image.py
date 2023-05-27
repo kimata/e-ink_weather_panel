@@ -4,10 +4,10 @@
 電子ペーパ表示用の画像を生成します．
 
 Usage:
-  create_image.py [-f CONFIG] [-s] [-o PNG_FILE] [-d]
+  create_image.py [-c CONFIG] [-s] [-o PNG_FILE] [-d]
 
 Options:
-  -f CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
+  -c CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
   -s           : 小型ディスプレイモードで実行します．
   -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
   -d           : デバッグモード．
@@ -130,7 +130,7 @@ def draw_panel(config, img, is_small_mode=False):
 ######################################################################
 args = docopt(__doc__)
 
-config_file = args["-f"]
+config_file = args["-c"]
 is_small_mode = args["-s"]
 debug_mode = args["-d"]
 

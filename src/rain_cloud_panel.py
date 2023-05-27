@@ -4,10 +4,10 @@
 雨雲レーダー画像を生成します．
 
 Usage:
-  rain_cloud_panel.py [-f CONFIG] -o PNG_FILE
+  rain_cloud_panel.py [-c CONFIG] -o PNG_FILE
 
 Options:
-  -f CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
+  -c CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
   -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
 """
 
@@ -672,7 +672,7 @@ if __name__ == "__main__":
 
     logger.init("test", level=logging.INFO)
 
-    config = load_config(args["-f"])
+    config = load_config(args["-c"])
     out_file = args["-o"]
 
     img = create_rain_cloud_panel_impl(config, True)
