@@ -34,6 +34,9 @@ CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
 
 
 def notify_error(config):
+    if "SLACK" not in config:
+        return
+
     notify_slack.error(
         config["SLACK"]["BOT_TOKEN"],
         config["SLACK"]["ERROR"]["CHANNEL"]["NAME"],
@@ -136,8 +139,7 @@ while True:
     except:
         fail_count += 1
         if is_one_time or (fail_count >= NOTIFY_THRESHOLD):
-            if "SLACK" in config:
-                notify_error(config)
+            notify_error(config)
             logging.error("エラーが続いたので終了します．")
             raise
         else:

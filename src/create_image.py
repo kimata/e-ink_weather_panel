@@ -38,6 +38,9 @@ from config import load_config
 
 
 def notify_error(config):
+    if "SLACK" not in config:
+        return
+
     notify_slack.error(
         config["SLACK"]["BOT_TOKEN"],
         config["SLACK"]["ERROR"]["CHANNEL"]["NAME"],
@@ -180,8 +183,7 @@ except:
         get_font(config["FONT"], "EN_MEDIUM", 40),
         "left" "#333",
     )
-    if "SLACK" in config:
-        notify_error(config)
+    notify_error(config)
 
     print(traceback.format_exc(), file=sys.stderr)
     # NOTE: 使われてなさそうな値にしておく．
