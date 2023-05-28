@@ -37,7 +37,7 @@ from time_panel import create_time_panel
 from config import load_config
 
 
-def notify_error(config):
+def notify_error(config, message):
     if "SLACK" not in config:
         return
 
@@ -45,7 +45,7 @@ def notify_error(config):
         config["SLACK"]["BOT_TOKEN"],
         config["SLACK"]["ERROR"]["CHANNEL"]["NAME"],
         config["SLACK"]["FROM"],
-        traceback.format_exc(),
+        message,
         config["SLACK"]["ERROR"]["INTERVAL_MIN"],
     )
 
@@ -183,7 +183,7 @@ except:
         get_font(config["FONT"], "EN_MEDIUM", 40),
         "left" "#333",
     )
-    notify_error(config)
+    notify_error(config, traceback.format_exc())
 
     print(traceback.format_exc(), file=sys.stderr)
     # NOTE: 使われてなさそうな値にしておく．

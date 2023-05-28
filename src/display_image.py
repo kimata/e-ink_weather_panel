@@ -33,7 +33,7 @@ NOTIFY_THRESHOLD = 2
 CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
 
 
-def notify_error(config):
+def notify_error(config, message):
     if "SLACK" not in config:
         return
 
@@ -41,7 +41,7 @@ def notify_error(config):
         config["SLACK"]["BOT_TOKEN"],
         config["SLACK"]["ERROR"]["CHANNEL"]["NAME"],
         "E-Ink Weather Panel",
-        traceback.format_exc(),
+        message,
         config["SLACK"]["ERROR"]["INTERVAL_MIN"],
     )
 
@@ -139,7 +139,7 @@ while True:
     except:
         fail_count += 1
         if is_one_time or (fail_count >= NOTIFY_THRESHOLD):
-            notify_error(config)
+            notify_error(config, traceback.format_exc())
             logging.error("エラーが続いたので終了します．")
             raise
         else:
