@@ -367,7 +367,9 @@ def draw_equidistant_circle(img):
 
 def draw_caption(img, title, face_map):
     logging.info("draw caption")
-    size = face_map["title"].getsize(title)
+    text_size = face_map["title"].getsize(title)
+    caption_size = (text_size[0] + 5, text_size[1])  # NOTE: 横方向を少し広げる
+
     x = 12
     y = 12
     padding = 10
@@ -380,18 +382,23 @@ def draw_caption(img, title, face_map):
         (
             x - padding,
             y - padding,
-            x + size[0] + padding - radius,
-            y + size[1] + padding / 2,
+            x + caption_size[0] + padding - radius,
+            y + caption_size[1] + padding / 2,
         ),
         fill=(255, 255, 255, alpha),
     )
     draw.rectangle(
-        (x - padding, y - padding, x + size[0] + padding, y + padding / 2),
+        (x - padding, y - padding, x + caption_size[0] + padding, y + padding / 2),
         fill=(255, 255, 255, alpha),
     )
 
     draw.rounded_rectangle(
-        (x - padding, y - padding, x + size[0] + padding, y + size[1] + padding / 2),
+        (
+            x - padding,
+            y - padding,
+            x + caption_size[0] + padding,
+            y + caption_size[1] + padding / 2,
+        ),
         fill=(255, 255, 255, alpha),
         radius=radius,
     )
@@ -399,7 +406,7 @@ def draw_caption(img, title, face_map):
     draw_text(
         img,
         title,
-        (10, 20),
+        (10, 10),
         face_map["title"],
         "left",
         color="#000",

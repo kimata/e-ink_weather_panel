@@ -48,8 +48,8 @@ def draw_panel_time(img, config):
     # 右下に描画する
     draw_time(
         img,
-        panel_config["PANEL"]["WIDTH"],
-        panel_config["PANEL"]["HEIGHT"],
+        panel_config["PANEL"]["WIDTH"] - 20,
+        panel_config["PANEL"]["HEIGHT"] - 20,
         face_map["time"],
     )
 
