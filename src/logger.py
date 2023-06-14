@@ -32,9 +32,13 @@ def init(name, level=logging.WARNING, dir_path=None, is_str=False):
         log_path = pathlib.Path(dir_path)
         log_path.mkdir(exist_ok=True, parents=True)
 
+        log_file_path = str(log_path / "{name}.log".format(name=name))
+
+        logging.info("Log to {log_file_path}".format(log_file_path=log_file_path))
+
         logger = logging.getLogger()
         log_handler = logging.handlers.RotatingFileHandler(
-            str(log_path / "{name}.log".format(name=name)),
+            log_file_path,
             encoding="utf8",
             maxBytes=MAX_SIZE,
             backupCount=ROTATE_COUNT,

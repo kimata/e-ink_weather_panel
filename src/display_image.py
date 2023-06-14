@@ -80,8 +80,8 @@ def display_image(config, args, is_small_mode, is_one_time):
     # NOTE: -24 は create_image.py の異常時の終了コードに合わせる．
     if proc.returncode == 0:
         logging.info("Success.")
-    elif proc.returncode != 222:
-        logging.warn("Finish. (something is wrong)")
+    elif proc.returncode == 222:
+        logging.warning("Finish. (something is wrong)")
     else:
         logging.error(
             "Failed to create image. (code: {code})".format(code=proc.returncode)
