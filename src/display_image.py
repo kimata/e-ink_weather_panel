@@ -72,10 +72,11 @@ def display_image(config, args, is_small_mode, is_one_time):
     cmd = ["python3", CREATE_IMAGE, "-c", args["-c"]]
     if is_small_mode:
         cmd.append("-s")
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     ssh_stdin.write(proc.communicate()[0])
     proc.wait()
     ssh_stdin.close()
+    print(proc.communicate()[1].decode("utf-8"), file=sys.stderr)
 
     # NOTE: -24 は create_image.py の異常時の終了コードに合わせる．
     if proc.returncode == 0:
