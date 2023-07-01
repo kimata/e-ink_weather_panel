@@ -240,3 +240,16 @@ FONT:
 
     # EN_MEDIUM: FrutigerNeueLTW1G-Medium.otf
     # EN_BOLD: FrutigerNeueLTW1G-Bold.otf
+
+# SLACK:
+#   NAME: E-Ink Weather Panel
+
+#   BOT_TOKEN: xoxb-XXXXXXXXXXXX-XXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXX
+
+#   FROM: E-Ink Weather Panel
+
+#   ERROR:
+#     CHANNEL:
+#       NAME: "#error"
+#       ID: XXXXXXXXXXX
+#     INTERVAL_MIN: 180
