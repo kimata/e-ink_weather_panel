@@ -30,7 +30,7 @@ test-weather-panel:
 
   script:
     - docker pull ${CI_REGISTRY_IMAGE}
-    - docker run --tty=true --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/weather_panel.py -c config.yaml -o ${CI_JOB_NAME}.png
+    - docker run --tty=true --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} lib/weather_panel.py -c config.yaml -o ${CI_JOB_NAME}.png
     - CID=`docker ps --quiet --latest --filter "ancestor=${CI_REGISTRY_IMAGE}" --filter "label=job=${CI_JOB_NAME}"`
     - docker wait ${CID}
     - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
@@ -47,7 +47,7 @@ test-rain-cloud-panel:
 
   script:
     - docker pull ${CI_REGISTRY_IMAGE}
-    - docker run --tty=true --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/rain_cloud_panel.py -c config.yaml -o ${CI_JOB_NAME}.png
+    - docker run --tty=true --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} lib/rain_cloud_panel.py -c config.yaml -o ${CI_JOB_NAME}.png
     - CID=`docker ps --quiet --latest --filter "ancestor=${CI_REGISTRY_IMAGE}" --filter "label=job=${CI_JOB_NAME}"`
     - docker wait ${CID}
     - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
