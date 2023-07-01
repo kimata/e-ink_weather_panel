@@ -50,7 +50,7 @@ def draw_panel_patiently(func, panel_config, font_config, is_side_by_side):
     for i in range(5):
         try:
             return (
-                func(panel_config, is_side_by_side),
+                func(panel_config, font_config, is_side_by_side),
                 time.perf_counter() - start,
             )
         except:
