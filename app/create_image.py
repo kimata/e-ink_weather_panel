@@ -135,71 +135,77 @@ def draw_panel(config, img, is_small_mode=False):
 
 
 ######################################################################
-args = docopt(__doc__)
+if __name__ == "__main__":
+    args = docopt(__doc__)
 
-config_file = args["-c"]
-is_small_mode = args["-s"]
-debug_mode = args["-d"]
+    config_file = args["-c"]
+    is_small_mode = args["-s"]
+    debug_mode = args["-d"]
 
-if debug_mode:
-    log_level = logging.DEBUG
-else:
-    log_level = logging.INFO
+    if debug_mode:
+        log_level = logging.DEBUG
+    else:
+        log_level = logging.INFO
 
-logger.init("panel.e-ink.weather", level=log_level)
+    logger.init("panel.e-ink.weather", level=log_level)
 
-logging.info("Start to create image")
+    logging.info("Start to create image")
 
-logging.info("Using config config: {config_file}".format(config_file=config_file))
-config = load_config(config_file)
+    logging.info("Using config config: {config_file}".format(config_file=config_file))
+    config = load_config(config_file)
 
-logging.info("Mode : {mode}".format(mode="small" if is_small_mode else "normal"))
+    logging.info("Mode : {mode}".format(mode="small" if is_small_mode else "normal"))
 
-img = PIL.Image.new(
-    "RGBA",
-    (config["PANEL"]["DEVICE"]["WIDTH"], config["PANEL"]["DEVICE"]["HEIGHT"]),
-    (255, 255, 255, 255),
-)
-
-status = 0
-try:
-    draw_panel(config, img, is_small_mode)
-except:
-    draw = PIL.ImageDraw.Draw(img)
-    draw.rectangle(
-        (0, 0, config["PANEL"]["DEVICE"]["WIDTH"], config["PANEL"]["DEVICE"]["HEIGHT"]),
-        fill=(255, 255, 255, 255),
+    img = PIL.Image.new(
+        "RGBA",
+        (config["PANEL"]["DEVICE"]["WIDTH"], config["PANEL"]["DEVICE"]["HEIGHT"]),
+        (255, 255, 255, 255),
     )
 
-    draw_text(
-        img,
-        "ERROR",
-        (10, 10),
-        get_font(config["FONT"], "EN_BOLD", 160),
-        "left",
-        "#666",
-    )
+    status = 0
+    try:
+        draw_panel(config, img, is_small_mode)
+    except:
+        draw = PIL.ImageDraw.Draw(img)
+        draw.rectangle(
+            (
+                0,
+                0,
+                config["PANEL"]["DEVICE"]["WIDTH"],
+                config["PANEL"]["DEVICE"]["HEIGHT"],
+            ),
+            fill=(255, 255, 255, 255),
+        )
 
-    draw_text(
-        img,
-        "\n".join(textwrap.wrap(traceback.format_exc(), 100)),
-        (20, 200),
-        get_font(config["FONT"], "EN_MEDIUM", 40),
-        "left" "#333",
-    )
-    notify_error(config, traceback.format_exc())
+        draw_text(
+            img,
+            "ERROR",
+            (10, 10),
+            get_font(config["FONT"], "EN_BOLD", 160),
+            "left",
+            "#666",
+        )
 
-    print(traceback.format_exc(), file=sys.stderr)
-    # NOTE: 使われてなさそうな値にしておく．
-    # display_image.py と合わせる必要あり．
-    status = 222
+        draw_text(
+            img,
+            "\n".join(textwrap.wrap(traceback.format_exc(), 100)),
+            (20, 200),
+            get_font(config["FONT"], "EN_MEDIUM", 40),
+            "left" "#333",
+        )
+        notify_error(config, traceback.format_exc())
 
-if args["-o"] is not None:
-    out_file = args["-o"]
-else:
-    out_file = sys.stdout.buffer
+        print(traceback.format_exc(), file=sys.stderr)
+        # NOTE: 使われてなさそうな値にしておく．
+        # display_image.py と合わせる必要あり．
+        status = 222
 
-logging.info("Save {out_file}.".format(out_file=str(out_file)))
-convert_to_gray(img).save(out_file, "PNG")
+    if args["-o"] is not None:
+        out_file = args["-o"]
+    else:
+        out_file = sys.stdout.buffer
 
-exit(status)
+    logging.info("Save {out_file}.".format(out_file=str(out_file)))
+    convert_to_gray(img).save(out_file, "PNG")
+
+    exit(status)

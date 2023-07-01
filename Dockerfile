@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y \
     python3-pil python3-matplotlib python3-pandas \
     python3-opencv \
     python3-paramiko \
+    python3-flask python3-flask-cors \
     ./google-chrome-stable_current_amd64.deb \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
