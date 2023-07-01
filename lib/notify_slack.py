@@ -111,7 +111,7 @@ def error(
     ch_name,
     name,
     message,
-    interval_min=10,
+    interval_min=60,
     formatter=format_simple,
 ):
     title = "Error: " + name
