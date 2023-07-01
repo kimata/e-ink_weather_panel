@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+天気予報画像を生成します．
+
+Usage:
+  weather_panel.py [-c CONFIG] -o PNG_FILE
+
+Options:
+  -c CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
+  -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
+"""
 
 from cv2 import dnn_superres
 from urllib import request
