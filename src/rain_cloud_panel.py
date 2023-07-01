@@ -548,7 +548,9 @@ def draw_legend(img, bar, panel_config, face_map):
     return img
 
 
-def create_rain_cloud_panel_impl(panel_config, font_config, is_side_by_side):
+def create_rain_cloud_panel_impl(
+    panel_config, font_config, slack_config, is_side_by_side
+):
     if is_side_by_side:
         sub_width = int(panel_config["PANEL"]["WIDTH"] / 2)
         sub_height = panel_config["PANEL"]["HEIGHT"]
@@ -596,7 +598,7 @@ def create_rain_cloud_panel_impl(panel_config, font_config, is_side_by_side):
                     panel_config,
                     sub_panel_config,
                     face_map,
-                    config["SLACK"] if "SLACK" in config else None,
+                    slack_config,
                 )
             )
 
@@ -616,6 +618,7 @@ def create_rain_cloud_panel(config, is_side_by_side=True):
         create_rain_cloud_panel_impl,
         config["RAIN_CLOUD"],
         config["FONT"],
+        config["SLACK"] if "SLACK" in config else None,
         is_side_by_side,
     )
 
@@ -634,7 +637,7 @@ if __name__ == "__main__":
     config = load_config(args["-c"])
     out_file = args["-o"]
 
-    img = create_rain_cloud_panel_impl(config["RAIN_CLOUD"], config["FONT"], True)
+    img = create_rain_cloud_panel_impl(config["RAIN_CLOUD"], config["FONT"], None, True)
 
     logging.info("Save {out_file}.".format(out_file=out_file))
     convert_to_gray(img).save(out_file, "PNG")
