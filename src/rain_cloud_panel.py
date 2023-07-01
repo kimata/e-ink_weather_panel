@@ -23,7 +23,6 @@ import os
 import cv2
 import pathlib
 import numpy as np
-import textwrap
 import traceback
 import datetime
 import pickle
@@ -34,6 +33,7 @@ import logging
 
 from selenium_util import create_driver, click_xpath
 from pil_util import get_font, draw_text, text_size, alpha_paste
+from panel_util import draw_panel_patiently
 import notify_slack
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
@@ -548,10 +548,7 @@ def draw_legend(img, bar, panel_config, face_map):
     return img
 
 
-def create_rain_cloud_panel_impl(config, is_side_by_side):
-    panel_config = config["RAIN_CLOUD"]
-    font_config = config["FONT"]
-
+def create_rain_cloud_panel_impl(panel_config, font_config, is_side_by_side):
     if is_side_by_side:
         sub_width = int(panel_config["PANEL"]["WIDTH"] / 2)
         sub_height = panel_config["PANEL"]["HEIGHT"]
@@ -612,60 +609,15 @@ def create_rain_cloud_panel_impl(config, is_side_by_side):
     return img
 
 
-def error_image(config, error_text):
-    panel_config = config["RAIN_CLOUD"]
-
-    img = PIL.Image.new(
-        "RGBA",
-        (panel_config["PANEL"]["WIDTH"], panel_config["PANEL"]["HEIGHT"]),
-        (255, 255, 255, 255),
-    )
-
-    draw = PIL.ImageDraw.Draw(img)
-    draw.rectangle(
-        (0, 0, config["PANEL"]["DEVICE"]["WIDTH"], config["PANEL"]["DEVICE"]["HEIGHT"]),
-        fill=(255, 255, 255, 255),
-    )
-
-    draw_text(
-        img,
-        "ERROR",
-        (10, 10),
-        get_font(config["FONT"], "EN_BOLD", 100),
-        "left",
-        "#666",
-    )
-
-    draw_text(
-        img,
-        "\n".join(textwrap.wrap(error_text, 90)),
-        (20, 100),
-        get_font(config["FONT"], "EN_MEDIUM", 30),
-        "left" "#666",
-    )
-
-    return img
-
-
 def create_rain_cloud_panel(config, is_side_by_side=True):
-    logging.info("create rain cloud panel")
-    start = time.perf_counter()
+    logging.info("draw rain cloud panel")
 
-    error_text = None
-    for i in range(5):
-        try:
-            return (
-                create_rain_cloud_panel_impl(config, is_side_by_side),
-                time.perf_counter() - start,
-            )
-        except:
-            error_text = traceback.format_exc()
-            logging.error(error_text)
-            pass
-        logging.warn("retry")
-        time.sleep(5)
-
-    return (error_image(config, error_text), time.perf_counter() - start)
+    return draw_panel_patiently(
+        create_rain_cloud_panel_impl,
+        config["RAIN_CLOUD"],
+        config["FONT"],
+        is_side_by_side,
+    )
 
 
 if __name__ == "__main__":

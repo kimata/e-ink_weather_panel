@@ -11,7 +11,6 @@ import PIL.ImageEnhance
 import cv2
 import datetime
 import locale
-import time
 import math
 import numpy as np
 import os
@@ -20,6 +19,7 @@ import logging
 
 from pil_util import get_font, text_size, draw_text, load_image, alpha_paste
 from weather_data import get_weather_yahoo, get_clothing_yahoo
+from panel_util import draw_panel_patiently
 
 # NOTE: 天気アイコンの周りにアイコンサイズの何倍の空きを確保するか
 ICON_MARGIN = 0.48
@@ -609,10 +609,9 @@ def draw_panel_weather_day(
     )
 
 
-def draw_panel_weather(img, config, weather_info, clothing_info, is_side_by_side):
-    panel_config = config["WEATHER"]
-    font_config = config["FONT"]
-
+def draw_panel_weather(
+    img, panel_config, font_config, weather_info, clothing_info, is_side_by_side
+):
     icon = {}
     for name in [
         "thermo",
@@ -667,18 +666,28 @@ def draw_panel_weather(img, config, weather_info, clothing_info, is_side_by_side
     )
 
 
-def create_weather_panel(config, is_side_by_side=True):
-    logging.info("draw weather panel")
-    start = time.perf_counter()
-
-    weather_info = get_weather_yahoo(config["WEATHER"]["DATA"]["YAHOO"])
-    clothing_info = get_clothing_yahoo(config["WEATHER"]["DATA"]["YAHOO"])
+def create_weather_panel_impl(panel_config, font_config, is_side_by_side):
+    weather_info = get_weather_yahoo(panel_config["DATA"]["YAHOO"])
+    clothing_info = get_clothing_yahoo(panel_config["DATA"]["YAHOO"])
     img = PIL.Image.new(
         "RGBA",
-        (config["WEATHER"]["PANEL"]["WIDTH"], config["WEATHER"]["PANEL"]["HEIGHT"]),
+        (panel_config["PANEL"]["WIDTH"], panel_config["PANEL"]["HEIGHT"]),
         (255, 255, 255, 0),
     )
 
-    draw_panel_weather(img, config, weather_info, clothing_info, is_side_by_side)
+    draw_panel_weather(
+        img, panel_config, font_config, weather_info, clothing_info, is_side_by_side
+    )
 
-    return (img, time.perf_counter() - start)
+    return img
+
+
+def create_weather_panel(config, is_side_by_side=True):
+    logging.info("draw weather panel")
+
+    return draw_panel_patiently(
+        create_weather_panel_impl,
+        config["WEATHER"],
+        config["FONT"],
+        is_side_by_side,
+    )
