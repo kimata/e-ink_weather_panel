@@ -691,3 +691,25 @@ def create_weather_panel(config, is_side_by_side=True):
         config["FONT"],
         is_side_by_side,
     )
+
+
+if __name__ == "__main__":
+    from docopt import docopt
+
+    import logger
+    from config import load_config
+    from pil_util import convert_to_gray
+
+    args = docopt(__doc__)
+
+    logger.init("test", level=logging.INFO)
+
+    config = load_config(args["-c"])
+    out_file = args["-o"]
+
+    img = create_weather_panel_impl(config["WEATHER"], config["FONT"], True)
+
+    logging.info("Save {out_file}.".format(out_file=out_file))
+    convert_to_gray(img).save(out_file, "PNG")
+
+    print("Finish.")
