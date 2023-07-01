@@ -39,4 +39,4 @@ USER ubuntu
 COPY font /usr/share/fonts/
 COPY --chown=ubuntu . .
 
-CMD ["./src/display_image.py"]
+CMD ["./app/display_image.py"]
