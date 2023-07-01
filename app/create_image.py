@@ -22,9 +22,13 @@ import logging
 
 # from concurrent import futures
 import multiprocessing
-import logger
 import traceback
 import textwrap
+import pathlib
+
+sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
+
+import logger
 import notify_slack
 
 from pil_util import get_font, draw_text, load_image, alpha_paste, convert_to_gray

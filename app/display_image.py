@@ -25,6 +25,8 @@ import logging
 import pathlib
 import traceback
 
+sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
+
 import logger
 from config import load_config
 import notify_slack
