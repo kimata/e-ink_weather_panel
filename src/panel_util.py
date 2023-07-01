@@ -35,7 +35,7 @@ def error_image(panel_config, font_config, error_text):
     draw_text(
         img,
         "\n".join(textwrap.wrap(error_text, 90)),
-        (20, 100),
+        (20, 150),
         get_font(font_config, "EN_MEDIUM", 30),
         "left" "#666",
     )
