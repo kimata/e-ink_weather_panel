@@ -43,14 +43,16 @@ def error_image(panel_config, font_config, error_text):
     return img
 
 
-def draw_panel_patiently(func, panel_config, font_config, is_side_by_side):
+def draw_panel_patiently(
+    func, panel_config, font_config, slack_config, is_side_by_side
+):
     start = time.perf_counter()
 
     error_text = None
     for i in range(5):
         try:
             return (
-                func(panel_config, font_config, is_side_by_side),
+                func(panel_config, font_config, slack_config, is_side_by_side),
                 time.perf_counter() - start,
             )
         except:

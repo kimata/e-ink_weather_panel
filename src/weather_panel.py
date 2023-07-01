@@ -676,7 +676,7 @@ def draw_panel_weather(
     )
 
 
-def create_weather_panel_impl(panel_config, font_config, is_side_by_side):
+def create_weather_panel_impl(panel_config, font_config, slack_config, is_side_by_side):
     weather_info = get_weather_yahoo(panel_config["DATA"]["YAHOO"])
     clothing_info = get_clothing_yahoo(panel_config["DATA"]["YAHOO"])
     img = PIL.Image.new(
@@ -699,6 +699,7 @@ def create_weather_panel(config, is_side_by_side=True):
         create_weather_panel_impl,
         config["WEATHER"],
         config["FONT"],
+        None,
         is_side_by_side,
     )
 
