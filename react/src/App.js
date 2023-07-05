@@ -13,7 +13,6 @@ function App() {
   const [errorMessage, setErrorMessage] = useState("");
   const [log, setLog] = useState([]);
 
-  // const logEndRef = useRef(null);
   const scroller = Scroll.scroller;
   var Element = Scroll.Element;
 
