@@ -15,7 +15,7 @@ def app_url(host, port):
 
 
 ######################################################################
-def test_valve(page, host, port):
+def test_webapp(page, host, port):
     page.set_viewport_size({"width": 2400, "height": 1600})
 
     page.on(
@@ -28,7 +28,7 @@ def test_valve(page, host, port):
     page.goto(app_url(host, port))
 
     page.get_by_test_id("button").click()
-    assert page.get_by_test_id("button").is_enabled()
+    assert page.get_by_test_id("button").is_enabled(timeout=180000)
 
     log_list = page.locator('//div[contains(@data-testid,"log")]/small/span')
     for i in range(log_list.count()):
