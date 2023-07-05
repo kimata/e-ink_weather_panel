@@ -102,6 +102,8 @@ def generate_image(config_file, is_small_mode):
     token = str(uuid.uuid4())
 
     log_queue = Queue()
+
+    # NOTE: 今のところ作りっぱなしなので，どんどんメモリリークする
     panel_data_map[token] = {
         "lock": threading.Lock(),
         "log": log_queue,
