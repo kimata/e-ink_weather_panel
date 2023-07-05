@@ -168,7 +168,7 @@ test-display-small:
 
 test-webapp:
   stage: test
-  needs: ["test-weather-panel"]
+  needs: ["test-weather-panel", "build-image"]
   dependencies:
     - build-image
 
