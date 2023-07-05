@@ -12,6 +12,7 @@ repos:
       - id: check-json
         exclude: ^.vscode/|tsconfig.spec.json
       - id: check-added-large-files
+        exclude: package-lock.json
 
   - repo: https://github.com/psf/black
     rev: 22.3.0

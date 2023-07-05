@@ -14,6 +14,12 @@ ROTATE_COUNT = 10
 LOG_FORMAT = "{name} %(asctime)s %(levelname)s [%(filename)s:%(lineno)s %(funcName)s] %(message)s"
 
 
+def formatter(name):
+    return logging.Formatter(
+        fmt=LOG_FORMAT.format(name=name), datefmt="%Y-%m-%d %H:%M:%S"
+    )
+
+
 class GZipRotator:
     def namer(name):
         return name + ".bz2"
@@ -25,7 +31,7 @@ class GZipRotator:
         os.remove(source)
 
 
-def init(name, level=logging.WARNING, dir_path=None, is_str=False):
+def init(name, level=logging.WARNING, dir_path=None, queue=None, is_str=False):
     coloredlogs.install(fmt=LOG_FORMAT.format(name=name), level=level)
 
     if dir_path is not None:
@@ -43,20 +49,20 @@ def init(name, level=logging.WARNING, dir_path=None, is_str=False):
             maxBytes=MAX_SIZE,
             backupCount=ROTATE_COUNT,
         )
-        log_handler.formatter = logging.Formatter(
-            fmt=LOG_FORMAT.format(name=name), datefmt="%Y-%m-%d %H:%M:%S"
-        )
+        log_handler.formatter = formatter(name)
         log_handler.namer = GZipRotator.namer
         log_handler.rotator = GZipRotator.rotator
 
         logger.addHandler(log_handler)
 
+    if queue is not None:
+        handler = logging.handlers.QueueHandler(queue)
+        logging.getLogger().addHandler(handler)
+
     if is_str:
         str_io = io.StringIO()
         handler = logging.StreamHandler(str_io)
-        handler.formatter = logging.Formatter(
-            fmt=LOG_FORMAT.format(name=name), datefmt="%Y-%m-%d %H:%M:%S"
-        )
+        handler.formatter = formatter(name)
         logging.getLogger().addHandler(handler)
 
         return str_io
