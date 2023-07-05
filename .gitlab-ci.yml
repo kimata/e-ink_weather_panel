@@ -1,202 +1,202 @@
 image: docker:23.0
 
 stages:
-  - build-webapp
-  - build-image
-  - test
-  - deploy
+    - build-webapp
+    - build-image
+    - test
+    - deploy
 
 build-react:
-  stage: build-webapp
+    stage: build-webapp
 
-  image: node:20.3
-  script:
-    - cd react
-    - npm ci --cache .npm --prefer-offline
-    - npm run build
-  artifacts:
-    paths:
-      - react/build
-  cache:
-    key: npm
-    paths:
-      - .npm/
+    image: node:20.3
+    script:
+        - cd react
+        - npm ci --cache .npm --prefer-offline
+        - npm run build
+    artifacts:
+        paths:
+            - react/build
+    cache:
+        key: npm
+        paths:
+            - .npm/
 
 build-image:
-  stage: build-image
-  needs: ["build-react"]
+    stage: build-image
+    needs: ["build-react"]
 
-  image: registry.green-rabbit.net:5000/kimata/ubuntu-docker-build:latest
+    image: registry.green-rabbit.net:5000/kimata/ubuntu-docker-build:latest
 
-  script:
-    # - docker rm $(docker ps -a --filter 'status=exited' -q) || true
-    - export GIT_SSL_NO_VERIFY=1
-    - git clone https://gitlab.green-rabbit.net/kimata/panel_config.git
-    - mv panel_config/e-ink_weather.yaml config.yaml
-    - mv panel_config/e-ink_weather-small.yaml config-small.yaml
-    - mkdir key
-    - mv panel_config/panel.id_rsa key
-    - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
-    - mv private_font/* font
-    - docker pull ${CI_REGISTRY_IMAGE} || true
-    - docker build . -t ${CI_REGISTRY_IMAGE}
-    - docker push ${CI_REGISTRY_IMAGE}
-  dependencies:
-    - build-react
+    script:
+        # - docker rm $(docker ps -a --filter 'status=exited' -q) || true
+        - export GIT_SSL_NO_VERIFY=1
+        - git clone https://gitlab.green-rabbit.net/kimata/panel_config.git
+        - mv panel_config/e-ink_weather.yaml config.yaml
+        - mv panel_config/e-ink_weather-small.yaml config-small.yaml
+        - mkdir key
+        - mv panel_config/panel.id_rsa key
+        - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
+        - mv private_font/* font
+        - docker pull ${CI_REGISTRY_IMAGE} || true
+        - docker build . -t ${CI_REGISTRY_IMAGE}
+        - docker push ${CI_REGISTRY_IMAGE}
+    dependencies:
+        - build-react
 
 # 天気予報画像のテスト
 test-weather-panel:
-  stage: test
-  needs: ["build-image"]
+    stage: test
+    needs: ["build-image"]
 
-  script:
-    # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
-    - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop -t 5 $id; done || true
-    - docker pull ${CI_REGISTRY_IMAGE}
-    - docker run --tty=true --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} lib/weather_panel.py -c config.yaml -o ${CI_JOB_NAME}.png
-    - CID=`docker ps --quiet --latest --filter "ancestor=${CI_REGISTRY_IMAGE}" --filter "label=job=${CI_JOB_NAME}"`
-    - docker wait ${CID}
-    - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
-  artifacts:
-    paths:
-      - ${CI_JOB_NAME}.png
+    script:
+        # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
+        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop -t 5 $id; done || true
+        - docker pull ${CI_REGISTRY_IMAGE}
+        - docker run --tty=true --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} lib/weather_panel.py -c config.yaml -o ${CI_JOB_NAME}.png
+        - CID=`docker ps --quiet --latest --filter "ancestor=${CI_REGISTRY_IMAGE}" --filter "label=job=${CI_JOB_NAME}"`
+        - docker wait ${CID}
+        - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
+    artifacts:
+        paths:
+            - ${CI_JOB_NAME}.png
 
 # 雨雲レーダ画像のテスト
 # NOTE: 通常モードだと，雨雲レーダ画像の生成に失敗してもスクリプトはエラー画像を生成して
 # 正常終了するので，別建ててテストを実施する．
 test-rain-cloud-panel:
-  stage: test
-  needs: ["build-image"]
+    stage: test
+    needs: ["build-image"]
 
-  script:
-    # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
-    - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop -t 5 $id; done || true
-    - docker pull ${CI_REGISTRY_IMAGE}
-    - docker run --tty=true --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} lib/rain_cloud_panel.py -c config.yaml -o ${CI_JOB_NAME}.png
-    - CID=`docker ps --quiet --latest --filter "ancestor=${CI_REGISTRY_IMAGE}" --filter "label=job=${CI_JOB_NAME}"`
-    - docker wait ${CID}
-    - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
-  artifacts:
-    paths:
-      - ${CI_JOB_NAME}.png
+    script:
+        # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
+        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop -t 5 $id; done || true
+        - docker pull ${CI_REGISTRY_IMAGE}
+        - docker run --tty=true --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} lib/rain_cloud_panel.py -c config.yaml -o ${CI_JOB_NAME}.png
+        - CID=`docker ps --quiet --latest --filter "ancestor=${CI_REGISTRY_IMAGE}" --filter "label=job=${CI_JOB_NAME}"`
+        - docker wait ${CID}
+        - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
+    artifacts:
+        paths:
+            - ${CI_JOB_NAME}.png
 
 # サンプル設定ファイルで，問題なく動くかチェック
 test-sample:
-  stage: test
-  needs: ["test-weather-panel", "test-rain-cloud-panel"]
+    stage: test
+    needs: ["test-weather-panel", "test-rain-cloud-panel"]
 
-  script:
-    - docker pull ${CI_REGISTRY_IMAGE}
-    - docker run --tty=true --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} app/create_image.py -c config.example.yaml -o ${CI_JOB_NAME}.png
-    - CID=`docker ps --quiet --latest --filter "ancestor=${CI_REGISTRY_IMAGE}" --filter "label=job=${CI_JOB_NAME}"`
-    - docker wait ${CID}
-    - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
+    script:
+        - docker pull ${CI_REGISTRY_IMAGE}
+        - docker run --tty=true --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} app/create_image.py -c config.example.yaml -o ${CI_JOB_NAME}.png
+        - CID=`docker ps --quiet --latest --filter "ancestor=${CI_REGISTRY_IMAGE}" --filter "label=job=${CI_JOB_NAME}"`
+        - docker wait ${CID}
+        - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
 
-  artifacts:
-    paths:
-      - ${CI_JOB_NAME}.png
+    artifacts:
+        paths:
+            - ${CI_JOB_NAME}.png
 
 test-sample-small:
-  stage: test
-  needs: ["test-weather-panel", "test-rain-cloud-panel"]
+    stage: test
+    needs: ["test-weather-panel", "test-rain-cloud-panel"]
 
-  script:
-    - docker pull ${CI_REGISTRY_IMAGE}
-    - docker run --tty=true --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} app/create_image.py -s -c config-small.example.yaml -o ${CI_JOB_NAME}.png
-    - CID=`docker ps --quiet --latest --filter "ancestor=${CI_REGISTRY_IMAGE}" --filter "label=job=${CI_JOB_NAME}"`
-    - docker wait ${CID}
-    - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
+    script:
+        - docker pull ${CI_REGISTRY_IMAGE}
+        - docker run --tty=true --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} app/create_image.py -s -c config-small.example.yaml -o ${CI_JOB_NAME}.png
+        - CID=`docker ps --quiet --latest --filter "ancestor=${CI_REGISTRY_IMAGE}" --filter "label=job=${CI_JOB_NAME}"`
+        - docker wait ${CID}
+        - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
 
-  artifacts:
-    paths:
-      - ${CI_JOB_NAME}.png
+    artifacts:
+        paths:
+            - ${CI_JOB_NAME}.png
 
 # 本番設定ファイルで，問題なく動くかチェック
 test-regular:
-  stage: test
-  needs: ["test-weather-panel", "test-rain-cloud-panel"]
+    stage: test
+    needs: ["test-weather-panel", "test-rain-cloud-panel"]
 
-  script:
-    - docker pull ${CI_REGISTRY_IMAGE}
-    - docker run --tty=true --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} app/create_image.py -o ${CI_JOB_NAME}.png
-    - CID=`docker ps --quiet --latest --filter "ancestor=${CI_REGISTRY_IMAGE}" --filter "label=job=${CI_JOB_NAME}"`
-    - docker wait ${CID}
-    - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
+    script:
+        - docker pull ${CI_REGISTRY_IMAGE}
+        - docker run --tty=true --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} app/create_image.py -o ${CI_JOB_NAME}.png
+        - CID=`docker ps --quiet --latest --filter "ancestor=${CI_REGISTRY_IMAGE}" --filter "label=job=${CI_JOB_NAME}"`
+        - docker wait ${CID}
+        - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
 
-  artifacts:
-    paths:
-      - ${CI_JOB_NAME}.png
+    artifacts:
+        paths:
+            - ${CI_JOB_NAME}.png
 
 test-regular-small:
-  stage: test
-  needs: ["test-weather-panel", "test-rain-cloud-panel"]
+    stage: test
+    needs: ["test-weather-panel", "test-rain-cloud-panel"]
 
-  script:
-    - docker pull ${CI_REGISTRY_IMAGE}
-    - docker run --tty=true --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} app/create_image.py -s -c config-small.yaml -o ${CI_JOB_NAME}.png
-    - CID=`docker ps --quiet --latest --filter "ancestor=${CI_REGISTRY_IMAGE}" --filter "label=job=${CI_JOB_NAME}"`
-    - docker wait ${CID}
-    - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
-    - docker rm ${CID}
+    script:
+        - docker pull ${CI_REGISTRY_IMAGE}
+        - docker run --tty=true --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} app/create_image.py -s -c config-small.yaml -o ${CI_JOB_NAME}.png
+        - CID=`docker ps --quiet --latest --filter "ancestor=${CI_REGISTRY_IMAGE}" --filter "label=job=${CI_JOB_NAME}"`
+        - docker wait ${CID}
+        - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
+        - docker rm ${CID}
 
-  artifacts:
-    paths:
-      - ${CI_JOB_NAME}.png
+    artifacts:
+        paths:
+            - ${CI_JOB_NAME}.png
 
 # 本番設定ファイルで，問題なく動くかチェック
 test-display:
-  stage: test
-  needs: ["test-regular"]
+    stage: test
+    needs: ["test-regular"]
 
-  variables:
-    RASP_HOSTNAME: rasp-meter-1
+    variables:
+        RASP_HOSTNAME: rasp-meter-1
 
-  script:
-    - docker pull ${CI_REGISTRY_IMAGE}
-    - docker run --rm --tty=true ${CI_REGISTRY_IMAGE} app/display_image.py -c config.yaml -t ${RASP_HOSTNAME} -O
+    script:
+        - docker pull ${CI_REGISTRY_IMAGE}
+        - docker run --rm --tty=true ${CI_REGISTRY_IMAGE} app/display_image.py -c config.yaml -t ${RASP_HOSTNAME} -O
 
 test-display-small:
-  stage: test
-  needs: ["test-regular-small"]
+    stage: test
+    needs: ["test-regular-small"]
 
-  variables:
-    RASP_HOSTNAME: rasp-display-2
+    variables:
+        RASP_HOSTNAME: rasp-display-2
 
-  script:
-    - docker pull ${CI_REGISTRY_IMAGE}
-    - docker run --rm --tty=true ${CI_REGISTRY_IMAGE} app/display_image.py -s -c config-small.yaml -t ${RASP_HOSTNAME} -O
+    script:
+        - docker pull ${CI_REGISTRY_IMAGE}
+        - docker run --rm --tty=true ${CI_REGISTRY_IMAGE} app/display_image.py -s -c config-small.yaml -t ${RASP_HOSTNAME} -O
 
 test-webapp:
-  stage: test
-  needs: ["test-weather-panel", "build-image"]
-  dependencies:
-    - build-image
+    stage: test
+    needs: ["test-weather-panel", "build-image"]
+    dependencies:
+        - build-image
 
-  image: registry.green-rabbit.net:5000/kimata/local_playwright:230623A
-  script:
-    # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
-    - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop -t 5 $id; done || true
+    image: registry.green-rabbit.net:5000/kimata/local_playwright:230623A
+    script:
+        # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
+        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop -t 5 $id; done || true
 
-    - docker pull ${CI_REGISTRY_IMAGE}
-    - docker run --rm --detach=true --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} ./app/webapp.py
-    - python3 -m pytest test/test_basic.py --host $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
-    - docker logs ${CI_JOB_NAME}-${CI_JOB_ID} > flask_log.txt
-    - docker stop ${CI_JOB_NAME}-${CI_JOB_ID}
-  artifacts:
-    when: always
-    paths:
-      - flask_log.txt
-      - test/evidence/**
+        - docker pull ${CI_REGISTRY_IMAGE}
+        - docker run --rm --detach=true --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} ./app/webapp.py
+        - python3 -m pytest test/test_basic.py --host $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
+        - docker logs ${CI_JOB_NAME}-${CI_JOB_ID} > flask_log.txt
+        - docker stop ${CI_JOB_NAME}-${CI_JOB_ID}
+    artifacts:
+        when: always
+        paths:
+            - flask_log.txt
+            - test/evidence/**
 
 deploy:
-  stage: deploy
-  needs: ["test-display", "test-display-small"]
+    stage: deploy
+    needs: ["test-display", "test-display-small"]
 
-  image:
-    name: bitnami/kubectl:latest
-    entrypoint: [""]
-  script:
-    - kubectl config get-contexts
-    - kubectl config use-context kimata/e-ink_weather_panel:pod-rollout
-    - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-panel-deployment
-    - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-small-panel-deployment
+    image:
+        name: bitnami/kubectl:latest
+        entrypoint: [""]
+    script:
+        - kubectl config get-contexts
+        - kubectl config use-context kimata/e-ink_weather_panel:pod-rollout
+        - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-panel-deployment
+        - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-small-panel-deployment

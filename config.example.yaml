@@ -1,18 +1,18 @@
 LIVENESS:
-  FILE: /dev/shm/healthz
+    FILE: /dev/shm/healthz
 
 PANEL:
-  DEVICE:
-    WIDTH: 3200
-    HEIGHT: 1800
-  UPDATE:
-    INTERVAL: 120
+    DEVICE:
+        WIDTH: 3200
+        HEIGHT: 1800
+    UPDATE:
+        INTERVAL: 120
 
 INFLUXDB:
-  URL: http://proxy.green-rabbit.net:8086
-  ORG: home
-  TOKEN: strBCB9segqccgxsR5Xe_9RnCqkBFYX9aOKvxVR4lr3iLEb7HXuGqsN40YU6DIb6TZm9bvKLW5OWQS7sB8AQbQ==
-  BUCKET: sensor
+    URL: http://proxy.green-rabbit.net:8086
+    ORG: home
+    TOKEN: strBCB9segqccgxsR5Xe_9RnCqkBFYX9aOKvxVR4lr3iLEb7HXuGqsN40YU6DIb6TZm9bvKLW5OWQS7sB8AQbQ==
+    BUCKET: sensor
 
 # WALL:
 #   IMAGE:
@@ -22,224 +22,224 @@ INFLUXDB:
 #       OFFSET_Y: 565
 
 TIME:
-  PANEL:
-    WIDTH: 400
-    HEIGHT: 160
-    OFFSET_X: 2782
-    OFFSET_Y: 1630
+    PANEL:
+        WIDTH: 400
+        HEIGHT: 160
+        OFFSET_X: 2782
+        OFFSET_Y: 1630
 
 WEATHER:
-  PANEL:
-    WIDTH: 3200
-    HEIGHT: 1000
-    OFFSET_X: 0
-    OFFSET_Y: 0
-  DATA:
-    YAHOO:
-      URL: https://weather.yahoo.co.jp/weather/jp/13/4410/13113.html
-  ICON:
-    ARROW:
-      PATH: ../img/arrow.png
-      SCALE: 0.7
-    THERMO:
-      PATH: ../img/thermo.png
-      BRIGHTNESS: 1.2
-      SCALE: 0.7
-    CLOTHES:
-      PATH: ../img/clothes.png
-      BRIGHTNESS: 1.2
-      SCALE: 0.7
-    CLOTHING-FULL-1:
-      PATH: ../img/cloching_icon_1_full.png
-      SCALE: 0.5
-      BRIGHTNESS: 2
-    CLOTHING-FULL-2:
-      PATH: ../img/cloching_icon_2_full.png
-      SCALE: 0.5
-      BRIGHTNESS: 2
-    CLOTHING-FULL-3:
-      PATH: ../img/cloching_icon_3_full.png
-      SCALE: 0.45
-      BRIGHTNESS: 2
-    CLOTHING-FULL-4:
-      PATH: ../img/cloching_icon_4_full.png
-      SCALE: 0.45
-      BRIGHTNESS: 2
-    CLOTHING-FULL-5:
-      PATH: ../img/cloching_icon_5_full.png
-      SCALE: 0.5
-      BRIGHTNESS: 2
-    CLOTHING-HALF-1:
-      PATH: ../img/cloching_icon_1_half.png
-      SCALE: 0.5
-      BRIGHTNESS: 2
-    CLOTHING-HALF-2:
-      PATH: ../img/cloching_icon_2_half.png
-      SCALE: 0.5
-      BRIGHTNESS: 2
-    CLOTHING-HALF-3:
-      PATH: ../img/cloching_icon_3_half.png
-      SCALE: 0.45
-      BRIGHTNESS: 2
-    CLOTHING-HALF-4:
-      PATH: ../img/cloching_icon_4_half.png
-      SCALE: 0.45
-      BRIGHTNESS: 2
-    CLOTHING-HALF-5:
-      PATH: ../img/cloching_icon_5_half.png
-      SCALE: 0.5
-      BRIGHTNESS: 2
-    PRECIP:
-      PATH: ../img/precip.png
-      BRIGHTNESS: 1.3
-      SCALE: 0.7
-    WIND:
-      PATH: ../img/wind.png
-      BRIGHTNESS: 1.3
-      SCALE: 0.7
+    PANEL:
+        WIDTH: 3200
+        HEIGHT: 1000
+        OFFSET_X: 0
+        OFFSET_Y: 0
+    DATA:
+        YAHOO:
+            URL: https://weather.yahoo.co.jp/weather/jp/13/4410/13113.html
+    ICON:
+        ARROW:
+            PATH: ../img/arrow.png
+            SCALE: 0.7
+        THERMO:
+            PATH: ../img/thermo.png
+            BRIGHTNESS: 1.2
+            SCALE: 0.7
+        CLOTHES:
+            PATH: ../img/clothes.png
+            BRIGHTNESS: 1.2
+            SCALE: 0.7
+        CLOTHING-FULL-1:
+            PATH: ../img/cloching_icon_1_full.png
+            SCALE: 0.5
+            BRIGHTNESS: 2
+        CLOTHING-FULL-2:
+            PATH: ../img/cloching_icon_2_full.png
+            SCALE: 0.5
+            BRIGHTNESS: 2
+        CLOTHING-FULL-3:
+            PATH: ../img/cloching_icon_3_full.png
+            SCALE: 0.45
+            BRIGHTNESS: 2
+        CLOTHING-FULL-4:
+            PATH: ../img/cloching_icon_4_full.png
+            SCALE: 0.45
+            BRIGHTNESS: 2
+        CLOTHING-FULL-5:
+            PATH: ../img/cloching_icon_5_full.png
+            SCALE: 0.5
+            BRIGHTNESS: 2
+        CLOTHING-HALF-1:
+            PATH: ../img/cloching_icon_1_half.png
+            SCALE: 0.5
+            BRIGHTNESS: 2
+        CLOTHING-HALF-2:
+            PATH: ../img/cloching_icon_2_half.png
+            SCALE: 0.5
+            BRIGHTNESS: 2
+        CLOTHING-HALF-3:
+            PATH: ../img/cloching_icon_3_half.png
+            SCALE: 0.45
+            BRIGHTNESS: 2
+        CLOTHING-HALF-4:
+            PATH: ../img/cloching_icon_4_half.png
+            SCALE: 0.45
+            BRIGHTNESS: 2
+        CLOTHING-HALF-5:
+            PATH: ../img/cloching_icon_5_half.png
+            SCALE: 0.5
+            BRIGHTNESS: 2
+        PRECIP:
+            PATH: ../img/precip.png
+            BRIGHTNESS: 1.3
+            SCALE: 0.7
+        WIND:
+            PATH: ../img/wind.png
+            BRIGHTNESS: 1.3
+            SCALE: 0.7
 
 POWER:
-  PANEL:
-    WIDTH: 1600
-    HEIGHT: 510
-    OFFSET_X: 0
-    OFFSET_Y: 620
+    PANEL:
+        WIDTH: 1600
+        HEIGHT: 510
+        OFFSET_X: 0
+        OFFSET_Y: 620
 
-  DATA:
-    HOST:
-      NAME: rasp-meter-5
-      TYPE: sensor.rasp
-    PARAM:
-      NAME: power
-      FORMAT: "{:,.0f}"
-      UNIT: W
-      RANGE:
-        - 0
-        - 5000
+    DATA:
+        HOST:
+            NAME: rasp-meter-5
+            TYPE: sensor.rasp
+        PARAM:
+            NAME: power
+            FORMAT: "{:,.0f}"
+            UNIT: W
+            RANGE:
+                - 0
+                - 5000
 
 SENSOR:
-  PANEL:
-    WIDTH: 1600
-    HEIGHT: 690
-    OFFSET_X: 0
-    OFFSET_Y: 1120
+    PANEL:
+        WIDTH: 1600
+        HEIGHT: 690
+        OFFSET_X: 0
+        OFFSET_Y: 1120
 
-  ROOM_LIST:
-    - LABEL: 屋外
-      HOST:
-        - NAME: ESP32-outdoor-1
-          TYPE: sensor.esp32
-        - NAME: rasp-meter-8
-          TYPE: sensor.rasp
-      ICON: off
-    - LABEL: リビング
-      HOST:
-        - NAME: rpi-cm4-sensor-6
-          TYPE: sensor.rasp
-      ICON: on
-    - LABEL: 和室
-      TYPE: rasp
-      HOST:
-        - NAME: rasp-meter-2
-          TYPE: sensor.rasp
-      ICON: on
-    - LABEL: 洋室A
-      HOST:
-        - NAME: rpi-cm4-sensor-1
-          TYPE: sensor.rasp
-      ICON: on
-    - LABEL: 洋室B
-      HOST:
-        - NAME: rpi-cm4-sensor-2
-          TYPE: sensor.rasp
-      ICON: on
-    - LABEL: 洋室C
-      HOST:
-        - NAME: rpi-cm4-sensor-3
-          TYPE: sensor.rasp
-      ICON: on
-    - LABEL: 家事室
-      HOST:
-        - NAME: rpi-cm4-sensor-4
-          TYPE: sensor.rasp
-      ICON: on
-    - LABEL: 書斎
-      HOST:
-        - NAME: rasp-meter-3
-          TYPE: sensor.rasp
-      ICON: on
-  PARAM_LIST:
-    - NAME: temp
-      FORMAT: "{:.1f}"
-      UNIT: "℃"
-      RANGE: auto
-      SCALE: linear
-      SIZE_SMALL: False
-    - NAME: humi
-      FORMAT: "{:.1f}"
-      UNIT: "%"
-      RANGE: auto
-      SCALE: linear
-      SIZE_SMALL: False
-    - NAME: co2
-      FORMAT: "{:,.0f}"
-      UNIT: ppm
-      RANGE: auto
-      SCALE: linear
-      SIZE_SMALL: True
-    - NAME: lux
-      FORMAT: "{:,.0f}"
-      UNIT: LUX
-      RANGE:
-        - 1
-        - 40000
-      SCALE: log
-      SIZE_SMALL: True
-  ICON:
-    LIGHT:
-      # NOTE: ON/OFF は「'」で囲わないと文字列以外に変換されてしまうので注意
-      "ON":
-        PATH: ../img/light-on.png
-      "OFF":
-        PATH: ../img/light-off.png
+    ROOM_LIST:
+        - LABEL: 屋外
+          HOST:
+              - NAME: ESP32-outdoor-1
+                TYPE: sensor.esp32
+              - NAME: rasp-meter-8
+                TYPE: sensor.rasp
+          ICON: off
+        - LABEL: リビング
+          HOST:
+              - NAME: rpi-cm4-sensor-6
+                TYPE: sensor.rasp
+          ICON: on
+        - LABEL: 和室
+          TYPE: rasp
+          HOST:
+              - NAME: rasp-meter-2
+                TYPE: sensor.rasp
+          ICON: on
+        - LABEL: 洋室A
+          HOST:
+              - NAME: rpi-cm4-sensor-1
+                TYPE: sensor.rasp
+          ICON: on
+        - LABEL: 洋室B
+          HOST:
+              - NAME: rpi-cm4-sensor-2
+                TYPE: sensor.rasp
+          ICON: on
+        - LABEL: 洋室C
+          HOST:
+              - NAME: rpi-cm4-sensor-3
+                TYPE: sensor.rasp
+          ICON: on
+        - LABEL: 家事室
+          HOST:
+              - NAME: rpi-cm4-sensor-4
+                TYPE: sensor.rasp
+          ICON: on
+        - LABEL: 書斎
+          HOST:
+              - NAME: rasp-meter-3
+                TYPE: sensor.rasp
+          ICON: on
+    PARAM_LIST:
+        - NAME: temp
+          FORMAT: "{:.1f}"
+          UNIT: "℃"
+          RANGE: auto
+          SCALE: linear
+          SIZE_SMALL: False
+        - NAME: humi
+          FORMAT: "{:.1f}"
+          UNIT: "%"
+          RANGE: auto
+          SCALE: linear
+          SIZE_SMALL: False
+        - NAME: co2
+          FORMAT: "{:,.0f}"
+          UNIT: ppm
+          RANGE: auto
+          SCALE: linear
+          SIZE_SMALL: True
+        - NAME: lux
+          FORMAT: "{:,.0f}"
+          UNIT: LUX
+          RANGE:
+              - 1
+              - 40000
+          SCALE: log
+          SIZE_SMALL: True
+    ICON:
+        LIGHT:
+            # NOTE: ON/OFF は「'」で囲わないと文字列以外に変換されてしまうので注意
+            "ON":
+                PATH: ../img/light-on.png
+            "OFF":
+                PATH: ../img/light-off.png
 
 RAIN_CLOUD:
-  PANEL:
-    OFFSET_X: 1604
-    OFFSET_Y: 960
-    WIDTH: 1596
-    HEIGHT: 860
-  LEGEND:
-    BAR_SIZE: 50
-    OFFSET_X: 296
-    OFFSET_Y: 800
-    GAMMA: 0.6
-  DATA:
-    JMA:
-      URL: https://www.jma.go.jp/bosai/nowc/#zoom:12/lat:35.682677/lon:139.762230/colordepth:deep/elements:hrpns&slmcs
+    PANEL:
+        OFFSET_X: 1604
+        OFFSET_Y: 960
+        WIDTH: 1596
+        HEIGHT: 860
+    LEGEND:
+        BAR_SIZE: 50
+        OFFSET_X: 296
+        OFFSET_Y: 800
+        GAMMA: 0.6
+    DATA:
+        JMA:
+            URL: https://www.jma.go.jp/bosai/nowc/#zoom:12/lat:35.682677/lon:139.762230/colordepth:deep/elements:hrpns&slmcs
 
 FONT:
-  PATH: ../font/ # スクリプトのフォルダからの相対パス
-  MAP:
-    JP_REGULAR: migmix-1p-regular.ttf
-    JP_MEDIUM: migmix-1p-regular.ttf
-    JP_BOLD: migmix-1p-bold.ttf
+    PATH: ../font/ # スクリプトのフォルダからの相対パス
+    MAP:
+        JP_REGULAR: migmix-1p-regular.ttf
+        JP_MEDIUM: migmix-1p-regular.ttf
+        JP_BOLD: migmix-1p-bold.ttf
 
-    EN_COND_BOLD: Antonio-Bold.ttf
-    EN_COND: Antonio-Regular.ttf
+        EN_COND_BOLD: Antonio-Bold.ttf
+        EN_COND: Antonio-Regular.ttf
 
-    EN_MEDIUM: migmix-1p-regular.ttf
-    EN_BOLD: migmix-1p-bold.ttf
+        EN_MEDIUM: migmix-1p-regular.ttf
+        EN_BOLD: migmix-1p-bold.ttf
 
-    # JP_REGULAR: A-OTF-UDShinGoPr6N-Regular.otf
-    # JP_MEDIUM: A-OTF-UDShinGoPr6N-Medium.otf
-    # JP_BOLD: A-OTF-UDShinGoPr6N-Bold.otf
+        # JP_REGULAR: A-OTF-UDShinGoPr6N-Regular.otf
+        # JP_MEDIUM: A-OTF-UDShinGoPr6N-Medium.otf
+        # JP_BOLD: A-OTF-UDShinGoPr6N-Bold.otf
 
-    # EN_COND_BOLD: FuturaStd-CondensedBold.otf
-    # EN_COND: FuturaStd-Condensed.otf
+        # EN_COND_BOLD: FuturaStd-CondensedBold.otf
+        # EN_COND: FuturaStd-Condensed.otf
 
-    # EN_MEDIUM: FrutigerNeueLTW1G-Medium.otf
-    # EN_BOLD: FrutigerNeueLTW1G-Bold.otf
+        # EN_MEDIUM: FrutigerNeueLTW1G-Medium.otf
+        # EN_BOLD: FrutigerNeueLTW1G-Bold.otf
 # SLACK:
 #   NAME: E-Ink Weather Panel
 
