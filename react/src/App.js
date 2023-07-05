@@ -96,6 +96,7 @@ function App() {
         <button
           className="btn btn-primary w-auto"
           type="button"
+          data-testid="button"
           onClick={generate}
         >
           生成
@@ -148,6 +149,7 @@ function App() {
             <div
               className="col-12 overflow-scroll ms-2 shadow p-3 bg-body rounded"
               style={{ height: 10 + "em" }}
+              data-testid="log"
               id="log"
             >
               <small>
@@ -168,6 +170,7 @@ function App() {
                     src={imageSrc}
                     width="3200"
                     alt="生成された画像"
+                    data-testid="image"
                     className="ratio ratio-16x9 img-fluid img-rounded"
                   />
                 </TransformComponent>
