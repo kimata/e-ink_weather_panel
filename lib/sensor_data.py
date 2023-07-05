@@ -20,23 +20,29 @@ import os
 import logging
 import traceback
 
+# NOTE: データが欠損している期間も含めてデータを敷き詰めるため，
+# timedMovingAverage を使う．timedMovingAverage の計算の結果，データが後ろに
+# ずれるので，あらかじめ offset を使って前にずらしておく．
 FLUX_QUERY = """
 from(bucket: "{bucket}")
-|> range(start: -{period})
+|> range(start: {start}, stop: {stop})
     |> filter(fn:(r) => r._measurement == "{measure}")
     |> filter(fn: (r) => r.hostname == "{hostname}")
     |> filter(fn: (r) => r["_field"] == "{field}")
-    |> aggregateWindow(every: {window}m, fn: mean, createEmpty: {create_empty})
+    |> aggregateWindow(every: {window}m, offset:-{window}m, fn: mean, createEmpty: {create_empty})
     |> fill(usePrevious: true)
     |> timedMovingAverage(every: {every}m, period: {window}m)
 """
 
 FLUX_SUM_QUERY = """
 from(bucket: "{bucket}")
-    |> range(start: -{period})
+    |> range(start: {start}, stop: {stop})
     |> filter(fn:(r) => r._measurement == "{measure}")
     |> filter(fn: (r) => r.hostname == "{hostname}")
     |> filter(fn: (r) => r["_field"] == "{field}")
+    |> aggregateWindow(every: {every}m, offset:-{every}m, fn: mean, createEmpty: {create_empty})
+    |> filter(fn: (r) => exists r._value)
+    |> fill(usePrevious: true)
     |> reduce(
         fn: (r, accumulator) => ({{sum: r._value + accumulator.sum, count: accumulator.count + 1}}),
         identity: {{sum: 0.0, count: 0}},
@@ -50,7 +56,8 @@ def fetch_data_impl(
     measure,
     hostname,
     field,
-    period,
+    start,
+    stop,
     every,
     window,
     create_empty,
@@ -64,7 +71,8 @@ def fetch_data_impl(
             measure=measure,
             hostname=hostname,
             field=field,
-            period=period,
+            start=start,
+            stop=stop,
             every=every,
             window=window,
             create_empty=str(create_empty).lower(),
@@ -90,22 +98,24 @@ def fetch_data(
     measure,
     hostname,
     field,
-    period="30h",
+    start="-30h",
+    stop="now()",
     every_min=1,
-    window_min=5,
+    window_min=3,
     create_empty=True,
     last=False,
 ):
     logging.debug(
         (
             "Fetch data (measure: {measure}, host: {host}, field: {field}, "
-            + "period: {period}, every: {every}min, window: {window}min, "
+            + "start: {start}, stop: {stop}, every: {every}min, window: {window}min, "
             + "create_empty: {create_empty}, last: {last})"
         ).format(
             measure=measure,
             host=hostname,
             field=field,
-            period=period,
+            start=start,
+            stop=stop,
             every=every_min,
             window=window_min,
             create_empty=create_empty,
@@ -120,7 +130,8 @@ def fetch_data(
             measure,
             hostname,
             field,
-            period,
+            start,
+            stop,
             every_min,
             window_min,
             create_empty,
@@ -135,8 +146,13 @@ def fetch_data(
                 # NOTE: aggregateWindow(createEmpty: true) と fill(usePrevious: true) の組み合わせ
                 # だとタイミングによって，先頭に None が入る
                 if record.get_value() is None:
-                    logging.debug("DELETE")
+                    logging.debug(
+                        "DELETE {datetime}".format(
+                            datetime=record.get_time() + localtime_offset
+                        )
+                    )
                     continue
+
                 data.append(record.get_value())
                 time.append(record.get_time() + localtime_offset)
 
@@ -164,22 +180,24 @@ def get_equip_on_minutes(
     hostname,
     field,
     threshold,
-    period="30h",
+    start="-30h",
+    stop="now()",
     every_min=1,
     window_min=5,
     create_empty=True,
 ):
     logging.info(
         (
-            "Get on minutes (type: {type}, host: {host}, field: {field}, "
-            + "threshold: {threshold}, period: {period}, every: {every}min, "
+            "Get 'ON' minutes (type: {type}, host: {host}, field: {field}, "
+            + "threshold: {threshold}, start: {start}, stop: {stop}, every: {every}min, "
             + "window: {window}min, create_empty: {create_empty})"
         ).format(
             type=measure,
             host=hostname,
             field=field,
             threshold=threshold,
-            period=period,
+            start=start,
+            stop=stop,
             every=every_min,
             window=window_min,
             create_empty=create_empty,
@@ -193,7 +211,8 @@ def get_equip_on_minutes(
             measure,
             hostname,
             field,
-            period,
+            start,
+            stop,
             every_min,
             window_min,
             create_empty,
@@ -207,7 +226,6 @@ def get_equip_on_minutes(
         every_min = int(every_min)
         window_min = int(window_min)
         record_num = len(table_list[0].records)
-
         for i, record in enumerate(table_list[0].records):
             if create_empty:
                 # NOTE: timedMovingAverage を使うと，末尾に余分なデータが入るので取り除く
@@ -233,23 +251,27 @@ def get_equip_mode_period(
     measure,
     hostname,
     field,
-    threshold,
-    period="30h",
-    every_min=1,
-    window_min=3,
+    threshold_list,
+    start="-30h",
+    stop="now()",
+    every_min=10,
+    window_min=10,
     create_empty=True,
 ):
     logging.info(
         (
             "Get equipment mode period (type: {type}, host: {host}, field: {field}, "
-            + "threshold: {threshold}, period: {period}, every: {every}min, "
+            + "threshold: {threshold}, start: {start}, stop: {stop}, every: {every}min, "
             + "window: {window}min, create_empty: {create_empty})"
         ).format(
             type=measure,
             host=hostname,
             field=field,
-            threshold=threshold,
-            period=period,
+            threshold="[{list_str}]".format(
+                list_str=",".join(map(lambda v: "{:.1f}".format(v), threshold_list))
+            ),
+            start=start,
+            stop=stop,
             every=every_min,
             window=window_min,
             create_empty=create_empty,
@@ -263,7 +285,8 @@ def get_equip_mode_period(
             measure,
             hostname,
             field,
-            period,
+            start,
+            stop,
             every_min,
             window_min,
             create_empty,
@@ -274,79 +297,95 @@ def get_equip_mode_period(
 
         # NOTE: 常時冷却と間欠冷却の期間を求める
         on_range = []
-        state = "IDLE"
+        state = -1
         start_time = None
+        prev_time = None
         localtime_offset = datetime.timedelta(hours=9)
 
         for record in table_list[0].records:
             # NOTE: aggregateWindow(createEmpty: true) と fill(usePrevious: true) の組み合わせ
             # だとタイミングによって，先頭に None が入る
             if record.get_value() is None:
+                logging.debug(
+                    "DELETE {datetime}".format(
+                        datetime=record.get_time() + localtime_offset
+                    )
+                )
                 continue
 
-            if record.get_value() > threshold["FULL"]:
-                if state != "FULL":
-                    if state == "INTERM":
-                        on_range.append(
-                            [
-                                start_time + localtime_offset,
-                                record.get_time() + localtime_offset,
-                                False,
-                            ]
-                        )
-                    state = "FULL"
-                    start_time = record.get_time()
-            elif record.get_value() > threshold["INTERM"]:
-                if state != "INTERM":
-                    if state == "FULL":
-                        on_range.append(
-                            [
-                                start_time + localtime_offset,
-                                record.get_time() + localtime_offset,
-                                True,
-                            ]
-                        )
-                    state = "INTERM"
-                    start_time = record.get_time()
-            else:
-                if state != "IDLE":
-                    on_range.append(
-                        [
-                            start_time + localtime_offset,
-                            record.get_time() + localtime_offset,
-                            state == "FULL",
-                        ]
-                    )
-                state = "IDLE"
+            is_idle = True
+            for i in range(len(threshold_list)):
+                if record.get_value() > threshold_list[i]:
+                    if state != i:
+                        if state != -1:
+                            on_range.append(
+                                [
+                                    start_time + localtime_offset,
+                                    prev_time + localtime_offset,
+                                    state,
+                                ]
+                            )
+                        state = i
+                        start_time = record.get_time()
+                    is_idle = False
+                    break
+            if is_idle and state != -1:
+                on_range.append(
+                    [
+                        start_time + localtime_offset,
+                        prev_time + localtime_offset,
+                        state,
+                    ]
+                )
+                state = -1
+                start_time = record.get_time()
 
-        if state != "IDLE":
+            prev_time = record.get_time()
+
+        if state != -1:
             on_range.append(
                 [
                     start_time + localtime_offset,
                     table_list[0].records[-1].get_time() + localtime_offset,
-                    state == "FULL",
+                    state,
                 ]
             )
-
         return on_range
     except:
         logging.warning(traceback.format_exc())
         return []
 
 
-def get_today_sum(config, measure, hostname, field):
+def get_day_sum(config, measure, hostname, field, offset_day=0):
     try:
+        every_min = 1
+        window_min = 5
         now = datetime.datetime.now()
 
-        period = "{hour}h{minute}m".format(hour=now.hour, minute=now.minute)
+        start = "-{offset_day}d{hour}h{minute}m".format(
+            offset_day=offset_day, hour=now.hour, minute=now.minute
+        )
+        stop = "-{offset_day}d".format(offset_day=offset_day)
 
         table_list = fetch_data_impl(
-            config, FLUX_SUM_QUERY, measure, hostname, field, period
+            config,
+            FLUX_SUM_QUERY,
+            measure,
+            hostname,
+            field,
+            start,
+            stop,
+            every_min,
+            window_min,
+            True,
         )
 
-        count, total = table_list.to_values(columns=["count", "sum"])[0]
+        value_list = table_list.to_values(columns=["count", "sum"])
 
-        return total * (((now.hour * 60 + now.minute) * 60.0) / count) / 60
+        if len(value_list) == 0:
+            return 0
+        else:
+            return value_list[0][1]
     except:
         logging.warning(traceback.format_exc())
         return 0
@@ -363,7 +402,7 @@ if __name__ == "__main__":
     import logger
     import json
 
-    from config import load_config
+    from config import load_config, get_db_config
 
     args = docopt(__doc__)
 
@@ -376,33 +415,29 @@ if __name__ == "__main__":
     now = datetime.datetime.now()
     measure = config["USAGE"]["TARGET"]["TYPE"]
     hostname = config["USAGE"]["TARGET"]["HOST"]
-    field = config["USAGE"]["TARGET"]["FIELD"]
+    param = config["USAGE"]["TARGET"]["PARAM"]
     threshold = config["USAGE"]["TARGET"]["THRESHOLD"]["WORK"]
-    period = config["GRAPH"]["FIELD"]["PERIOD"]
+    start = "-" + config["GRAPH"]["PARAM"]["PERIOD"]
 
-    db_config = {
-        "token": config["INFLUXDB"]["TOKEN"],
-        "bucket": config["INFLUXDB"]["BUCKET"],
-        "url": config["INFLUXDB"]["URL"],
-        "org": config["INFLUXDB"]["ORG"],
-    }
+    db_config = get_db_config(config)
 
     dump_data(
-        fetch_data(config["INFLUXDB"], measure, hostname, field, period, every, window)
+        fetch_data(db_config, measure, hostname, param, start, "now()", every, window)
     )
 
-    period = "{hour}h{minute}m".format(hour=now.hour, minute=now.minute)
+    start = "-{hour}h{minute}m".format(hour=now.hour, minute=now.minute)
 
     logging.info(
-        "Today ON minutes ({period}) = {minutes} min".format(
-            period=period,
+        "Today ON minutes ({start}) = {minutes} min".format(
+            start=start,
             minutes=get_equip_on_minutes(
-                config["INFLUXDB"],
+                db_config,
                 measure,
                 hostname,
-                field,
+                param,
                 threshold,
-                period,
+                start,
+                "now()",
                 every,
                 window,
             ),
@@ -411,15 +446,19 @@ if __name__ == "__main__":
 
     measure = config["GRAPH"]["VALVE"]["TYPE"]
     hostname = config["GRAPH"]["VALVE"]["HOST"]
-    field = config["GRAPH"]["VALVE"]["FIELD"]
-    threshold = config["GRAPH"]["VALVE"]["THRESHOLD"]
-    period = config["GRAPH"]["FIELD"]["PERIOD"]
+    param = config["GRAPH"]["VALVE"]["PARAM"]
+    threshold = [
+        # NOTE: 閾値が高いものから並べる
+        config["GRAPH"]["VALVE"]["THRESHOLD"]["FULL"],
+        config["GRAPH"]["VALVE"]["THRESHOLD"]["INTERM"],
+    ]
+    start = "-" + config["GRAPH"]["PARAM"]["PERIOD"]
 
     logging.info(
         "Valve on period = {range_list}".format(
             range_list=json.dumps(
                 get_equip_mode_period(
-                    config["INFLUXDB"], measure, hostname, field, threshold, period
+                    db_config, measure, hostname, param, threshold, start, "now()"
                 ),
                 indent=2,
                 default=str,
@@ -427,8 +466,8 @@ if __name__ == "__main__":
         )
     )
 
-    # logging.info(
-    #     "Amount of cooling water used today = {water:0f} L".format(
-    #         water=get_today_sum(config["INFLUXDB"], measure, hostname, field)
-    #     )
-    # )
+    logging.info(
+        "Amount of cooling water used today = {water:.2f} L".format(
+            water=get_day_sum(db_config, measure, hostname, param)
+        )
+    )

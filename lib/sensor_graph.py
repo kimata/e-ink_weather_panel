@@ -157,10 +157,22 @@ def draw_light_icon(config, ax, y):
     ax.add_artist(ab)
 
 
-def sensor_data(db_config, host_specify_list, param, period="60h"):
+def sensor_data(db_config, host_specify_list, param):
+    if os.environ.get("DUMMY_MODE", "false") == "true":
+        period_start = "-228h"
+        period_stop = "-168h"
+    else:
+        period_start = "-60h"
+        period_stop = "now()"
+
     for host_specify in host_specify_list:
         data = fetch_data(
-            db_config, host_specify["TYPE"], host_specify["NAME"], param, period
+            db_config,
+            host_specify["TYPE"],
+            host_specify["NAME"],
+            param,
+            period_start,
+            period_stop,
         )
         if data["valid"]:
             return data

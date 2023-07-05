@@ -61,13 +61,16 @@ def image_reader(proc, token):
     panel_data["image"] = img_stream.getvalue()
 
 
-def generate_image_impl(config_file, is_small_mode, token):
+def generate_image_impl(config_file, is_small_mode, is_dummy_mode, token):
     global panel_data_map
 
     panel_data = panel_data_map[token]
     cmd = ["python3", CREATE_IMAGE_PATH, "-c", config_file]
     if is_small_mode:
         cmd.append("-s")
+    if is_dummy_mode:
+        cmd.append("-D")
+
     proc = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False
     )
@@ -95,21 +98,36 @@ def generate_image_impl(config_file, is_small_mode, token):
     panel_data["log"].put(None)
 
 
-def generate_image(config_file, is_small_mode):
+def clean_map():
+    global panel_data_map
+
+    remove_token = []
+    for token, panel_data in panel_data_map.items():
+        if (time.time() - panel_data["time"]) > 60:
+            remove_token.append(token)
+
+    for token in remove_token:
+        del panel_data_map[token]
+
+
+def generate_image(config_file, is_small_mode, is_dummy_mode):
     global thread_pool
     global panel_data_map
 
-    token = str(uuid.uuid4())
+    clean_map()
 
+    token = str(uuid.uuid4())
     log_queue = Queue()
 
-    # NOTE: 今のところ作りっぱなしなので，どんどんメモリリークする
     panel_data_map[token] = {
         "lock": threading.Lock(),
         "log": log_queue,
         "image": None,
+        "time": time.time(),
     }
-    thread_pool.apply_async(generate_image_impl, (config_file, is_small_mode, token))
+    thread_pool.apply_async(
+        generate_image_impl, (config_file, is_small_mode, is_dummy_mode, token)
+    )
 
     return token
 
@@ -167,9 +185,11 @@ def api_log():
 @support_jsonp
 def api_run():
     config_file = current_app.config["CONFIG_FILE"]
-    is_small_mode = current_app.config["IS_SMALL_MODE"]
+    is_small_mode = current_app.config["SMALL_MODE"]
+    is_dummy_mode = current_app.config["DUMMY_MODE"]
+
     try:
-        token = generate_image(config_file, is_small_mode)
+        token = generate_image(config_file, is_small_mode, is_dummy_mode)
 
         return jsonify({"token": token})
     except:

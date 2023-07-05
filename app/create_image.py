@@ -4,12 +4,13 @@
 電子ペーパ表示用の画像を生成します．
 
 Usage:
-  create_image.py [-c CONFIG] [-s] [-o PNG_FILE] [-d]
+  create_image.py [-c CONFIG] [-s] [-o PNG_FILE] [-D] [-d]
 
 Options:
   -c CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
   -s           : 小型ディスプレイモードで実行します．
   -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
+  -D           : ダミーモードで実行します．
   -d           : デバッグモード．
 """
 
@@ -136,10 +137,13 @@ def draw_panel(config, img, is_small_mode=False):
 
 ######################################################################
 if __name__ == "__main__":
+    import os
+
     args = docopt(__doc__)
 
     config_file = args["-c"]
-    is_small_mode = args["-s"]
+    small_mode = args["-s"]
+    dummy_mode = args["-D"]
     debug_mode = args["-d"]
 
     if debug_mode:
@@ -149,12 +153,17 @@ if __name__ == "__main__":
 
     logger.init("panel.e-ink.weather", level=log_level)
 
+    # NOTE: オプションでダミーモードが指定された場合，環境変数もそれに揃えておく
+    if dummy_mode:
+        logging.warning("Set dummy mode")
+        os.environ["DUMMY_MODE"] = "true"
+
     logging.info("Start to create image")
 
     logging.info("Using config config: {config_file}".format(config_file=config_file))
     config = load_config(config_file)
 
-    logging.info("Mode : {mode}".format(mode="small" if is_small_mode else "normal"))
+    logging.info("Mode : {mode}".format(mode="small" if small_mode else "normal"))
 
     img = PIL.Image.new(
         "RGBA",
@@ -164,7 +173,7 @@ if __name__ == "__main__":
 
     status = 0
     try:
-        draw_panel(config, img, is_small_mode)
+        draw_panel(config, img, small_mode)
     except:
         draw = PIL.ImageDraw.Draw(img)
         draw.rectangle(

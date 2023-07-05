@@ -137,11 +137,20 @@ def create_power_graph(config):
 
     fig.set_size_inches(width / IMAGE_DPI, height / IMAGE_DPI)
 
+    if os.environ.get("DUMMY_MODE", "false") == "true":
+        period_start = "-228h"
+        period_stop = "-168h"
+    else:
+        period_start = "-60h"
+        period_stop = "now()"
+
     data = fetch_data(
         db_config,
         panel_config["DATA"]["HOST"]["TYPE"],
         panel_config["DATA"]["HOST"]["NAME"],
         panel_config["DATA"]["PARAM"]["NAME"],
+        period_start,
+        period_stop,
     )
 
     ax = fig.add_subplot()
