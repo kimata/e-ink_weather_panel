@@ -38,7 +38,6 @@ function App() {
       })
         .then((res) => res.blob())
         .then((resBlob) => {
-          const { size, type } = resBlob;
           setImageSrc(URL.createObjectURL(resBlob));
         })
         .catch((error) => {
