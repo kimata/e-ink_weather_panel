@@ -173,7 +173,7 @@ def draw_aircon_icon(ax, power, icon_config):
 
     img = plt.imread(str(pathlib.Path(os.path.dirname(__file__), icon_file)))
 
-    imagebox = OffsetImage(img, zoom=0.4)
+    imagebox = OffsetImage(img, zoom=0.3)
     imagebox.image.axes = ax
 
     ab = AnnotationBbox(
