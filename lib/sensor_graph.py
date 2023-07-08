@@ -137,7 +137,7 @@ def get_aircon_power(db_config, aircon):
         start = "-1h"
         stop = "now()"
 
-    return fetch_data(
+    data = fetch_data(
         db_config,
         aircon["MEASURE"],
         aircon["HOST"],
@@ -146,6 +146,11 @@ def get_aircon_power(db_config, aircon):
         stop,
         last=True,
     )
+
+    if data["valid"]:
+        return data["value"][0]
+    else:
+        return None
 
 
 def draw_aircon_icon(ax, power, icon_config):
