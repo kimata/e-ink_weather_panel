@@ -25,6 +25,8 @@ from sensor_data import fetch_data
 IMAGE_DPI = 100.0
 EMPTY_VALUE = -100.0
 
+AIRCON_WORK_THRESHOLD = 30
+
 
 def get_plot_font(config, font_type, size):
     font_path = str(
@@ -127,8 +129,48 @@ def plot_item(ax, title, unit, data, xbegin, ylabel, ylim, fmt, scale, small, fa
     ax.label_outer()
 
 
-def draw_light_icon(config, ax, y):
-    lux = next((item for item in reversed(y) if item is not None), None)
+def get_aircon_power(db_config, aircon):
+    if os.environ.get("DUMMY_MODE", "false") == "true":
+        start = "-169h"
+        stop = "-168h"
+    else:
+        start = "-1h"
+        stop = "now()"
+
+    return fetch_data(
+        db_config,
+        aircon["MEASURE"],
+        aircon["HOSTNAME"],
+        "power",
+        start,
+        stop,
+        last=True,
+    )
+
+
+def draw_aircon_icon(ax, power, icon_config):
+    if (power is None) or (power < AIRCON_WORK_THRESHOLD):
+        return
+
+    icon_file = icon_config["AIRCON"]["PATH"]
+
+    img = plt.imread(str(pathlib.Path(os.path.dirname(__file__), icon_file)))
+
+    imagebox = OffsetImage(img, zoom=0.25)
+    imagebox.image.axes = ax
+
+    ab = AnnotationBbox(
+        offsetbox=imagebox,
+        box_alignment=(0, 1),
+        xycoords="axes fraction",
+        xy=(0, 1),
+        frameon=False,
+    )
+    ax.add_artist(ab)
+
+
+def draw_light_icon(ax, lux_list, icon_config):
+    lux = next((item for item in reversed(lux_list) if item is not None), None)
 
     now = datetime.datetime.now()
     # NOTE: 昼間はアイコンを描画しない
@@ -138,9 +180,9 @@ def draw_light_icon(config, ax, y):
     if lux == EMPTY_VALUE:
         return
     elif lux < 10:
-        icon_file = config["LIGHT"]["OFF"]["PATH"]
+        icon_file = icon_config["LIGHT"]["OFF"]["PATH"]
     else:
-        icon_file = config["LIGHT"]["ON"]["PATH"]
+        icon_file = icon_config["LIGHT"]["ON"]["PATH"]
 
     img = plt.imread(str(pathlib.Path(os.path.dirname(__file__), icon_file)))
 
@@ -278,9 +320,19 @@ def create_sensor_graph(config):
                 face_map,
             )
 
+            if param["NAME"] == "temp":
+                if "AIRCON" in room_list[col]:
+                    draw_aircon_icon(
+                        ax,
+                        get_aircon_power(
+                            get_db_config(config), room_list[col]["AIRCON"]
+                        ),
+                        config["SENSOR"]["ICON"],
+                    )
+
             if param["NAME"] == "lux":
-                if room_list[col]["ICON"]:
-                    draw_light_icon(config["SENSOR"]["ICON"], ax, data["value"])
+                if room_list[col]["LIGHT_ICON"]:
+                    draw_light_icon(ax, data["value"], config["SENSOR"]["ICON"])
 
     fig.tight_layout()
     plt.subplots_adjust(hspace=0.1, wspace=0)

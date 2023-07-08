@@ -131,43 +131,43 @@ SENSOR:
                 TYPE: sensor.esp32
               - NAME: rasp-meter-8
                 TYPE: sensor.rasp
-          ICON: off
+          LIGHT_ICON: off
         - LABEL: リビング
           HOST:
               - NAME: rpi-cm4-sensor-6
                 TYPE: sensor.rasp
-          ICON: on
+          LIGHT_ICON: on
         - LABEL: 和室
           TYPE: rasp
           HOST:
               - NAME: rasp-meter-2
                 TYPE: sensor.rasp
-          ICON: on
+          LIGHT_ICON: on
         - LABEL: 洋室A
           HOST:
               - NAME: rpi-cm4-sensor-1
                 TYPE: sensor.rasp
-          ICON: on
+          LIGHT_ICON: on
         - LABEL: 洋室B
           HOST:
               - NAME: rpi-cm4-sensor-2
                 TYPE: sensor.rasp
-          ICON: on
+          LIGHT_ICON: on
         - LABEL: 洋室C
           HOST:
               - NAME: rpi-cm4-sensor-3
                 TYPE: sensor.rasp
-          ICON: on
+          LIGHT_ICON: on
         - LABEL: 家事室
           HOST:
               - NAME: rpi-cm4-sensor-4
                 TYPE: sensor.rasp
-          ICON: on
+          LIGHT_ICON: on
         - LABEL: 書斎
           HOST:
               - NAME: rasp-meter-3
                 TYPE: sensor.rasp
-          ICON: on
+          LIGHT_ICON: on
     PARAM_LIST:
         - NAME: temp
           FORMAT: "{:.1f}"
