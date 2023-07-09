@@ -1,5 +1,7 @@
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { Github } from "react-bootstrap-icons";
+
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { useState, useEffect } from "react";
 import * as Scroll from "react-scroll";
@@ -163,6 +165,14 @@ function App() {
                                 </TransformComponent>
                             </TransformWrapper>
                         </div>
+                    </div>
+                </div>
+
+                <div className="row mt-5">
+                    <div class="p-1 float-end text-end">
+                        <a href="https://github.com/kimata/outdoor_unit_cooler/">
+                            <Github />
+                        </a>
                     </div>
                 </div>
             </div>
