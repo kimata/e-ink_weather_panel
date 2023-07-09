@@ -129,6 +129,21 @@ test-sample-small:
         paths:
             - ${CI_JOB_NAME}.png
 
+test-demo:
+    stage: test
+    needs: ["test-sensor-graph", "test-weather-panel", "test-rain-cloud-panel"]
+
+    script:
+        - docker pull ${CI_REGISTRY_IMAGE}
+        - docker run --tty=true --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} app/create_image.py -c config-demo.yaml -o ${CI_JOB_NAME}.png
+        - CID=`docker ps --quiet --latest --filter "ancestor=${CI_REGISTRY_IMAGE}" --filter "label=job=${CI_JOB_NAME}"`
+        - docker wait ${CID}
+        - docker cp ${CID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
+
+    artifacts:
+        paths:
+            - ${CI_JOB_NAME}.png
+
 # 本番設定ファイルで，問題なく動くかチェック
 test-regular:
     stage: test
@@ -186,7 +201,7 @@ test-display-small:
 
 test-webapp:
     stage: test
-    needs: ["test-sensor-graph", "test-weather-panel", "test-rain-cloud-panel"]
+    needs: ["test-demo"]
 
     image: registry.green-rabbit.net:5000/kimata/local_playwright:230623A
     script:
