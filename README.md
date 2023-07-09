@@ -7,9 +7,15 @@
 -   天気予報
 -   各種センサーの情報
 
+## デモ
+
 表示サンプルは下記になります．
 
 ![表示サンプル](img/example.png)
+
+実際にリアルタイムに画像を生成する様を下記で確認いただけます．
+
+https://weather-panel-webapp-demo.kubernetes.green-rabbit.net/weather_panel/
 
 ## 詳細
 
