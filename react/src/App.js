@@ -168,7 +168,7 @@ function App() {
                     </div>
                 </div>
 
-                <div className="row m-2">
+                <div className="row mt-2">
                     <div class="p-1 float-end text-end">
                         <p className="display-6">
                             <a href="https://github.com/kimata/e-ink_weather_panel/" className="text-secondary">
