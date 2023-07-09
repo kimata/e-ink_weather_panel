@@ -168,11 +168,13 @@ function App() {
                     </div>
                 </div>
 
-                <div className="row mt-5">
+                <div className="row m-2">
                     <div class="p-1 float-end text-end">
-                        <a href="https://github.com/kimata/outdoor_unit_cooler/">
-                            <Github />
-                        </a>
+                        <p className="display-6">
+                            <a href="https://github.com/kimata/e-ink_weather_panel/" className="text-secondary">
+                                <Github />
+                            </a>
+                        </p>
                     </div>
                 </div>
             </div>
