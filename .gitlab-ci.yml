@@ -187,8 +187,6 @@ test-display-small:
 test-webapp:
     stage: test
     needs: ["test-sensor-graph", "test-weather-panel", "test-rain-cloud-panel"]
-    dependencies:
-        - build-image
 
     image: registry.green-rabbit.net:5000/kimata/local_playwright:230623A
     script:
