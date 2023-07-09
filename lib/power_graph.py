@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+消費電力グラフを生成します．
+
+Usage:
+  power_graph.py [-c CONFIG] -o PNG_FILE
+
+Options:
+  -c CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
+  -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
+"""
+
 import pathlib
 import os
 import datetime
@@ -172,3 +183,25 @@ def create_power_graph(config):
     plt.savefig(buf, format="png", dpi=IMAGE_DPI, transparent=True)
 
     return (PIL.Image.open(buf), time.perf_counter() - start)
+
+
+if __name__ == "__main__":
+    from docopt import docopt
+
+    import logger
+    from config import load_config
+    from pil_util import convert_to_gray
+
+    args = docopt(__doc__)
+
+    logger.init("test", level=logging.INFO)
+
+    config = load_config(args["-c"])
+    out_file = args["-o"]
+
+    img = create_power_graph(config)[0]
+
+    logging.info("Save {out_file}.".format(out_file=out_file))
+    convert_to_gray(img).save(out_file, "PNG")
+
+    print("Finish.")
