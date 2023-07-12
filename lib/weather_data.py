@@ -116,7 +116,7 @@ def get_wbgt(wbgt_config):
     ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
 
     # Use urllib to open the URL and read the content
-    data = urllib.request.urlopen(wbgt_config["URL"], context=ctx)
+    data = urllib.request.urlopen(wbgt_config["DATA"]["ENV_GO"]["URL"], context=ctx)
 
     # data = request.urlopen(wbgt_config["URL"])
     content = html.fromstring(data.read().decode("UTF-8"))
@@ -140,6 +140,6 @@ if __name__ == "__main__":
     logging.info(get_weather_yahoo(config["WEATHER"]["DATA"]["YAHOO"]))
     logging.info(get_clothing_yahoo(config["WEATHER"]["DATA"]["YAHOO"]))
 
-    logging.info(get_wbgt(config["WEATHER"]["DATA"]["ENV_WBGT"]))
+    logging.info(get_wbgt(config["WBGT"]))
 
     logging.info("Fnish.")

@@ -37,6 +37,7 @@ from weather_panel import create_weather_panel
 from power_graph import create_power_graph
 from sensor_graph import create_sensor_graph
 from rain_cloud_panel import create_rain_cloud_panel
+from wbgt_panel import create_wbgt_panel
 from time_panel import create_time_panel
 
 from config import load_config
@@ -71,6 +72,7 @@ def draw_panel(config, img, is_small_mode=False):
         panel_list = [
             {"name": "RAIN_CLOUD", "func": create_rain_cloud_panel, "arg": (False,)},
             {"name": "WEATHER", "func": create_weather_panel, "arg": (False,)},
+            {"name": "WBGT", "func": create_wbgt_panel},
             {"name": "TIME", "func": create_time_panel},
         ]
     else:
@@ -79,6 +81,7 @@ def draw_panel(config, img, is_small_mode=False):
             {"name": "SENSOR", "func": create_sensor_graph},
             {"name": "POWER", "func": create_power_graph},
             {"name": "WEATHER", "func": create_weather_panel},
+            {"name": "WBGT", "func": create_wbgt_panel},
             {"name": "TIME", "func": create_time_panel},
         ]
 
@@ -121,7 +124,7 @@ def draw_panel(config, img, is_small_mode=False):
 
     draw_wall(config, img)
 
-    for name in ["POWER", "WEATHER", "SENSOR", "RAIN_CLOUD", "TIME"]:
+    for name in ["POWER", "WEATHER", "SENSOR", "RAIN_CLOUD", "WBGT", "TIME"]:
         if name not in panel_map:
             continue
 

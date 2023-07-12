@@ -37,8 +37,6 @@ WEATHER:
     DATA:
         YAHOO:
             URL: https://weather.yahoo.co.jp/weather/jp/13/4410/13113.html
-        ENV_WBGT:
-            URL: https://www.wbgt.env.go.jp/graph_ref_td.php?region=03&prefecture=44&point=44132
 
     ICON:
         ARROW:
@@ -220,6 +218,27 @@ RAIN_CLOUD:
     DATA:
         JMA:
             URL: https://www.jma.go.jp/bosai/nowc/#zoom:12/lat:35.682677/lon:139.762230/colordepth:deep/elements:hrpns&slmcs
+
+WBGT:
+    PANEL:
+        OFFSET_X: 1604
+        OFFSET_Y: 960
+        WIDTH: 798
+        HEIGHT: 300
+
+    DATA:
+        ENV_GO:
+            URL: https://www.wbgt.env.go.jp/graph_ref_td.php?region=03&prefecture=44&point=44132
+    ICON:
+        FACE:
+            - PATH: ../img/face_1.png
+              BRIGHTNESS: 1.5
+            - PATH: ../img/face_2.png
+              BRIGHTNESS: 1.5
+            - PATH: ../img/face_3.png
+              BRIGHTNESS: 1.5
+            - PATH: ../img/face_4.png
+              BRIGHTNESS: 1.5
 
 FONT:
     PATH: ../font/ # スクリプトのフォルダからの相対パス

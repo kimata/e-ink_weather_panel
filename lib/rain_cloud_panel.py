@@ -34,7 +34,6 @@ import logging
 from selenium_util import create_driver, click_xpath
 from pil_util import get_font, draw_text, text_size, alpha_paste
 from panel_util import draw_panel_patiently
-from weather_data import get_wbgt
 import notify_slack
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
@@ -67,7 +66,6 @@ def get_face_map(font_config):
     return {
         "title": get_font(font_config, "JP_MEDIUM", 50),
         "legend": get_font(font_config, "EN_MEDIUM", 30),
-        "wbgt": get_font(font_config, "EN_MEDIUM", 80),
         "legend_unit": get_font(font_config, "EN_MEDIUM", 18),
     }
 
@@ -471,19 +469,6 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
     return (img, bar)
 
 
-def draw_wbgt(img, wbgt, panel_config, face_map):
-    font = face_map["wbgt"]
-    draw_text(
-        img,
-        str(wbgt),
-        (10, 100),
-        font,
-        "left",
-        "#333",
-    )
-    return img
-
-
 def draw_legend(img, bar, panel_config, face_map):
     PADDING = 20
     TEXT_MARGIN = 1.2
@@ -563,10 +548,9 @@ def draw_legend(img, bar, panel_config, face_map):
     return img
 
 
-def create_rain_cloud_panel_impl(config, font_config, slack_config, is_side_by_side):
-    panel_config = config["RAIN_CLOUD"]
-    weather_config = config["WEATHER"]
-
+def create_rain_cloud_panel_impl(
+    panel_config, font_config, slack_config, is_side_by_side, opt_config
+):
     if is_side_by_side:
         sub_width = int(panel_config["PANEL"]["WIDTH"] / 2)
         sub_height = panel_config["PANEL"]["HEIGHT"]
@@ -622,11 +606,6 @@ def create_rain_cloud_panel_impl(config, font_config, slack_config, is_side_by_s
         sub_img, bar = task_list[i].result()
         img.paste(sub_img, (sub_panel_config["offset_x"], sub_panel_config["offset_y"]))
 
-    if "ENV_WBGT" in weather_config["DATA"]:
-        img = draw_wbgt(
-            img, get_wbgt(weather_config["DATA"]["ENV_WBGT"]), panel_config, face_map
-        )
-
     img = draw_legend(img, bar, panel_config, face_map)
 
     return img
@@ -637,10 +616,11 @@ def create_rain_cloud_panel(config, is_side_by_side=True):
 
     return draw_panel_patiently(
         create_rain_cloud_panel_impl,
-        config,
+        config["RAIN_CLOUD"],
         config["FONT"],
         config["SLACK"] if "SLACK" in config else None,
         is_side_by_side,
+        config["WBGT"],
     )
 
 
@@ -659,7 +639,10 @@ if __name__ == "__main__":
     out_file = args["-o"]
 
     img = create_rain_cloud_panel_impl(
-        config["RAIN_CLOUD"], config["WEATHER"], config["FONT"], None, True
+        config["RAIN_CLOUD"],
+        config["FONT"],
+        None,
+        True,
     )
 
     logging.info("Save {out_file}.".format(out_file=out_file))
