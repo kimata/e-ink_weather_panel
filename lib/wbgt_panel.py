@@ -31,8 +31,6 @@ def get_face_map(font_config):
 
 
 def draw_wbgt(img, wbgt, panel_config, icon_config, face_map):
-    TEXT_MARGIN = 1.1
-
     if wbgt is None:
         return img
 
@@ -64,19 +62,20 @@ def draw_wbgt(img, wbgt, panel_config, icon_config, face_map):
 
     icon = load_image(icon_config["FACE"][index])
 
-    pos_y += int(text_size(face_map["wbgt"], wbgt_str)[1] * TEXT_MARGIN)
-
     alpha_paste(
         img,
         icon,
         (
             int(pos_x - icon.size[0]),
-            int(pos_y),
+            int(pos_y + text_size(face_map["wbgt"], wbgt_str)[1] + 10),
         ),
     )
 
-    pos_x -= int(text_size(face_map["wbgt"], wbgt_str)[0] * TEXT_MARGIN) + 5
-    pos_y = 20
+    pos_x -= int(text_size(face_map["wbgt"], wbgt_str)[0] + 5)
+    pos_y += int(
+        text_size(face_map["wbgt"], wbgt_str)[1]
+        - text_size(face_map["wbgt_title"], title)[1]
+    )
 
     draw_text(
         img,

@@ -24,9 +24,9 @@ INFLUXDB:
 TIME:
     PANEL:
         WIDTH: 400
-        HEIGHT: 100
-        OFFSET_X: 1980
-        OFFSET_Y: 20
+        HEIGHT: 150
+        OFFSET_X: 1995
+        OFFSET_Y: 740
         SCALE: 0.5
 
 WEATHER:
