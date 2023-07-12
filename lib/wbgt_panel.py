@@ -37,20 +37,6 @@ def draw_wbgt(img, wbgt, panel_config, icon_config, face_map):
     title = "暑さ指数:"
     wbgt_str = "{wbgt:.1f}".format(wbgt=wbgt)
 
-    pos_x = panel_config["PANEL"]["WIDTH"] - 10
-    pos_y = -10
-
-    draw_text(
-        img,
-        wbgt_str,
-        (pos_x, pos_y),
-        face_map["wbgt"],
-        "right",
-        "#333",
-        stroke_width=10,
-        stroke_fill=(255, 255, 255, 200),
-    )
-
     if wbgt >= 31:
         index = 3
     elif wbgt >= 28:
@@ -62,26 +48,35 @@ def draw_wbgt(img, wbgt, panel_config, icon_config, face_map):
 
     icon = load_image(icon_config["FACE"][index])
 
+    pos_x = panel_config["PANEL"]["WIDTH"] - 10
+    pos_y = 10
+
     alpha_paste(
         img,
         icon,
-        (
-            int(pos_x - icon.size[0]),
-            int(pos_y + text_size(face_map["wbgt"], wbgt_str)[1] + 10),
-        ),
+        (int(pos_x - icon.size[0]), pos_y),
     )
 
-    pos_x -= int(text_size(face_map["wbgt"], wbgt_str)[0] + 5)
-    pos_y += int(
-        text_size(face_map["wbgt"], wbgt_str)[1]
-        - text_size(face_map["wbgt_title"], title)[1]
-    )
+    pos_y += icon.size[1] + 10
 
     draw_text(
         img,
         title,
         (pos_x, pos_y),
         face_map["wbgt_title"],
+        "right",
+        "#333",
+        stroke_width=10,
+        stroke_fill=(255, 255, 255, 200),
+    )
+
+    pos_y += text_size(face_map["wbgt_title"], title)[1] - 20
+
+    draw_text(
+        img,
+        wbgt_str,
+        (pos_x, pos_y),
+        face_map["wbgt"],
         "right",
         "#333",
         stroke_width=10,
