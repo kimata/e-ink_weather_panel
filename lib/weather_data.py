@@ -112,16 +112,18 @@ def get_wbgt(wbgt_config):
     import ssl
     import urllib.request
 
-    ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-    ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
+    try:
+        # NOTE: 環境省のページはこれをしないとエラーになる
+        ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+        ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
 
-    # Use urllib to open the URL and read the content
-    data = urllib.request.urlopen(wbgt_config["DATA"]["ENV_GO"]["URL"], context=ctx)
+        data = urllib.request.urlopen(wbgt_config["DATA"]["ENV_GO"]["URL"], context=ctx)
 
-    # data = request.urlopen(wbgt_config["URL"])
-    content = html.fromstring(data.read().decode("UTF-8"))
+        content = html.fromstring(data.read().decode("UTF-8"))
 
-    return parse_wbgt(content)
+        return parse_wbgt(content)
+    except:
+        return None
 
 
 if __name__ == "__main__":

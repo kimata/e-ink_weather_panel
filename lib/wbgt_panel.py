@@ -33,6 +33,9 @@ def get_face_map(font_config):
 def draw_wbgt(img, wbgt, panel_config, icon_config, face_map):
     TEXT_MARGIN = 1.1
 
+    if wbgt is None:
+        return img
+
     title = "暑さ指数:"
     wbgt_str = "{wbgt:.1f}".format(wbgt=wbgt)
 
