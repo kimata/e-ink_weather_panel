@@ -563,9 +563,10 @@ def draw_legend(img, bar, panel_config, face_map):
     return img
 
 
-def create_rain_cloud_panel_impl(
-    panel_config, weather_config, font_config, slack_config, is_side_by_side
-):
+def create_rain_cloud_panel_impl(config, font_config, slack_config, is_side_by_side):
+    panel_config = config["RAIN_CLOUD"]
+    weather_config = (config["WEATHER"],)
+
     if is_side_by_side:
         sub_width = int(panel_config["PANEL"]["WIDTH"] / 2)
         sub_height = panel_config["PANEL"]["HEIGHT"]
@@ -636,8 +637,7 @@ def create_rain_cloud_panel(config, is_side_by_side=True):
 
     return draw_panel_patiently(
         create_rain_cloud_panel_impl,
-        config["RAIN_CLOUD"],
-        config["WEATHER"],
+        config,
         config["FONT"],
         config["SLACK"] if "SLACK" in config else None,
         is_side_by_side,
