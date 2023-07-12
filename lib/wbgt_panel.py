@@ -95,7 +95,7 @@ def create_wbgt_panel_impl(panel_config, wbgt_config, font_config):
         (255, 255, 255, 0),
     )
 
-    wbgt = get_wbgt(wbgt_config)
+    wbgt = get_wbgt(wbgt_config)["current"]
 
     draw_wbgt(img, wbgt, panel_config, wbgt_config["ICON"], face_map)
 

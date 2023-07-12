@@ -13,6 +13,8 @@ Options:
 
 from urllib import request
 from lxml import html
+import datetime
+import re
 
 
 def parse_weather(content):
@@ -99,7 +101,7 @@ def get_clothing_yahoo(yahoo_config):
     }
 
 
-def parse_wbgt(content):
+def parse_wbgt_current(content):
     wbgt = content.xpath('//span[contains(@class, "present_num")]')
 
     if len(wbgt) == 0:
@@ -108,22 +110,109 @@ def parse_wbgt(content):
         return float(wbgt[0].text_content().strip())
 
 
-def get_wbgt(wbgt_config):
+def parse_wbgt_daily(content, wbgt_measured_today):
+    wbgt_col_list = content.xpath(
+        '//table[contains(@class, "forecast3day")]//td[contains(@class, "day")]'
+    )
+
+    if len(wbgt_col_list) != 35:
+        logging.warning("Invalid format")
+        return {"today": None, "tomorro": None}
+
+    wbgt_col_list = wbgt_col_list[8:]
+    wbgt_list = []
+    # NOTE: 0, 3, ..., 21 時のデータが入るようにする．0 時はダミーで可．
+    for i in range(27):
+        if i % 9 == 0:
+            # NOTE: 日付を取得しておく
+            m = re.search(r"(\d+)日", wbgt_col_list[i].text_content())
+            wbgt_list.append(int(m.group(1)))
+        else:
+            val = wbgt_col_list[i].text_content().strip()
+            if len(val) == 0:
+                wbgt_list.append(None)
+            else:
+                wbgt_list.append(int(val))
+
+    if wbgt_list[0] == datetime.datetime.now().day:
+        # NOTE: 日付が入っている部分は誤解を招くので None で上書きしておく
+        wbgt_list[0] = None
+        wbgt_list[9] = None
+
+        # NOTE: 当日の過去データは実測値で差し替える
+        for i in range(9):
+            if wbgt_list[i] is None:
+                wbgt_list[i] = wbgt_measured_today[i]
+
+        return {
+            "today": wbgt_list[0:9],
+            "tommorow": wbgt_list[9:18],
+        }
+    else:
+        # NOTE: 昨日のデータが本日として表示されている
+
+        # NOTE: 日付が入っている部分は誤解を招くので None で上書きしておく
+        wbgt_list[9] = None
+        wbgt_list[18] = None
+        return {
+            "today": wbgt_list[9:18],
+            "tommorow": wbgt_list[18:27],
+        }
+
+
+def fetch_page(url):
     import ssl
     import urllib.request
 
+    # NOTE: 環境省のページはこれをしないとエラーになる
+    ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+    ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
+
+    data = urllib.request.urlopen(url, context=ctx)
+
+    return html.fromstring(data.read().decode("UTF-8"))
+
+
+def get_wbgt_measured_today(wbgt_config):
     try:
-        # NOTE: 環境省のページはこれをしないとエラーになる
-        ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-        ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
+        content = fetch_page(
+            wbgt_config["DATA"]["ENV_GO"]["URL"].replace(
+                "graph_ref_td.php", "day_list.php"
+            )
+        )
+        wbgt_col_list = content.xpath(
+            '//table[contains(@class, "asc_tbl_daylist")]//td[contains(@class, "asc_body")]'
+        )
 
-        data = urllib.request.urlopen(wbgt_config["DATA"]["ENV_GO"]["URL"], context=ctx)
-
-        content = html.fromstring(data.read().decode("UTF-8"))
-
-        return parse_wbgt(content)
+        wbgt_list = [None]
+        for i, col in enumerate(wbgt_col_list):
+            if i % 12 != 9:
+                continue
+            # NOTE: 0, 3, ..., 21 時のデータが入るようにする．0 時はダミーで可．
+            val = col.text_content().strip()
+            if val == "---":
+                wbgt_list.append(None)
+            else:
+                wbgt_list.append(float(val))
+        return wbgt_list
     except:
-        return None
+        return [None] * 9
+
+
+def get_wbgt(wbgt_config):
+    try:
+        # NOTE: 当日の過去時間のデータは表示されず，
+        # 別ページに実測値があるので，それを取ってくる．
+        wbgt_measured_today = get_wbgt_measured_today(wbgt_config)
+
+        content = fetch_page(wbgt_config["DATA"]["ENV_GO"]["URL"])
+
+        return {
+            "current": parse_wbgt_current(content),
+            "daily": parse_wbgt_daily(content, wbgt_measured_today),
+        }
+    except:
+        return {"current": None, "daily": {"today": None, "tomorro": None}}
 
 
 if __name__ == "__main__":
@@ -139,8 +228,8 @@ if __name__ == "__main__":
 
     config = load_config(args["-c"])
 
-    logging.info(get_weather_yahoo(config["WEATHER"]["DATA"]["YAHOO"]))
-    logging.info(get_clothing_yahoo(config["WEATHER"]["DATA"]["YAHOO"]))
+    # logging.info(get_weather_yahoo(config["WEATHER"]["DATA"]["YAHOO"]))
+    # logging.info(get_clothing_yahoo(config["WEATHER"]["DATA"]["YAHOO"]))
 
     logging.info(get_wbgt(config["WBGT"]))
 

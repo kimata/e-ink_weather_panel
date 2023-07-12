@@ -41,6 +41,9 @@ WEATHER:
             URL: https://weather.yahoo.co.jp/weather/jp/13/4410/13113.html
 
     ICON:
+        SUN:
+            PATH: ../img/sun.png
+            SCALE: 0.7
         ARROW:
             PATH: ../img/arrow.png
             SCALE: 0.7

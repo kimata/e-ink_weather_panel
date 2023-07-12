@@ -28,7 +28,7 @@ import pathlib
 import logging
 
 from pil_util import get_font, text_size, draw_text, load_image, alpha_paste
-from weather_data import get_weather_yahoo, get_clothing_yahoo
+from weather_data import get_weather_yahoo, get_clothing_yahoo, get_wbgt
 from panel_util import draw_panel_patiently
 
 # NOTE: 天気アイコンの周りにアイコンサイズの何倍の空きを確保するか
@@ -261,7 +261,7 @@ def draw_text_info(
 def draw_temp(img, temp, is_first, pos_x, pos_y, icon, face):
     return draw_text_info(
         img,
-        temp,
+        int(temp),
         "℃",
         is_first,
         pos_x,
@@ -433,7 +433,17 @@ def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
 
 
 def draw_weather_info(
-    img, info, is_today, is_first, pos_x, pos_y, overlay, icon, face_map
+    img,
+    info,
+    wbgt_info,
+    is_wbgt_exist,
+    is_today,
+    is_first,
+    pos_x,
+    pos_y,
+    overlay,
+    icon,
+    face_map,
 ):
     next_pos_y = (
         pos_y
@@ -480,26 +490,43 @@ def draw_weather_info(
         icon,
         face_map["wind"],
     )
-    temp_sens = calc_misnar_formula(info["temp"], info["humi"], info["wind"]["speed"])
-    next_pos_y = draw_temp(
-        img,
-        int(temp_sens),
-        is_first,
-        pos_x,
-        next_pos_y,
-        icon["clothes"],
-        face_map["temp_sens"],
-    )
+    if is_wbgt_exist:
+        next_pos_y = draw_temp(
+            img,
+            wbgt_info,
+            is_first,
+            pos_x,
+            next_pos_y,
+            icon["sun"],
+            face_map["temp_sens"],
+        )
+    else:
+        temp_sens = calc_misnar_formula(
+            info["temp"], info["humi"], info["wind"]["speed"]
+        )
+        next_pos_y = draw_temp(
+            img,
+            int(temp_sens),
+            is_first,
+            pos_x,
+            next_pos_y,
+            icon["clothes"],
+            face_map["temp_sens"],
+        )
 
     return pos_x + (next_pos_x - pos_x) * 1.0
 
 
-def draw_day_weather(img, info, is_today, pos_x, pos_y, overlay, icon, face_map):
+def draw_day_weather(
+    img, info, wbgt_info, is_today, pos_x, pos_y, overlay, icon, face_map
+):
     next_pos_x = pos_x
     for hour_index in range(2, 8):
         next_pos_x = draw_weather_info(
             img,
             info[hour_index],
+            wbgt_info[hour_index] if wbgt_info is not None else None,
+            wbgt_info is not None,
             is_today,
             hour_index == 2,
             next_pos_x,
@@ -592,6 +619,7 @@ def draw_panel_weather_day(
     pos_y,
     weather_day_info,
     clothing_info,
+    wbgt_info,
     is_today,
     overlay,
     icon,
@@ -610,6 +638,7 @@ def draw_panel_weather_day(
     draw_day_weather(
         img,
         weather_day_info,
+        wbgt_info,
         is_today,
         next_pos_x + 30,
         pos_y + 5,
@@ -620,7 +649,13 @@ def draw_panel_weather_day(
 
 
 def draw_panel_weather(
-    img, panel_config, font_config, weather_info, clothing_info, is_side_by_side
+    img,
+    panel_config,
+    font_config,
+    weather_info,
+    clothing_info,
+    wbgt_info,
+    is_side_by_side,
 ):
     icon = {}
     for name in [
@@ -629,6 +664,7 @@ def draw_panel_weather(
         "precip",
         "wind",
         "arrow",
+        "sun",
         "clothing-full-1",
         "clothing-full-2",
         "clothing-full-3",
@@ -653,6 +689,7 @@ def draw_panel_weather(
         pos_y,
         weather_info["today"],
         clothing_info["today"],
+        wbgt_info["daily"]["today"],
         True,
         img.copy(),
         icon,
@@ -669,6 +706,7 @@ def draw_panel_weather(
         pos_y,
         weather_info["tommorow"],
         clothing_info["tommorow"],
+        wbgt_info["daily"]["tommorow"],
         False,
         img.copy(),
         icon,
@@ -677,10 +715,12 @@ def draw_panel_weather(
 
 
 def create_weather_panel_impl(
-    panel_config, font_config, slack_config, is_side_by_side, opt_config=None
+    panel_config, font_config, slack_config, is_side_by_side, wbgt_config
 ):
     weather_info = get_weather_yahoo(panel_config["DATA"]["YAHOO"])
     clothing_info = get_clothing_yahoo(panel_config["DATA"]["YAHOO"])
+    wbgt_info = get_wbgt(wbgt_config)
+
     img = PIL.Image.new(
         "RGBA",
         (panel_config["PANEL"]["WIDTH"], panel_config["PANEL"]["HEIGHT"]),
@@ -688,7 +728,13 @@ def create_weather_panel_impl(
     )
 
     draw_panel_weather(
-        img, panel_config, font_config, weather_info, clothing_info, is_side_by_side
+        img,
+        panel_config,
+        font_config,
+        weather_info,
+        clothing_info,
+        wbgt_info,
+        is_side_by_side,
     )
 
     return img
@@ -703,6 +749,7 @@ def create_weather_panel(config, is_side_by_side=True):
         config["FONT"],
         None,
         is_side_by_side,
+        config["WBGT"],
     )
 
 
@@ -720,7 +767,9 @@ if __name__ == "__main__":
     config = load_config(args["-c"])
     out_file = args["-o"]
 
-    img = create_weather_panel_impl(config["WEATHER"], config["FONT"], None, True)
+    img = create_weather_panel_impl(
+        config["WEATHER"], config["FONT"], None, True, config["WBGT"]
+    )
 
     logging.info("Save {out_file}.".format(out_file=out_file))
     convert_to_gray(img).save(out_file, "PNG")
