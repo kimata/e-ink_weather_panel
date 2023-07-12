@@ -564,7 +564,7 @@ def draw_legend(img, bar, panel_config, face_map):
 
 
 def create_rain_cloud_panel_impl(
-    panel_config, font_config, slack_config, is_side_by_side
+    panel_config, weather_config, font_config, slack_config, is_side_by_side
 ):
     if is_side_by_side:
         sub_width = int(panel_config["PANEL"]["WIDTH"] / 2)
@@ -621,9 +621,9 @@ def create_rain_cloud_panel_impl(
         sub_img, bar = task_list[i].result()
         img.paste(sub_img, (sub_panel_config["offset_x"], sub_panel_config["offset_y"]))
 
-    if "ENV_WBGT" in config["WEATHER"]["DATA"]:
+    if "ENV_WBGT" in weather_config["DATA"]:
         img = draw_wbgt(
-            img, get_wbgt(config["WEATHER"]["DATA"]["ENV_WBGT"]), panel_config, face_map
+            img, get_wbgt(weather_config["DATA"]["ENV_WBGT"]), panel_config, face_map
         )
 
     img = draw_legend(img, bar, panel_config, face_map)
@@ -637,6 +637,7 @@ def create_rain_cloud_panel(config, is_side_by_side=True):
     return draw_panel_patiently(
         create_rain_cloud_panel_impl,
         config["RAIN_CLOUD"],
+        config["WEATHER"],
         config["FONT"],
         config["SLACK"] if "SLACK" in config else None,
         is_side_by_side,
@@ -657,7 +658,9 @@ if __name__ == "__main__":
     config = load_config(args["-c"])
     out_file = args["-o"]
 
-    img = create_rain_cloud_panel_impl(config["RAIN_CLOUD"], config["FONT"], None, True)
+    img = create_rain_cloud_panel_impl(
+        config["RAIN_CLOUD"], config["WEATHER"], config["FONT"], None, True
+    )
 
     logging.info("Save {out_file}.".format(out_file=out_file))
     convert_to_gray(img).save(out_file, "PNG")
