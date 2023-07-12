@@ -34,6 +34,7 @@ import logging
 from selenium_util import create_driver, click_xpath
 from pil_util import get_font, draw_text, text_size, alpha_paste
 from panel_util import draw_panel_patiently
+from weather_data import get_wbgt
 import notify_slack
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
@@ -66,6 +67,7 @@ def get_face_map(font_config):
     return {
         "title": get_font(font_config, "JP_MEDIUM", 50),
         "legend": get_font(font_config, "EN_MEDIUM", 30),
+        "wbgt": get_font(font_config, "EN_MEDIUM", 80),
         "legend_unit": get_font(font_config, "EN_MEDIUM", 18),
     }
 
@@ -469,6 +471,19 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
     return (img, bar)
 
 
+def draw_wbgt(img, wbgt, panel_config, face_map):
+    font = face_map["wbgt"]
+    draw_text(
+        img,
+        str(wbgt),
+        (10, 100),
+        font,
+        "left",
+        "#333",
+    )
+    return img
+
+
 def draw_legend(img, bar, panel_config, face_map):
     PADDING = 20
     TEXT_MARGIN = 1.2
@@ -605,6 +620,11 @@ def create_rain_cloud_panel_impl(
     for i, sub_panel_config in enumerate(SUB_PANEL_CONFIG_LIST):
         sub_img, bar = task_list[i].result()
         img.paste(sub_img, (sub_panel_config["offset_x"], sub_panel_config["offset_y"]))
+
+    if "ENV_WBGT" in config["WEATHER"]["DATA"]:
+        img = draw_wbgt(
+            img, get_wbgt(config["WEATHER"]["DATA"]["ENV_WBGT"]), panel_config, face_map
+        )
 
     img = draw_legend(img, bar, panel_config, face_map)
 

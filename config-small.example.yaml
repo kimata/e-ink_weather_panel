@@ -39,6 +39,8 @@ WEATHER:
     DATA:
         YAHOO:
             URL: https://weather.yahoo.co.jp/weather/jp/13/4410/13113.html
+        ENV_WBGT:
+            URL: https://www.wbgt.env.go.jp/graph_ref_td.php?region=03&prefecture=44&point=44132
 
     ICON:
         ARROW:

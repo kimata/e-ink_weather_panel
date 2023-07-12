@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+天気情報を取得します．
+
+Usage:
+  weather_data.py [-c CONFIG]
+
+Options:
+  -c CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
+"""
+
 
 from urllib import request
 from lxml import html
@@ -79,8 +89,8 @@ def get_weather_yahoo(config):
     }
 
 
-def get_clothing_yahoo(config):
-    data = request.urlopen(config["URL"])
+def get_clothing_yahoo(yahoo_config):
+    data = request.urlopen(yahoo_config["URL"])
     content = html.fromstring(data.read().decode("UTF-8"))
 
     return {
@@ -89,17 +99,47 @@ def get_clothing_yahoo(config):
     }
 
 
+def parse_wbgt(content):
+    wbgt = content.xpath('//span[contains(@class, "present_num")]')
+
+    if len(wbgt) == 0:
+        return None
+    else:
+        return float(wbgt[0].text_content().strip())
+
+
+def get_wbgt(wbgt_config):
+    import ssl
+    import urllib.request
+
+    ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+    ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
+
+    # Use urllib to open the URL and read the content
+    data = urllib.request.urlopen(wbgt_config["URL"], context=ctx)
+
+    # data = request.urlopen(wbgt_config["URL"])
+    content = html.fromstring(data.read().decode("UTF-8"))
+
+    return parse_wbgt(content)
+
+
 if __name__ == "__main__":
+    from docopt import docopt
+    import logging
+
     import logger
     from config import load_config
 
-    import logging
+    args = docopt(__doc__)
 
     logger.init("test", level=logging.INFO)
 
-    config = load_config()
+    config = load_config(args["-c"])
 
     logging.info(get_weather_yahoo(config["WEATHER"]["DATA"]["YAHOO"]))
     logging.info(get_clothing_yahoo(config["WEATHER"]["DATA"]["YAHOO"]))
+
+    logging.info(get_wbgt(config["WEATHER"]["DATA"]["ENV_WBGT"]))
 
     logging.info("Fnish.")
