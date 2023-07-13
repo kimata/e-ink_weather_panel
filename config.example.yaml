@@ -41,7 +41,8 @@ WEATHER:
     ICON:
         SUN:
             PATH: ../img/sun.png
-            SCALE: 0.7
+            SCALE: 0.5
+            BRIGHTNESS: 1.5
         ARROW:
             PATH: ../img/arrow.png
             SCALE: 0.7
