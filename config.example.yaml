@@ -243,6 +243,8 @@ WBGT:
               BRIGHTNESS: 1.5
             - PATH: ../img/face_4.png
               BRIGHTNESS: 1.5
+            - PATH: ../img/face_5.png
+              BRIGHTNESS: 1.5
 
 FONT:
     PATH: ../font/ # スクリプトのフォルダからの相対パス

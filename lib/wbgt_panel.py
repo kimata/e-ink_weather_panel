@@ -38,10 +38,12 @@ def draw_wbgt(img, wbgt, panel_config, icon_config, face_map):
     wbgt_str = "{wbgt:.1f}".format(wbgt=wbgt)
 
     if wbgt >= 31:
-        index = 3
+        index = 4
     elif wbgt >= 28:
-        index = 2
+        index = 3
     elif wbgt >= 25:
+        index = 2
+    elif wbgt >= 21:
         index = 1
     else:
         index = 0
