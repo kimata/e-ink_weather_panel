@@ -4,11 +4,11 @@
 電子ペーパ表示用の画像を表示する簡易的な Web サーバです．
 
 Usage:
-  webapp.py [-c CONFIG] [-s] [-D]
+  webapp.py [-c CONFIG] [-s CONFIG] [-D]
 
 Options:
-  -c CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
-  -s           : 小型ディスプレイモードで実行します．
+  -c CONFIG    : 通常モードで使う設定ファイルを指定します．[default: config.yaml]
+  -s CONFIG    : 小型ディスプレイモード使う設定ファイルを指定します．[default: config-small.yaml]
   -D           : ダミーモードで実行します．
 """
 
@@ -33,8 +33,8 @@ if __name__ == "__main__":
 
     args = docopt(__doc__)
 
-    config_file = args["-c"]
-    small_mode = args["-s"]
+    config_file_normal = args["-c"]
+    config_file_small = args["-s"]
     dummy_mode = args["-D"]
 
     logger.init("panel.e-ink.weather", level=logging.INFO)
@@ -59,8 +59,8 @@ if __name__ == "__main__":
 
     CORS(app)
 
-    app.config["CONFIG_FILE"] = config_file
-    app.config["SMALL_MODE"] = small_mode
+    app.config["CONFIG_FILE_NORMAL"] = config_file_normal
+    app.config["CONFIG_FILE_SMALL"] = config_file_small
     app.config["DUMMY_MODE"] = dummy_mode
 
     app.register_blueprint(webapp_base.blueprint_default)

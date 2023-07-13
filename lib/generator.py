@@ -184,8 +184,15 @@ def api_log():
 @blueprint.route("/weather_panel/api/run", methods=["GET"])
 @support_jsonp
 def api_run():
-    config_file = current_app.config["CONFIG_FILE"]
-    is_small_mode = current_app.config["SMALL_MODE"]
+    mode = request.args.get("mode", "")
+
+    is_small_mode = mode == "small"
+
+    config_file = (
+        current_app.config["CONFIG_FILE_SMALL"]
+        if is_small_mode
+        else current_app.config["CONFIG_FILE_NORMAL"]
+    )
     is_dummy_mode = current_app.config["DUMMY_MODE"]
 
     try:

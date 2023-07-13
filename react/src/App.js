@@ -4,11 +4,18 @@ import { Github } from "react-bootstrap-icons";
 
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { useState, useEffect } from "react";
+import Select from "react-select";
 import * as Scroll from "react-scroll";
 
 function App() {
+    const MODE_OPTION_LIST = [
+        { value: "normal", label: "BOOX Mira Pro" },
+        { value: "small", label: "BOOX Mira" },
+    ];
+
     const DEFAULT_IMAGE = "gray.png";
     const API_ENDPOINT = "/weather_panel/api";
+    const [mode, setMode] = useState(MODE_OPTION_LIST[0]);
     const [imageSrc, setImageSrc] = useState(DEFAULT_IMAGE);
     const [finish, setFinish] = useState(true);
     const [error, setError] = useState(false);
@@ -18,15 +25,16 @@ function App() {
     const scroller = Scroll.scroller;
     var Element = Scroll.Element;
 
-    const fetchData = (url) => {
+    const reqGenerate = () => {
         return new Promise((resolve, reject) => {
-            fetch(url)
+            const query = new URLSearchParams({ mode: mode.value });
+            fetch(API_ENDPOINT + "/run?" + query)
                 .then((res) => res.json())
                 .then((resJson) => resolve(resJson))
                 .catch((error) => {
                     setError(true);
-                    setErrorMessage(error);
-                    console.error("通信に失敗しました", error);
+                    setErrorMessage("通信に失敗しました");
+                    console.error(error);
                 });
         });
     };
@@ -51,7 +59,7 @@ function App() {
     };
 
     const generate = async () => {
-        let res = await fetchData(API_ENDPOINT + "/run");
+        let res = await reqGenerate();
         setFinish(false);
         setError(false);
         setLog([]);
@@ -128,6 +136,16 @@ function App() {
             <div className="container">
                 <div className="row">
                     <div className="col-12">
+                        <label htmlFor="mode" className="me-2">
+                            モード:
+                        </label>
+                        <Select
+                            options={MODE_OPTION_LIST}
+                            defaultValue={MODE_OPTION_LIST[0]}
+                            onChange={setMode}
+                            className="mb-2"
+                            id="mode"
+                        />
                         <GenerateButton />
                     </div>
                 </div>
@@ -169,7 +187,7 @@ function App() {
                 </div>
 
                 <div className="row mt-2">
-                    <div class="p-1 float-end text-end">
+                    <div className="p-1 float-end text-end">
                         <p className="display-6">
                             <a href="https://github.com/kimata/e-ink_weather_panel/" className="text-secondary">
                                 <Github />
