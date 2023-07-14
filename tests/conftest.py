@@ -22,7 +22,7 @@ def port(request):
 def browser_context_args(browser_context_args, request):
     return {
         **browser_context_args,
-        "record_video_dir": "test/evidence/{test_name}".format(
+        "record_video_dir": "tests/evidence/{test_name}".format(
             test_name=request.node.name
         ),
         "record_video_size": {"width": 2400, "height": 1600},

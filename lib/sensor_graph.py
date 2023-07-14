@@ -72,9 +72,10 @@ def plot_item(ax, title, unit, data, xbegin, ylabel, ylim, fmt, scale, small, fa
     if not data["valid"]:
         text = "?"
     else:
+        # NOTE: 下記の next の記法だとカバレッジが正しく取れない
         text = fmt.format(
             next((item for item in reversed(y) if item is not None), None)
-        )
+        )  # pragma: no cover
 
     if scale == "log":
         # NOTE: エラーが出ないように値を補正
@@ -187,7 +188,10 @@ def draw_aircon_icon(ax, power, icon_config):
 
 
 def draw_light_icon(ax, lux_list, icon_config):
-    lux = next((item for item in reversed(lux_list) if item is not None), None)
+    # NOTE: 下記の next の記法だとカバレッジが正しく取れない
+    lux = next(
+        (item for item in reversed(lux_list) if item is not None), None
+    )  # pragma: no cover
 
     now = datetime.datetime.now()
     # NOTE: 昼間はアイコンを描画しない
@@ -279,8 +283,6 @@ def create_sensor_graph(config):
                     "value": [EMPTY_VALUE for x in range(len(data["time"]))],
                     "valid": False,
                 }
-            if len(data["value"]) == 0:
-                continue
 
             min_val = min([item for item in data["value"] if item is not None])
             max_val = max([item for item in data["value"] if item is not None])

@@ -20,6 +20,7 @@ import sys
 import PIL.Image
 import time
 import logging
+import os
 
 # from concurrent import futures
 import multiprocessing
@@ -138,18 +139,8 @@ def draw_panel(config, img, is_small_mode=False):
         )
 
 
-######################################################################
-if __name__ == "__main__":
-    import os
-
-    args = docopt(__doc__)
-
-    config_file = args["-c"]
-    small_mode = args["-s"]
-    dummy_mode = args["-D"]
-    debug_mode = args["-d"]
-
-    if debug_mode:
+def create_image(config_file, small_mode=False, dummy_mode=False, debug_mode=False):
+    if debug_mode:  # pragma: no cover
         log_level = logging.DEBUG
     else:
         log_level = logging.INFO
@@ -160,6 +151,8 @@ if __name__ == "__main__":
     if dummy_mode:
         logging.warning("Set dummy mode")
         os.environ["DUMMY_MODE"] = "true"
+    else:  # pragma: no cover
+        pass
 
     logging.info("Start to create image")
 
@@ -174,9 +167,10 @@ if __name__ == "__main__":
         (255, 255, 255, 255),
     )
 
-    status = 0
     try:
         draw_panel(config, img, small_mode)
+
+        return (img, 0)
     except:
         draw = PIL.ImageDraw.Draw(img)
         draw.rectangle(
@@ -208,9 +202,21 @@ if __name__ == "__main__":
         notify_error(config, traceback.format_exc())
 
         print(traceback.format_exc(), file=sys.stderr)
-        # NOTE: 使われてなさそうな値にしておく．
+        # NOTE: 222 は，使われてなさそうな値．
         # display_image.py と合わせる必要あり．
-        status = 222
+        return (img, 222)
+
+
+######################################################################
+if __name__ == "__main__":
+    args = docopt(__doc__)
+
+    config_file = args["-c"]
+    small_mode = args["-s"]
+    dummy_mode = args["-D"]
+    debug_mode = args["-d"]
+
+    img, status = create_image(config_file, small_mode, dummy_mode, debug_mode)
 
     if args["-o"] is not None:
         out_file = args["-o"]

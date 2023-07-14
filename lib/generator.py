@@ -13,7 +13,6 @@ from flask import (
 )
 
 from multiprocessing.pool import ThreadPool
-import queue
 import subprocess
 import threading
 import time
@@ -137,12 +136,13 @@ def api_image():
     global panel_data_map
 
     token = request.form.get("token", "")
-    try:
-        image_data = panel_data_map[token]["image"]
-        res = Response(image_data, mimetype="image/png")
-        return res
-    except:
-        return traceback.format_exc()
+
+    if token not in panel_data_map:
+        return "Invalid token: {token}".format(token=token)
+
+    image_data = panel_data_map[token]["image"]
+    res = Response(image_data, mimetype="image/png")
+    return res
 
 
 @blueprint.route("/weather_panel/api/log", methods=["POST"])
@@ -150,35 +150,31 @@ def api_log():
     global panel_data_map
 
     token = request.form.get("token", "")
-    try:
-        log_queue = panel_data_map[token]["log"]
 
-        def generate():
-            try:
-                while True:
-                    while not log_queue.empty():
-                        log = log_queue.get()
-                        if log is None:
-                            break
-                        log = log.decode("utf-8")
-                        yield log
-                    else:
-                        time.sleep(0.2)
-                        continue
+    if token not in panel_data_map:
+        return "Invalid token: {token}".format(token=token)
+
+    log_queue = panel_data_map[token]["log"]
+
+    def generate():
+        while True:
+            while not log_queue.empty():
+                log = log_queue.get()
+                if log is None:
                     break
+                log = log.decode("utf-8")
+                yield log
+            else:
+                time.sleep(0.2)
+                continue
+            break
 
-            except queue.Empty:
-                pass
-            log_queue.close()
+    res = Response(stream_with_context(generate()), mimetype="text/plain")
+    res.headers.add("Access-Control-Allow-Origin", "*")
+    res.headers.add("Cache-Control", "no-cache")
+    res.headers.add("X-Accel-Buffering", "no")
 
-        res = Response(stream_with_context(generate()), mimetype="text/plain")
-        res.headers.add("Access-Control-Allow-Origin", "*")
-        res.headers.add("Cache-Control", "no-cache")
-        res.headers.add("X-Accel-Buffering", "no")
-
-        return res
-    except:
-        return traceback.format_exc()
+    return res
 
 
 @blueprint.route("/weather_panel/api/run", methods=["GET"])

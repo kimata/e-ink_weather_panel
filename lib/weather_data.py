@@ -13,7 +13,7 @@ Options:
 
 from urllib import request
 from lxml import html
-import datetime
+from datetime import datetime
 import re
 
 
@@ -60,6 +60,8 @@ def parse_table(content, index):
                 day_info_by_type[label] = list(
                     map(lambda c: parse_wind(c), td_content_list)
                 )
+            case _:
+                pass
 
     day_info_list = []
     for i in range(len(day_info_by_type[ROW_LIST[0]])):
@@ -134,7 +136,7 @@ def parse_wbgt_daily(content, wbgt_measured_today):
             else:
                 wbgt_list.append(int(val))
 
-    if wbgt_list[0] == datetime.datetime.now().day:
+    if wbgt_list[0] == datetime.now().date().day:
         # NOTE: 日付が入っている部分は誤解を招くので None で上書きしておく
         wbgt_list[0] = None
         wbgt_list[9] = None

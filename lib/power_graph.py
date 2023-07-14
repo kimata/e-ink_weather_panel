@@ -55,12 +55,10 @@ def get_face_map(font_config):
     }
 
 
-def plot_item(ax, title, unit, data, ylabel, ylim, fmt, face_map):
+def plot_item(ax, unit, data, ylabel, ylim, fmt, face_map):
     x = data["time"]
     y = data["value"]
 
-    if title is not None:
-        ax.set_title(title, fontproperties=face_map["title"], color="#333333")
     ax.set_ylim(ylim)
     ax.set_xlim([x[0], x[-1] + datetime.timedelta(minutes=15)])
 
@@ -167,7 +165,6 @@ def create_power_graph(config):
     ax = fig.add_subplot()
     plot_item(
         ax,
-        None,
         panel_config["DATA"]["PARAM"]["UNIT"],
         data,
         panel_config["DATA"]["PARAM"]["UNIT"],

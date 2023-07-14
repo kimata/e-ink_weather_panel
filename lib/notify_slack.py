@@ -9,6 +9,7 @@ import os
 import pathlib
 import datetime
 import tempfile
+import threading
 
 ERROR_NOTIFY_FOOTPRINT = (
     pathlib.Path(os.path.dirname(__file__)).parent / "data" / "error_notify"
@@ -33,6 +34,7 @@ SIMPLE_TMPL = """\
     }}
 ]
 """
+interval_check_lock = threading.Lock()
 
 
 def format_simple(title, message):
@@ -45,16 +47,15 @@ def format_simple(title, message):
 
 
 def send(token, ch_name, message):
-    client = slack_sdk.WebClient(token=token)
-
     try:
+        client = slack_sdk.WebClient(token=token)
         client.chat_postMessage(
             channel=ch_name,
             text=message["text"],
             blocks=message["json"],
         )
-    except slack_sdk.errors.SlackApiError as e:
-        logging.warning(e.response["error"])
+    except slack_sdk.errors.SlackClientError as e:
+        logging.warning(e)
 
 
 def split_send(token, ch_name, title, message, formatter=format_simple):
@@ -77,18 +78,26 @@ def info(token, ch_name, name, message, formatter=format_simple):
 
 
 def check_interval(interval_min):
-    if (
-        ERROR_NOTIFY_FOOTPRINT.exists()
-        and (
-            datetime.datetime.now()
-            - datetime.datetime.fromtimestamp(ERROR_NOTIFY_FOOTPRINT.stat().st_mtime)
-        ).seconds
-        < interval_min * 60
-    ):
-        logging.info("skip slack nofity")
-        return False
+    with interval_check_lock:
+        if (
+            ERROR_NOTIFY_FOOTPRINT.exists()
+            and (
+                datetime.datetime.now()
+                - datetime.datetime.fromtimestamp(
+                    ERROR_NOTIFY_FOOTPRINT.stat().st_mtime
+                )
+            ).seconds
+            < interval_min * 60
+        ):
+            logging.info("skip slack nofity")
+            return False
 
-    return True
+        return True
+
+
+def clear_interval():
+    with interval_check_lock:
+        ERROR_NOTIFY_FOOTPRINT.unlink(missing_ok=True)
 
 
 def error_img(token, ch_id, title, img, text):
@@ -135,7 +144,7 @@ def error_with_image(
     attatch_img,
     interval_min=10,
     formatter=format_simple,
-):
+):  # def error_with_image
     title = "Error: " + name
 
     if not check_interval(interval_min):

@@ -29,14 +29,7 @@ import generator
 import logger
 
 
-if __name__ == "__main__":
-
-    args = docopt(__doc__)
-
-    config_file_normal = args["-c"]
-    config_file_small = args["-s"]
-    dummy_mode = args["-D"]
-
+def create_app(config_file_normal, config_file_small, dummy_mode):
     logger.init("panel.e-ink.weather", level=logging.INFO)
 
     # NOTE: アクセスログは無効にする
@@ -47,13 +40,17 @@ if __name__ == "__main__":
         if dummy_mode:
             logging.warning("Set dummy mode")
             os.environ["DUMMY_MODE"] = "true"
+        else:  # pragma: no cover
+            pass
 
         generator.init()
 
-        def terminate():
+        def notify_terminate():  # pragma: no cover
             generator.term()
 
-        atexit.register(terminate)
+        atexit.register(notify_terminate)
+    else:  # pragma: no cover
+        pass
 
     app = Flask("unit_cooler")
 
@@ -68,5 +65,18 @@ if __name__ == "__main__":
     app.register_blueprint(generator.blueprint)
 
     # app.debug = True
+
+    return app
+
+
+if __name__ == "__main__":
+    args = docopt(__doc__)
+
+    config_file_normal = args["-c"]
+    config_file_small = args["-s"]
+    dummy_mode = args["-D"]
+
+    app = create_app(config_file_normal, config_file_small, dummy_mode)
+
     # NOTE: スクリプトの自動リロード停止したい場合は use_reloader=False にする
     app.run(host="0.0.0.0", threaded=True, use_reloader=True)

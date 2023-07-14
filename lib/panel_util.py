@@ -66,7 +66,7 @@ def draw_panel_patiently(
             error_text = traceback.format_exc()
             logging.error(error_text)
             pass
-        logging.warn("retry")
+        logging.warning("retry")
         time.sleep(5)
 
     return (

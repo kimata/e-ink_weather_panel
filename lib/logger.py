@@ -14,7 +14,7 @@ ROTATE_COUNT = 10
 LOG_FORMAT = "{name} %(asctime)s %(levelname)s [%(filename)s:%(lineno)s %(funcName)s] %(message)s"
 
 
-def formatter(name):
+def log_formatter(name):
     return logging.Formatter(
         fmt=LOG_FORMAT.format(name=name), datefmt="%Y-%m-%d %H:%M:%S"
     )
@@ -31,14 +31,16 @@ class GZipRotator:
         os.remove(source)
 
 
-def init(name, level=logging.WARNING, dir_path=None, queue=None, is_str=False):
+def init(
+    name, level=logging.WARNING, log_dir_path=None, log_queue=None, is_str_log=False
+):
     coloredlogs.install(fmt=LOG_FORMAT.format(name=name), level=level)
 
-    if dir_path is not None:
-        log_path = pathlib.Path(dir_path)
-        log_path.mkdir(exist_ok=True, parents=True)
+    if log_dir_path is not None:
+        log_dir_path = pathlib.Path(log_dir_path)
+        log_dir_path.mkdir(exist_ok=True, parents=True)
 
-        log_file_path = str(log_path / "{name}.log".format(name=name))
+        log_file_path = str(log_dir_path / "{name}.log".format(name=name))
 
         logging.info("Log to {log_file_path}".format(log_file_path=log_file_path))
 
@@ -49,20 +51,20 @@ def init(name, level=logging.WARNING, dir_path=None, queue=None, is_str=False):
             maxBytes=MAX_SIZE,
             backupCount=ROTATE_COUNT,
         )
-        log_handler.formatter = formatter(name)
+        log_handler.formatter = log_formatter(name)
         log_handler.namer = GZipRotator.namer
         log_handler.rotator = GZipRotator.rotator
 
         logger.addHandler(log_handler)
 
-    if queue is not None:
-        handler = logging.handlers.QueueHandler(queue)
+    if log_queue is not None:
+        handler = logging.handlers.QueueHandler(log_queue)
         logging.getLogger().addHandler(handler)
 
-    if is_str:
+    if is_str_log:
         str_io = io.StringIO()
         handler = logging.StreamHandler(str_io)
-        handler.formatter = formatter(name)
+        handler.formatter = log_formatter(name)
         logging.getLogger().addHandler(handler)
 
         return str_io

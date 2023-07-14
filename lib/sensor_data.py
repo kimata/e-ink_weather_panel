@@ -185,7 +185,7 @@ def get_equip_on_minutes(
     every_min=1,
     window_min=5,
     create_empty=True,
-):
+):  # def get_equip_on_minutes
     logging.info(
         (
             "Get 'ON' minutes (type: {type}, host: {host}, field: {field}, "
@@ -257,7 +257,7 @@ def get_equip_mode_period(
     every_min=10,
     window_min=10,
     create_empty=True,
-):
+):  # def get_equip_mode_period
     logging.info(
         (
             "Get equipment mode period (type: {type}, host: {host}, field: {field}, "

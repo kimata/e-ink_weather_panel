@@ -1,0 +1,37 @@
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+
+    # config.py
+    def get_db_config
+
+    # logger.py
+    class GZipRotator
+    def log_formatter
+    if log_dir_path is not None:
+    if log_queue is not None:
+    if is_str_log:
+
+    # sensor_data.py
+    def get_equip_on_minutes
+    def get_equip_mode_period
+    def get_day_sum
+    def dump_data
+
+    # flask_util.py
+    def remote_host
+    def auth_user
+
+    # selenium_util.py
+    def is_display
+    def random_sleep
+    def wait_patiently
+    def dump_page
+    def clean_dump
+    def get_memory_info
+    def log_memory_usage
+
+
+[html]
+directory = tests/evidence/coverage

@@ -233,7 +233,7 @@ def change_window_size(driver, url, width, height):
             if (
                 datetime.datetime.now()
                 - datetime.datetime.fromtimestamp(WINDOW_SIZE_CACHE.stat().st_mtime)
-            ).seconds < CACHE_EXPIRE_HOUR * 60 * 60:
+            ).total_seconds() < CACHE_EXPIRE_HOUR * 60 * 60:
                 with open(WINDOW_SIZE_CACHE, "rb") as f:
                     window_size_map = pickle.load(f)
             else:
@@ -260,8 +260,9 @@ def change_window_size(driver, url, width, height):
         window_size_map[width][height] = window_size
     else:
         window_size_map[width] = {height: window_size}
-        with open(WINDOW_SIZE_CACHE, "wb") as f:
-            pickle.dump(window_size_map, f)
+
+    with open(WINDOW_SIZE_CACHE, "wb") as f:
+        pickle.dump(window_size_map, f)
 
 
 def fetch_cloud_image(driver, url, width, height, is_future=False):
