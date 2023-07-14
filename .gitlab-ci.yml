@@ -215,14 +215,14 @@ test-webapp:
     stage: test
     needs: ["test-demo"]
 
-    image: registry.green-rabbit.net:5000/kimata/local_playwright:230623A
+    image: registry.green-rabbit.net:5000/kimata/local_playwright:230715A
     script:
         # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
         - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop -t 5 $id; done || true
 
         - docker pull ${CI_REGISTRY_IMAGE}
         - docker run --rm --detach=true --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} ./app/webapp.py -c config-demo.yaml -D
-        - python3 -m pytest --log-cli-level=INFO --capture=no tests/test_basic.py --host $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
+        - python3 -m pytest --log-cli-level=INFO --capture=no tests/test_playwright.py --host $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
         - docker logs ${CI_JOB_NAME}-${CI_JOB_ID} > flask_log.txt
         - docker stop ${CI_JOB_NAME}-${CI_JOB_ID}
     artifacts:
@@ -238,16 +238,13 @@ test-coverage:
     dependencies:
         - build-react
 
-    image: registry.green-rabbit.net:5000/kimata/local_playwright:230623A
+    image: registry.green-rabbit.net:5000/kimata/local_playwright:230715A
     script:
         - export GIT_SSL_NO_VERIFY=1
         - git clone https://gitlab.green-rabbit.net/kimata/panel_config.git
         - mv panel_config/e-ink_weather.yaml config.yaml
         - mv panel_config/e-ink_weather-demo.yaml config-demo.yaml
         - mv panel_config/e-ink_weather-small.yaml config-small.yaml
-        - apt-get install -y python3-flask python3-flask-cors python3-yaml
-          python3-schedule python3-fluent-logger python3-coloredlogs python3-docopt
-          python3-psutil python3-pytest-cov python3-pytest-mock python3-pip
         - pip install -r requirements.txt
         - python3 -m pytest --cov=lib --cov=app --cov-config=.coveragerc
           --cov-branch --cov-report=html --capture=no tests/test_basic.py
