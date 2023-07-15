@@ -19,7 +19,7 @@ import PIL.ImageEnhance
 import time
 import logging
 from weather_data import get_wbgt
-from pil_util import get_font, text_size, draw_text, load_image, alpha_paste
+from pil_util import get_font, draw_text, load_image, alpha_paste
 
 
 def get_face_map(font_config):
@@ -61,7 +61,7 @@ def draw_wbgt(img, wbgt, panel_config, icon_config, face_map):
 
     pos_y += icon.size[1] + 10
 
-    draw_text(
+    next_pos_y = draw_text(
         img,
         title,
         (pos_x, pos_y),
@@ -70,14 +70,12 @@ def draw_wbgt(img, wbgt, panel_config, icon_config, face_map):
         "#333",
         stroke_width=10,
         stroke_fill=(255, 255, 255, 200),
-    )
-
-    pos_y += text_size(face_map["wbgt_title"], title)[1] - 20
-
+    )[1]
+    next_pos_y += 12
     draw_text(
         img,
         wbgt_str,
-        (pos_x, pos_y),
+        (pos_x, next_pos_y),
         face_map["wbgt"],
         "right",
         "#333",

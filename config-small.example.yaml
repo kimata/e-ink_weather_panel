@@ -141,7 +141,7 @@ WBGT:
     PANEL:
         OFFSET_X: 1340
         OFFSET_Y: 0
-        WIDTH: 430
+        WIDTH: 860
         HEIGHT: 300
 
     DATA:

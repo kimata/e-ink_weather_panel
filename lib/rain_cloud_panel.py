@@ -368,8 +368,8 @@ def draw_equidistant_circle(img):
 
 def draw_caption(img, title, face_map):
     logging.info("draw caption")
-    text_size = face_map["title"].getsize(title)
-    caption_size = (text_size[0] + 5, text_size[1])  # NOTE: 横方向を少し広げる
+    caption_size = text_size(img, face_map["title"], title)
+    caption_size = (caption_size[0] + 5, caption_size[1])  # NOTE: 横方向を少し広げる
 
     x = 12
     y = 12
@@ -472,7 +472,6 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
 
 def draw_legend(img, bar, panel_config, face_map):
     PADDING = 20
-    TEXT_MARGIN = 1.2
 
     bar_size = panel_config["LEGEND"]["BAR_SIZE"]
     bar = bar.resize(
@@ -494,10 +493,10 @@ def draw_legend(img, bar, panel_config, face_map):
             outline=(20, 20, 20),
         )
 
-    text_height = int(text_size(face_map["legend"], "0")[1] * TEXT_MARGIN)
+    text_height = int(text_size(img, face_map["legend"], "0")[1])
     unit = "mm/h"
-    unit_width, unit_height = text_size(face_map["legend_unit"], unit)
-    unit_overlap = text_size(face_map["legend_unit"], unit[0])[0]
+    unit_width, unit_height = text_size(img, face_map["legend_unit"], unit)
+    unit_overlap = text_size(img, face_map["legend_unit"], unit[0])[0]
     legend = PIL.Image.new(
         "RGBA",
         (
@@ -518,13 +517,15 @@ def draw_legend(img, bar, panel_config, face_map):
         if "value" in RAINFALL_INTENSITY_LEVEL[i]:
             text = str(RAINFALL_INTENSITY_LEVEL[i]["value"])
             pos_x = PADDING + bar_size * (i + 1)
-            pos_y = PADDING
+            pos_y = PADDING - 5
             align = "center"
             font = face_map["legend"]
         else:
             text = "mm/h"
             pos_x = PADDING + bar_size * (i + 1) - unit_overlap
-            pos_y = PADDING + text_size(face_map["legend"], "0")[1] - unit_height
+            pos_y = (
+                PADDING - 5 + text_size(img, face_map["legend"], "0")[1] - unit_height
+            )
             align = "left"
             font = face_map["legend_unit"]
 
@@ -543,7 +544,7 @@ def draw_legend(img, bar, panel_config, face_map):
     alpha_paste(
         img,
         legend,
-        (panel_config["LEGEND"]["OFFSET_X"], panel_config["LEGEND"]["OFFSET_Y"] - 100),
+        (panel_config["LEGEND"]["OFFSET_X"], panel_config["LEGEND"]["OFFSET_Y"] - 80),
     )
 
     return img

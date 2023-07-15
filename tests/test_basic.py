@@ -355,7 +355,12 @@ def test_api_run(client, mocker):
     mocker.patch("time.time", side_effect=dummy_time)
 
     # NOTE: 1回目
-    response = client.get("/weather_panel/api/run")
+    response = client.get(
+        "/weather_panel/api/run",
+        query_string={
+            "test": True,
+        },
+    )
     assert response.status_code == 200
 
     token = response.json["token"]
@@ -369,6 +374,7 @@ def test_api_run(client, mocker):
         "/weather_panel/api/run",
         query_string={
             "mode": "small",
+            "test": True,
         },
     )
     assert response.status_code == 200
@@ -381,7 +387,12 @@ def test_api_run(client, mocker):
     assert response.data.decode()
 
     # NOTE: 3回目
-    response = client.get("/weather_panel/api/run")
+    response = client.get(
+        "/weather_panel/api/run",
+        query_string={
+            "test": True,
+        },
+    )
     assert response.status_code == 200
 
     token = response.json["token"]
@@ -401,7 +412,12 @@ def test_api_run(client, mocker):
 def test_api_run_error(client, mocker):
     mocker.patch("generator.generate_image", side_effect=RuntimeError())
 
-    response = client.get("/weather_panel/api/run")
+    response = client.get(
+        "/weather_panel/api/run",
+        query_string={
+            "test": True,
+        },
+    )
     assert response.status_code == 200
 
     response = client.post("/weather_panel/api/log", data={"token": "TEST"})

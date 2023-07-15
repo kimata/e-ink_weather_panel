@@ -36,7 +36,8 @@ def draw_time(img, pos_x, pos_y, face):
         + datetime.timedelta(minutes=1)
     ).strftime("%H:%M")
 
-    pos_y -= text_size(face["value"], time_text)[1]
+    pos_y -= text_size(img, face["value"], time_text)[1]
+    pos_x += 10
 
     draw_text(
         img,
@@ -59,8 +60,8 @@ def draw_panel_time(img, config):
     # 右下に描画する
     draw_time(
         img,
-        panel_config["PANEL"]["WIDTH"] - 20,
-        panel_config["PANEL"]["HEIGHT"] - 20,
+        panel_config["PANEL"]["WIDTH"] - 10,
+        panel_config["PANEL"]["HEIGHT"] - 10,
         face_map["time"],
     )
 

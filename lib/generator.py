@@ -185,7 +185,7 @@ def api_log():
 def api_run():
     mode = request.args.get("mode", "")
     is_small_mode = mode == "small"
-    is_test_mode = request.args.get("mode", False, type=bool)
+    is_test_mode = request.args.get("test", False, type=bool)
 
     config_file = (
         current_app.config["CONFIG_FILE_SMALL"]

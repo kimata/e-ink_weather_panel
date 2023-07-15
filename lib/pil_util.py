@@ -18,10 +18,10 @@ def get_font(config, font_type, size):
     return PIL.ImageFont.truetype(font_path, size)
 
 
-def text_size(font, text, font_height_scale=1.0):
-    size = font.getsize(text)
+def text_size(img, font, text):
+    left, top, right, bottom = PIL.ImageDraw.Draw(img).textbbox((0, 0), text, font)
 
-    return (size[0], size[1] * font_height_scale)
+    return (right - left, bottom - top)
 
 
 # NOTE: 詳細追えてないものの，英語フォントでボディサイズがおかしいものがあったので，
@@ -33,21 +33,22 @@ def draw_text(
     font,
     align="left",
     color="#000",
-    font_height_scale=1.0,
     stroke_width=0,
     stroke_fill=None,
 ):
     draw = PIL.ImageDraw.Draw(img)
 
     if align == "center":
-        pos = (int(pos[0] - text_size(font, text)[0] / 2.0), int(pos[1]))
+        pos = (int(pos[0] - text_size(img, font, text)[0] / 2.0), int(pos[1]))
     elif align == "right":
-        pos = (int(pos[0] - text_size(font, text)[0]), int(pos[1]))
+        pos = (int(pos[0] - text_size(img, font, text)[0]), int(pos[1]))
 
-    pos = (
-        pos[0],
-        int(pos[1] - font.getsize(text)[1] * (1 - font_height_scale)),
-    )
+    # draw.rectangle(
+    #     (pos[0], pos[1], pos[0] + 4, pos[1] + 4),
+    #     fill="black",
+    # )
+
+    pos = (pos[0], pos[1] - PIL.ImageDraw.Draw(img).textbbox((0, 0), text, font)[1])
 
     draw.text(
         pos,
@@ -55,12 +56,25 @@ def draw_text(
         color,
         font,
         None,
-        text_size(font, text)[1] * 0.4,
+        text_size(img, font, text)[1] * 0.4,
         stroke_width=stroke_width,
         stroke_fill=stroke_fill,
     )
 
-    return (pos[0] + text_size(font, text)[0], pos[1] + text_size(font, text)[1])
+    # bbox = draw.textbbox(pos, text, font=font)
+    # draw.rectangle(bbox, outline="red")
+
+    next_pos = (
+        pos[0] + text_size(img, font, text)[0],
+        pos[1] + PIL.ImageDraw.Draw(img).textbbox((0, 0), text, font)[3],
+    )
+
+    # draw.rectangle(
+    #     (next_pos[0], next_pos[1], next_pos[0] + 4, next_pos[1] + 4),
+    #     fill="black",
+    # )
+
+    return next_pos
 
 
 def load_image(img_config):
