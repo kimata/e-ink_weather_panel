@@ -15,12 +15,14 @@ jobs:
 
             - name: Use Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v3
+              working-directory: ./react
               with:
                   node-version: ${{ matrix.node-version }}
 
             - name: Cache node modules
               id: cache-nodemodules
               uses: actions/cache@v3
+              working-directory: ./react
               env:
                   cache-name: cache-node-modules
               with:
