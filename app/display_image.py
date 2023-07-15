@@ -103,12 +103,12 @@ def display_image(config, args, is_small_mode, is_one_time):
         # 更新完了タイミングを各分の 0 秒に合わせる
         elapsed = time.perf_counter() - start
         sleep_time = (
-            600
-            + config["PANEL"]["UPDATE"]["INTERVAL"]
+            config["PANEL"]["UPDATE"]["INTERVAL"]
             - elapsed
             - datetime.datetime.now().second
         )
-        sleep_time %= 60
+        if sleep_time < 0:
+            sleep_time += 60
 
         logging.info("sleep {sleep_time} sec...".format(sleep_time=sleep_time))
 
