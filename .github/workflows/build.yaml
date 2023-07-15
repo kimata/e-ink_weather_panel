@@ -41,3 +41,9 @@ jobs:
               run: |
                   npm run build
               working-directory: ./react
+
+            - name: Upload built file
+              uses: actions/upload-artifact@v3
+              with:
+                  name: react-built
+                  path: react/build
