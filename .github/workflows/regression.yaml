@@ -64,10 +64,14 @@ jobs:
               with:
                   python-version: ${{ matrix.python-version }}
 
-            - name: Download a single artifact
+            - name: Download react built files
               uses: actions/download-artifact@v3
               with:
                   name: react-built
+
+            - name: ja_JP.UTF-8
+              run: |
+                  sudo locale-gen ja_JP.UTF-8
 
             - name: Install Poetry
               run: |
