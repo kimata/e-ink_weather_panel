@@ -4,12 +4,13 @@
 電子ペーパ表示用の画像を生成します．
 
 Usage:
-  create_image.py [-c CONFIG] [-s] [-o PNG_FILE] [-D] [-d]
+  create_image.py [-c CONFIG] [-s] [-o PNG_FILE] [-t] [-D] [-d]
 
 Options:
   -c CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
   -s           : 小型ディスプレイモードで実行します．
   -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
+  -t           : テストモードで実行します．
   -D           : ダミーモードで実行します．
   -d           : デバッグモード．
 """
@@ -139,7 +140,9 @@ def draw_panel(config, img, is_small_mode=False):
         )
 
 
-def create_image(config_file, small_mode=False, dummy_mode=False, debug_mode=False):
+def create_image(
+    config_file, small_mode=False, dummy_mode=False, test_mode=False, debug_mode=False
+):
     if debug_mode:  # pragma: no cover
         log_level = logging.DEBUG
     else:
@@ -166,6 +169,8 @@ def create_image(config_file, small_mode=False, dummy_mode=False, debug_mode=Fal
         (config["PANEL"]["DEVICE"]["WIDTH"], config["PANEL"]["DEVICE"]["HEIGHT"]),
         (255, 255, 255, 255),
     )
+    if test_mode:
+        return (img, 0)
 
     try:
         draw_panel(config, img, small_mode)
@@ -214,9 +219,12 @@ if __name__ == "__main__":
     config_file = args["-c"]
     small_mode = args["-s"]
     dummy_mode = args["-D"]
+    test_mode = args["-t"]
     debug_mode = args["-d"]
 
-    img, status = create_image(config_file, small_mode, dummy_mode, debug_mode)
+    img, status = create_image(
+        config_file, small_mode, dummy_mode, test_mode, debug_mode
+    )
 
     if args["-o"] is not None:
         out_file = args["-o"]

@@ -14,13 +14,16 @@ from config import load_config
 
 from webapp import create_app
 
+CONFIG_FILE = "config.example.yaml"
+CONFIG_SMALL_FILE = "config.example.yaml"
+
 
 @pytest.fixture(scope="session")
 def app():
     os.environ["TEST"] = "true"
     os.environ["WERKZEUG_RUN_MAIN"] = "true"
 
-    app = create_app("config.yaml", "config-small.yaml", dummy_mode=True)
+    app = create_app(CONFIG_FILE, CONFIG_SMALL_FILE, dummy_mode=True)
 
     yield app
 
@@ -61,7 +64,7 @@ def gen_sensor_data(valid=True):
 def test_weather_panel():
     import weather_panel
 
-    weather_panel.create_weather_panel(load_config("config.yaml"), False)
+    weather_panel.create_weather_panel(load_config(CONFIG_FILE), False)
 
     # NOTE: エラーが発生しなければ OK
 
@@ -103,7 +106,7 @@ def test_weather_panel_dummy(mocker):
     mocker.patch("weather_panel.get_clothing_yahoo", return_value=clothing_info)
     mocker.patch("weather_panel.get_wbgt", return_value=wbgt_info)
 
-    weather_panel.create_weather_panel(load_config("config.yaml"))
+    weather_panel.create_weather_panel(load_config(CONFIG_FILE))
 
     # NOTE: エラーが発生しなければ OK
 
@@ -112,7 +115,7 @@ def test_weather_panel_dummy(mocker):
 def test_wbgt_panel():
     import wbgt_panel
 
-    wbgt_panel.create_wbgt_panel(load_config("config.yaml"))
+    wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))
 
     # NOTE: エラーが発生しなければ OK
 
@@ -124,7 +127,7 @@ def test_wbgt_panel_var(mocker):
     for i in range(20, 34, 2):
         wbgt_info["current"] = i
         mocker.patch("wbgt_panel.get_wbgt", return_value=wbgt_info)
-        wbgt_panel.create_wbgt_panel(load_config("config.yaml"))
+        wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))
 
     # NOTE: エラーが発生しなければ OKw
 
@@ -133,7 +136,7 @@ def test_wbgt_panel_error_1(mocker):
     import wbgt_panel
 
     mocker.patch("weather_data.fetch_page", side_effect=RuntimeError())
-    wbgt_panel.create_wbgt_panel(load_config("config.yaml"))
+    wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))
 
     # NOTE: エラーが発生しなければ OK
 
@@ -143,7 +146,7 @@ def test_wbgt_panel_error_2(mocker):
 
     mocker.patch("lxml.html.HtmlElement.xpath", return_value=[])
 
-    wbgt_panel.create_wbgt_panel(load_config("config.yaml"))
+    wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))
 
     # NOTE: エラーが発生しなければ OK
 
@@ -154,7 +157,7 @@ def test_wbgt_panel_error_3(mocker):
     mock = mocker.patch("weather_data.datetime")
     mock.date.day.return_value = 100
 
-    wbgt_panel.create_wbgt_panel(load_config("config.yaml"))
+    wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))
 
     # NOTE: エラーが発生しなければ OK
 
@@ -163,19 +166,21 @@ def test_wbgt_panel_error_3(mocker):
 def test_time_panel():
     import time_panel
 
-    time_panel.create_time_panel(load_config("config.yaml"))
+    time_panel.create_time_panel(load_config(CONFIG_FILE))
 
     # NOTE: エラーが発生しなければ OK
 
 
 ######################################################################
-def test_create_power_graph():
+def test_create_power_graph(mocker):
     import power_graph
 
-    power_graph.create_power_graph(load_config("config.yaml"))
+    mocker.patch("sensor_data.fetch_data", return_value=gen_sensor_data())
+
+    power_graph.create_power_graph(load_config(CONFIG_FILE))
 
     os.environ["DUMMY_MODE"] = "true"
-    power_graph.create_power_graph(load_config("config.yaml"))
+    power_graph.create_power_graph(load_config(CONFIG_FILE))
     del os.environ["DUMMY_MODE"]
 
     # NOTE: エラーが発生しなければ OK
@@ -184,22 +189,24 @@ def test_create_power_graph():
 def test_create_power_graph_invalid(mocker):
     import power_graph
 
-    mocker.patch("power_graph.fetch_data", return_value=gen_sensor_data(False))
+    mocker.patch("sensor_data.fetch_data", return_value=gen_sensor_data())
     power_graph.create_power_graph(load_config("config.yaml"))
 
     # NOTE: エラーが発生しなければ OK
 
 
 ######################################################################
-def test_create_sensor_graph(freezer):
+def test_create_sensor_graph(freezer, mocker):
     import sensor_graph
 
+    mocker.patch("sensor_data.fetch_data", return_value=gen_sensor_data())
+
     freezer.move_to(datetime.datetime.now().replace(hour=12))
-    sensor_graph.create_sensor_graph(load_config("config.yaml"))
+    sensor_graph.create_sensor_graph(load_config(CONFIG_FILE))
 
     freezer.move_to(datetime.datetime.now().replace(hour=20))
     os.environ["DUMMY_MODE"] = "true"
-    sensor_graph.create_sensor_graph(load_config("config.yaml"))
+    sensor_graph.create_sensor_graph(load_config(CONFIG_FILE))
     del os.environ["DUMMY_MODE"]
 
     # NOTE: エラーが発生しなければ OK
@@ -207,7 +214,6 @@ def test_create_sensor_graph(freezer):
 
 def test_create_sensor_graph_invalid(mocker):
     import sensor_graph
-    import sensor_data
     import inspect
 
     def dummy_data(db_config, measure, hostname, field, start, stop, last=False):
@@ -216,17 +222,13 @@ def test_create_sensor_graph_invalid(mocker):
             inspect.stack()[4].function == "get_aircon_power"
         ):
             return gen_sensor_data(False)
-        elif dummy_data.i % 4 == 1:
-            return gen_sensor_data()
         else:
-            return sensor_data.fetch_data(
-                db_config, measure, hostname, field, start, stop, last=last
-            )
+            return gen_sensor_data()
 
     dummy_data.i = 0
 
     mocker.patch("sensor_graph.fetch_data", side_effect=dummy_data)
-    sensor_graph.create_sensor_graph(load_config("config.yaml"))
+    sensor_graph.create_sensor_graph(load_config(CONFIG_FILE))
 
     # NOTE: エラーが発生しなければ OK
 
@@ -236,9 +238,9 @@ def test_create_rain_cloud_panel():
     import rain_cloud_panel
 
     rain_cloud_panel.WINDOW_SIZE_CACHE.unlink(missing_ok=True)
-    rain_cloud_panel.create_rain_cloud_panel(load_config("config.yaml"))
+    rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))
 
-    rain_cloud_panel.create_rain_cloud_panel(load_config("config.yaml"), True)
+    rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE), True)
 
     # NOTE: エラーが発生しなければ OK
 
@@ -252,10 +254,10 @@ def test_create_rain_cloud_panel_cache(mocker):
         str(rain_cloud_panel.WINDOW_SIZE_CACHE), (month_ago_epoch, month_ago_epoch)
     )
 
-    rain_cloud_panel.create_rain_cloud_panel(load_config("config.yaml"))
+    rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))
 
     mocker.patch("pickle.load", side_effect=RuntimeError())
-    rain_cloud_panel.create_rain_cloud_panel(load_config("config.yaml"))
+    rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))
 
     # NOTE: エラーが発生しなければ OK
 
@@ -272,12 +274,20 @@ def test_create_rain_cloud_panel_error(mocker):
     )
     mocker.patch("rain_cloud_panel.fetch_cloud_image", side_effect=RuntimeError())
 
-    rain_cloud_panel.create_rain_cloud_panel(load_config("config.yaml"))
+    rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))
 
     # NOTE: エラーが発生しなければ OK
 
 
 ######################################################################
+def test_create_image_test(mocker):
+    import create_image
+
+    create_image.create_image(CONFIG_FILE, test_mode=True)
+
+    # NOTE: エラーが発生しなければ OK
+
+
 def test_create_image_error(mocker):
     import slack_sdk
     import create_image
@@ -285,7 +295,9 @@ def test_create_image_error(mocker):
 
     notify_slack.clear_interval()
 
-    create_image.create_image("config.yaml", small_mode=True, dummy_mode=True)
+    mocker.patch("sensor_data.fetch_data", return_value=gen_sensor_data())
+
+    create_image.create_image(CONFIG_FILE, small_mode=True, dummy_mode=True)
 
     mocker.patch("create_image.draw_panel", side_effect=RuntimeError())
     mocker.patch(
@@ -293,7 +305,7 @@ def test_create_image_error(mocker):
         side_effect=slack_sdk.errors.SlackClientError(),
     )
 
-    create_image.create_image("config.yaml")
+    create_image.create_image(CONFIG_FILE)
 
     # NOTE: エラーが発生しなければ OK
 

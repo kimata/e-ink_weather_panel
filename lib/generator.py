@@ -60,7 +60,7 @@ def image_reader(proc, token):
     panel_data["image"] = img_stream.getvalue()
 
 
-def generate_image_impl(config_file, is_small_mode, is_dummy_mode, token):
+def generate_image_impl(config_file, is_small_mode, is_dummy_mode, is_test_mode, token):
     global panel_data_map
 
     panel_data = panel_data_map[token]
@@ -69,6 +69,8 @@ def generate_image_impl(config_file, is_small_mode, is_dummy_mode, token):
         cmd.append("-s")
     if is_dummy_mode:
         cmd.append("-D")
+    if is_test_mode:
+        cmd.append("-t")
 
     proc = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False
@@ -109,7 +111,7 @@ def clean_map():
         del panel_data_map[token]
 
 
-def generate_image(config_file, is_small_mode, is_dummy_mode):
+def generate_image(config_file, is_small_mode, is_dummy_mode, is_test_mode):
     global thread_pool
     global panel_data_map
 
@@ -125,7 +127,8 @@ def generate_image(config_file, is_small_mode, is_dummy_mode):
         "time": time.time(),
     }
     thread_pool.apply_async(
-        generate_image_impl, (config_file, is_small_mode, is_dummy_mode, token)
+        generate_image_impl,
+        (config_file, is_small_mode, is_dummy_mode, is_test_mode, token),
     )
 
     return token
@@ -181,8 +184,8 @@ def api_log():
 @support_jsonp
 def api_run():
     mode = request.args.get("mode", "")
-
     is_small_mode = mode == "small"
+    is_test_mode = request.args.get("mode", False, type=bool)
 
     config_file = (
         current_app.config["CONFIG_FILE_SMALL"]
@@ -192,7 +195,7 @@ def api_run():
     is_dummy_mode = current_app.config["DUMMY_MODE"]
 
     try:
-        token = generate_image(config_file, is_small_mode, is_dummy_mode)
+        token = generate_image(config_file, is_small_mode, is_dummy_mode, is_test_mode)
 
         return jsonify({"token": token})
     except:
