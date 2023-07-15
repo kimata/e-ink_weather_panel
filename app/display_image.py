@@ -63,8 +63,13 @@ def ssh_connect(hostname, key_filename):
     return ssh
 
 
-def display_image(config, args, is_small_mode, is_one_time):
+def display_image(config, args, old_ssh, is_small_mode, is_one_time):
     start = time.perf_counter()
+
+    if old_ssh is not None:
+        # NOTE: fbi コマンドのプロセスが残るので強制終了させる
+        old_ssh.exec_command("sudo killall -9 fbi")
+        old_ssh.close()
 
     ssh = ssh_connect(rasp_hostname, key_file_path)
 
@@ -114,9 +119,7 @@ def display_image(config, args, is_small_mode, is_one_time):
 
     time.sleep(sleep_time)
 
-    # NOTE: fbi コマンドのプロセスが残るので強制終了させる
-    ssh.exec_command("sudo killall -9 fbi")
-    ssh.close()
+    return ssh
 
 
 ######################################################################
@@ -137,9 +140,10 @@ logging.info("Raspberry Pi hostname: %s" % (rasp_hostname))
 config = load_config(args["-c"])
 
 fail_count = 0
+ssh = None
 while True:
     try:
-        display_image(config, args, is_small_mode, is_one_time)
+        ssh = display_image(config, args, ssh, is_small_mode, is_one_time)
         fail_count = 0
 
         if is_one_time:
