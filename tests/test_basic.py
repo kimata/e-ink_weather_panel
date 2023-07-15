@@ -190,7 +190,7 @@ def test_create_power_graph_invalid(mocker):
     import power_graph
 
     mocker.patch("sensor_data.fetch_data", return_value=gen_sensor_data())
-    power_graph.create_power_graph(load_config("config.yaml"))
+    power_graph.create_power_graph(load_config(CONFIG_FILE))
 
     # NOTE: エラーが発生しなければ OK
 
@@ -250,6 +250,7 @@ def test_create_rain_cloud_panel_cache(mocker):
 
     month_ago = datetime.datetime.now() + datetime.timedelta(days=-1)
     month_ago_epoch = month_ago.timestamp()
+    rain_cloud_panel.WINDOW_SIZE_CACHE.touch()
     os.utime(
         str(rain_cloud_panel.WINDOW_SIZE_CACHE), (month_ago_epoch, month_ago_epoch)
     )
