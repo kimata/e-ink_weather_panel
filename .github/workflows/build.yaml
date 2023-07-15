@@ -34,8 +34,8 @@ jobs:
               if: steps.cache-nodemodules.outputs.cache-hit != 'true'
               run: |
                   npm ci
-              working-directory: react
+              working-directory: ./react
             - name: Build
               run: |
                   npm run build
-              working-directory: react
+              working-directory: ./react
