@@ -1,4 +1,5 @@
 selenium
 webdriver-manager
 influxdb-client[ciso]
+pytest-freezegun
 slack_bolt
