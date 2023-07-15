@@ -10,6 +10,19 @@ selenium = "^4.10.0"
 influxdb-client = {extras = ["ciso"], version = "^1.36.1"}
 pytest-freezegun = "^0.4.2"
 slack-bolt = "^1.18.0"
+matplotlib = "^3.7.2"
+opencv-python = "^4.8.0"
+docopt = "^0.6.2"
+pytest-cov = "^4.1.0"
+pytest-mock = "^3.11.1"
+PyYAML = "^6.0"
+Flask = "^2.3.2"
+Flask-Cors = "^4.0.0"
+coloredlogs = "^15.0.1"
+pandas = "^2.0.3"
+webdriver-manager = "^3.8.6"
+lxml = "^4.9.3"
+opencv-contrib-python = "^4.8.0"
 
 [tool.poetry.dev-dependencies]
 
