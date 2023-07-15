@@ -107,3 +107,9 @@ jobs:
               with:
                   name: pytest
                   path: tests/evidence
+
+            - name: Deploy
+              uses: peaceiris/actions-gh-pages@v3
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_dir: ./tests/evidence
