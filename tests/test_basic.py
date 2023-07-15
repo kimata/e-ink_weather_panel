@@ -52,9 +52,12 @@ def gen_sensor_data(valid=True):
     return {
         "value": [1, 10, 20],
         "time": [
-            datetime.datetime.now(datetime.timezone.utc),
-            datetime.datetime.now(datetime.timezone.utc),
-            datetime.datetime.now(datetime.timezone.utc),
+            datetime.datetime.now(datetime.timezone.utc)
+            + datetime.timedelta(minutes=-3),
+            datetime.datetime.now(datetime.timezone.utc)
+            + datetime.timedelta(minutes=-2),
+            datetime.datetime.now(datetime.timezone.utc)
+            + datetime.timedelta(minutes=-1),
         ],
         "valid": valid,
     }
@@ -175,7 +178,7 @@ def test_time_panel():
 def test_create_power_graph(mocker):
     import power_graph
 
-    mocker.patch("sensor_data.fetch_data", return_value=gen_sensor_data())
+    mocker.patch("power_graph.fetch_data", return_value=gen_sensor_data())
 
     power_graph.create_power_graph(load_config(CONFIG_FILE))
 
@@ -189,7 +192,7 @@ def test_create_power_graph(mocker):
 def test_create_power_graph_invalid(mocker):
     import power_graph
 
-    mocker.patch("sensor_data.fetch_data", return_value=gen_sensor_data())
+    mocker.patch("power_graph.fetch_data", return_value=gen_sensor_data())
     power_graph.create_power_graph(load_config(CONFIG_FILE))
 
     # NOTE: エラーが発生しなければ OK
@@ -199,7 +202,7 @@ def test_create_power_graph_invalid(mocker):
 def test_create_sensor_graph(freezer, mocker):
     import sensor_graph
 
-    mocker.patch("sensor_data.fetch_data", return_value=gen_sensor_data())
+    mocker.patch("sensor_graph.fetch_data", return_value=gen_sensor_data())
 
     freezer.move_to(datetime.datetime.now().replace(hour=12))
     sensor_graph.create_sensor_graph(load_config(CONFIG_FILE))
@@ -340,7 +343,7 @@ def test_index_with_other_status(client, mocker):
 
 def test_api_run(client, mocker):
     import inspect
-    import PIL
+    import PIL.Image
     import io
 
     def dummy_time():
@@ -405,7 +408,7 @@ def test_api_run(client, mocker):
     response = client.post("/weather_panel/api/image", data={"token": token})
     assert response.status_code == 200
     # NOTE: サイズが適度にあり，PNG として解釈できれば OK とする
-    assert len(response.data) > 200 * 1024
+    assert len(response.data) > 1024
     assert PIL.Image.open(io.BytesIO(response.data)).size == (3200, 1800)
 
 

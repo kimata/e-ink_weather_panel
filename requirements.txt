@@ -2,4 +2,5 @@ selenium
 webdriver-manager
 influxdb-client[ciso]
 pytest-freezegun
+pytest-html
 slack_bolt

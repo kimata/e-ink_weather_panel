@@ -97,7 +97,9 @@ jobs:
               run: poetry install --no-interaction
 
             - name: Run Tests
-              run: poetry run pytest --cov=lib --cov=app --cov-config=.coveragerc --cov-branch --cov-report=html --capture=no tests/test_basic.py
+              run:
+                  poetry run pytest --cov=lib --cov=app --cov-config=.coveragerc --cov-branch --cov-report=html --capture=no \
+                  --html=tests/evidence/report.html --self-contained-html tests/test_basic.py
 
             - name: Upload coverage file
               uses: actions/upload-artifact@v3
