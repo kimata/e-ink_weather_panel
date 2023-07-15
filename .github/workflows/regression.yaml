@@ -68,6 +68,7 @@ jobs:
               uses: actions/download-artifact@v3
               with:
                   name: react-built
+                  path: react/build
 
             - name: ja_JP.UTF-8
               run: |
@@ -98,7 +99,7 @@ jobs:
 
             - name: Run Tests
               run: |
-                  poetry run pytest --cov=lib --cov=app --cov-config=.coveragerc --cov-branch --cov-report=html --capture=no --html=tests/evidence/report.html --self-contained-html tests/test_basic.py
+                  poetry run pytest --cov=lib --cov=app --cov-config=.coveragerc --cov-branch --cov-report=html --capture=no --html=tests/evidence/report.htm --self-contained-html tests/test_basic.py
 
             - name: Upload coverage file
               uses: actions/upload-artifact@v3
