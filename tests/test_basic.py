@@ -50,7 +50,7 @@ def gen_wbgt_info():
 
 def gen_sensor_data(valid=True):
     return {
-        "value": [1, 1, 1],
+        "value": [1, 10, 20],
         "time": [
             datetime.datetime.now(datetime.timezone.utc),
             datetime.datetime.now(datetime.timezone.utc),
