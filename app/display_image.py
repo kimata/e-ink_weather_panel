@@ -64,6 +64,8 @@ def ssh_connect(hostname, key_filename):
 
 
 def display_image(config, args, is_small_mode, is_one_time):
+    start = time.perf_counter()
+
     ssh = ssh_connect(rasp_hostname, key_file_path)
 
     ssh_stdin = ssh.exec_command(
@@ -98,15 +100,18 @@ def display_image(config, args, is_small_mode, is_one_time):
         sleep_time = 5
     else:
         # NOTE: 更新されていることが直感的に理解しやすくなるように，
-        # 更新タイミングを 0 秒に合わせる
-        # (例えば，1分間隔更新だとして，1分40秒に更新されると，2分40秒まで更新されないので
-        # 2分45秒くらいに表示を見た人は本当に1分間隔で更新されているのか心配になる)
+        # 更新完了タイミングを各分の 0 秒に合わせる
+        elapsed = time.perf_counter() - start
         sleep_time = (
-            config["PANEL"]["UPDATE"]["INTERVAL"] - datetime.datetime.now().second
+            600
+            + config["PANEL"]["UPDATE"]["INTERVAL"]
+            - elapsed
+            - datetime.datetime.now().second
         )
+        sleep_time %= 60
+
         logging.info("sleep {sleep_time} sec...".format(sleep_time=sleep_time))
 
-    sys.stderr.flush()
     time.sleep(sleep_time)
 
     # NOTE: fbi コマンドのプロセスが残るので強制終了させる
