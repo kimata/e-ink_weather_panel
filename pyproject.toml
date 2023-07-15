@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "e-ink_weather_panel"
+version = "0.1.0"
+description = "電子ペーパディスプレイに，Raspberry Pi を通じて下記の情報を表示するためのスクリプトです．"
+authors = ["KIMATA Tetsuya <kimata@green-rabbit.net>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+selenium = "^4.10.0"
+influxdb-client = {extras = ["ciso"], version = "^1.36.1"}
+pytest-freezegun = "^0.4.2"
+slack-bolt = "^1.18.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

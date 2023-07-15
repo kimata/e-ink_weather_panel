@@ -12,7 +12,7 @@ RUN curl -O  https://dl.google.com/linux/direct/google-chrome-stable_current_amd
 
 RUN apt-get update && apt-get install -y \
     language-pack-ja \
-    python3 python3-pip \
+    python3 python3-pip python3-poetry \
     python3-docopt \
     python3-yaml python3-coloredlogs \
     python3-pil python3-matplotlib python3-pandas \
