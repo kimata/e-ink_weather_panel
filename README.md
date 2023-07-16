@@ -120,4 +120,5 @@ docker-compose up -d
 
 ## テスト結果
 
-https://kimata.github.io/e-ink_weather_panel/coverage/
+-   https://kimata.github.io/e-ink_weather_panel/
+-   https://kimata.github.io/e-ink_weather_panel/coverage/
