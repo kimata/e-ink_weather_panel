@@ -245,9 +245,12 @@ test-coverage:
         - mv panel_config/e-ink_weather.yaml config.yaml
         - mv panel_config/e-ink_weather-demo.yaml config-demo.yaml
         - mv panel_config/e-ink_weather-small.yaml config-small.yaml
-        - pip install -r requirements.txt
-        - python3 -m pytest --cov=lib --cov=app --cov-config=.coveragerc
-          --cov-branch --cov-report=html --capture=no tests/test_basic.py
+        - apt-get install -y curl
+        - curl -sSL https://install.python-poetry.org | python3 -
+        - export PATH="/root/.local/bin:$PATH"
+        - poetry install --no-interaction
+        - poetry run pytest --verbose --cov=lib --cov=app --cov-config=.coveragerc --cov-branch --cov-report=html
+          --html=tests/evidence/index.htm --self-contained-html tests/test_basic.py
 
     artifacts:
         when: always

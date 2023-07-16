@@ -2,5 +2,5 @@ selenium
 webdriver-manager
 influxdb-client[ciso]
 pytest-freezegun
-pytest-html
 slack_bolt
+pytest-html == 3.2.0
