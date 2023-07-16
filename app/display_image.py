@@ -107,6 +107,14 @@ def display_image(config, args, old_ssh, is_small_mode, is_one_time):
         # NOTE: 表示がされるまで待つ
         sleep_time = 5
     else:
+        diff_sec = datetime.datetime.now().second
+        if diff_sec > 30:
+            diff_sec = 60 - diff_sec
+        if diff_sec > 3:
+            logging.warning(
+                "Update timing gap is large: {diff_sec}".format(diff_sec=diff_sec)
+            )
+
         # NOTE: 更新されていることが直感的に理解しやすくなるように，
         # 更新完了タイミングを各分の 0 秒に合わせる
         elapsed = time.perf_counter() - start
