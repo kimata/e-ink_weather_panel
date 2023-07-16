@@ -24,6 +24,7 @@ import os
 import logging
 import pathlib
 import traceback
+import statistics
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
 
@@ -33,6 +34,8 @@ import notify_slack
 
 NOTIFY_THRESHOLD = 2
 CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
+
+elapsed_list = []
 
 
 def notify_error(config, message):
@@ -107,9 +110,14 @@ def display_image(config, args, old_ssh, is_small_mode, is_one_time):
         # NOTE: 更新されていることが直感的に理解しやすくなるように，
         # 更新完了タイミングを各分の 0 秒に合わせる
         elapsed = time.perf_counter() - start
+
+        if len(elapsed_list) >= 10:
+            elapsed_list.pop(0)
+        elapsed_list.append(elapsed)
+
         sleep_time = (
             config["PANEL"]["UPDATE"]["INTERVAL"]
-            - elapsed
+            - statistics.median(elapsed_list)
             - datetime.datetime.now().second
         )
         if sleep_time < 0:
