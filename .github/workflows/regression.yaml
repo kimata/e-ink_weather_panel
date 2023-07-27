@@ -104,7 +104,7 @@ jobs:
 
             - name: Run Tests
               run: |
-                  poetry run pytest --cov=lib --cov=app --cov-config=.coveragerc --cov-branch --cov-report=html --capture=no --html=tests/evidence/index.htm --self-contained-html tests/test_basic.py
+                  poetry run pytest --verbose --cov=lib --cov=app --cov-config=.coveragerc --cov-branch --cov-report=html --capture=no --html=tests/evidence/index.htm --self-contained-html tests/test_basic.py
 
             - name: Upload coverage file
               uses: actions/upload-artifact@v3

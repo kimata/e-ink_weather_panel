@@ -7,15 +7,25 @@ import pathlib
 import pytest
 import re
 import datetime
+from unittest import mock
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "app"))
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
-from config import load_config
 
+from config import load_config
 from webapp import create_app
 
 CONFIG_FILE = "config.example.yaml"
 CONFIG_SMALL_FILE = "config.example.yaml"
+
+
+@pytest.fixture(scope="session", autouse=True)
+def slack_mock():
+    with mock.patch(
+        "notify_slack.slack_sdk.web.client.WebClient.chat_postMessage",
+        retunr_value=True,
+    ) as fixture:
+        yield fixture
 
 
 @pytest.fixture(scope="session")
@@ -269,13 +279,7 @@ def test_create_rain_cloud_panel_cache(mocker):
 ######################################################################
 def test_create_rain_cloud_panel_error(mocker):
     import rain_cloud_panel
-    import slack_sdk
 
-    # NOTE: ついでに Slack 通知をエラーにする
-    mocker.patch(
-        "slack_sdk.web.client.WebClient.chat_postMessage",
-        side_effect=slack_sdk.errors.SlackClientError(),
-    )
     mocker.patch("rain_cloud_panel.fetch_cloud_image", side_effect=RuntimeError())
 
     rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))
@@ -293,7 +297,6 @@ def test_create_image_test(mocker):
 
 
 def test_create_image_error(mocker):
-    import slack_sdk
     import create_image
     import notify_slack
 
@@ -304,10 +307,6 @@ def test_create_image_error(mocker):
     create_image.create_image(CONFIG_FILE, small_mode=True, dummy_mode=True)
 
     mocker.patch("create_image.draw_panel", side_effect=RuntimeError())
-    mocker.patch(
-        "slack_sdk.web.client.WebClient.chat_postMessage",
-        side_effect=slack_sdk.errors.SlackClientError(),
-    )
 
     create_image.create_image(CONFIG_FILE)
 
