@@ -19,7 +19,10 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 
-from webdriver_manager.core.os_manager import ChromeType
+
+from webdriver_manager.core.utils import ChromeType
+
+# from webdriver_manager.core.os_manager import ChromeType
 from webdriver_manager.chrome import ChromeDriverManager
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
