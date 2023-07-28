@@ -247,6 +247,7 @@ test-coverage:
         - mv panel_config/e-ink_weather.yaml config.yaml
         - mv panel_config/e-ink_weather-demo.yaml config-demo.yaml
         - mv panel_config/e-ink_weather-small.yaml config-small.yaml
+        - apt-get update
         - apt-get install -y curl
         - curl -sSL https://install.python-poetry.org | python3 -
         - export PATH="/root/.local/bin:$PATH"
