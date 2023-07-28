@@ -50,8 +50,8 @@ jobs:
             - name: Upload built file
               uses: actions/upload-artifact@v3
               with:
-                  name: react-built
-                  path: react/build
+                  name: react-dist
+                  path: react/dist
 
     test:
         needs: build
@@ -72,8 +72,8 @@ jobs:
             - name: Download react built files
               uses: actions/download-artifact@v3
               with:
-                  name: react-built
-                  path: react/build
+                  name: react-dist
+                  path: react/dist
 
             - name: Set locale
               run: |
