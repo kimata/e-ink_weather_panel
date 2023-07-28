@@ -16,7 +16,7 @@ build-react:
         - npm run build
     artifacts:
         paths:
-            - react/build
+            - react/dist
     cache:
         key: npm
         paths:
