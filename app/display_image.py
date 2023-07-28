@@ -62,6 +62,9 @@ def ssh_connect(hostname, key_filename):
         pkey=paramiko.RSAKey.from_private_key(open(key_filename)),
         allow_agent=False,
         look_for_keys=False,
+        timeout=2,
+        auth_timeout=2,
+        channel_timeout=2,
     )
     return ssh
 
