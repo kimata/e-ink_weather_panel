@@ -275,3 +275,19 @@ deploy:
         - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-panel-deployment
         - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-small-panel-deployment
         - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-webapp-deployment
+
+renovate:
+    stage: renovate
+    image:
+        name: registry.green-rabbit.net:5000/kimata/local_renovate:35
+
+        entrypoint: [""]
+    script:
+        - renovate --platform gitlab --token ${RENOVATE_TOKEN} --endpoint ${CI_SERVER_URL}/api/v4 ${CI_PROJECT_PATH}
+        # # NOTE: ついでにお掃除
+        #  - docker rm $(docker ps -a --filter "status=exited" -q) || true
+    rules:
+        - if: $CI_PIPELINE_SOURCE == "schedule"
+          when: always
+        - changes:
+              - renovate.json
