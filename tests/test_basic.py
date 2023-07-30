@@ -149,6 +149,7 @@ def check_notify_slack(message, index=-1):
     if message is None:
         assert notify_slack.get_hist() == [], "正常なはずなのに，エラー通知がされています．"
     else:
+        assert len(notify_slack.get_hist()) != 0, "異常が発生したはずなのに，エラー通知がされていません．"
         assert (
             notify_slack.get_hist()[index].find(message) != -1
         ), "「{message}」が Slack で通知されていません．".format(message=message)
