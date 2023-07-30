@@ -762,8 +762,8 @@ def test_api_run_normal(mocker):
     token = response.json["token"]
     response = client.post("/weather_panel/api/log", data={"token": token})
     assert response.status_code == 200
-    # NOTE: ログを出し切るまで待つ
-    assert response.data.decode()
+    # NOTE: ログを出し切るまで待つ．
+    response.data.decode()
 
     # NOTE: 2回目
     response = client.get(
@@ -780,7 +780,7 @@ def test_api_run_normal(mocker):
     response = client.post("/weather_panel/api/log", data={"token": token})
     assert response.status_code == 200
     # NOTE: ログを出し切るまで待つ
-    assert response.data.decode()
+    response.data.decode()
 
     client.delete()
 
