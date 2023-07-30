@@ -492,6 +492,8 @@ def test_create_rain_cloud_panel_xpath_error(mocker):
 def test_create_image(mocker):
     import create_image
 
+    mock_sensor_fetch_data(mocker)
+
     create_image.create_image(CONFIG_FILE, test_mode=True)
     create_image.create_image(CONFIG_FILE)
 
@@ -500,6 +502,8 @@ def test_create_image(mocker):
 
 def test_create_image_small(mocker):
     import create_image
+
+    mock_sensor_fetch_data(mocker)
 
     create_image.create_image(CONFIG_SMALL_FILE, test_mode=False)
 
