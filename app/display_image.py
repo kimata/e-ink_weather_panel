@@ -31,6 +31,7 @@ sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
 import logger
 from config import load_config
 from panel_util import notify_error
+import create_image
 
 NOTIFY_THRESHOLD = 2
 CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
@@ -93,9 +94,13 @@ def display_image(
 
     # NOTE: -24 は create_image.py の異常時の終了コードに合わせる．
     if proc.returncode == 0:
-        logging.info("Success.")
-    elif proc.returncode == 222:
-        logging.warning("Finish. (something is wrong)")
+        logging.info("Succeeded.")
+    elif (proc.returncode == create_image.ERROR_CODE_MAJOR) or (
+        proc.returncode == create_image.ERROR_CODE_MINOR
+    ):
+        logging.warning(
+            "Something is wrong. (code: {code})".format(code=proc.returncode)
+        )
     else:
         logging.error(
             "Failed to create image. (code: {code})".format(code=proc.returncode)
