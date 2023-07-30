@@ -240,7 +240,7 @@ test-coverage:
     dependencies:
         - build-react
 
-    image: registry.green-rabbit.net:5000/kimata/local_playwright:230715B
+    image: registry.green-rabbit.net:5000/kimata/local_playwright:230730A
     script:
         - export GIT_SSL_NO_VERIFY=1
         - git clone https://gitlab.green-rabbit.net/kimata/panel_config.git
