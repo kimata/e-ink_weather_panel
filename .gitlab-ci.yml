@@ -5,6 +5,7 @@ stages:
     - build-image
     - test
     - deploy
+    - renovate
 
 build-react:
     stage: build-webapp
