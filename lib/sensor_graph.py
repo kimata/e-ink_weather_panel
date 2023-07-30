@@ -19,6 +19,7 @@ import io
 import matplotlib
 import PIL.Image
 import logging
+import traceback
 
 
 matplotlib.use("Agg")
@@ -33,6 +34,7 @@ from matplotlib.font_manager import FontProperties
 
 from config import get_db_config
 from sensor_data import fetch_data
+from panel_util import error_image
 
 IMAGE_DPI = 100.0
 EMPTY_VALUE = -100.0
@@ -242,15 +244,12 @@ def sensor_data(db_config, host_specify_list, param):
     return data
 
 
-def create_sensor_graph(config):
-    logging.info("draw sensor graph")
-    start = time.perf_counter()
+def create_sensor_graph_impl(panel_config, font_config, db_config):
+    face_map = get_face_map(font_config)
 
-    face_map = get_face_map(config["FONT"])
-
-    room_list = config["SENSOR"]["ROOM_LIST"]
-    width = config["SENSOR"]["PANEL"]["WIDTH"]
-    height = config["SENSOR"]["PANEL"]["HEIGHT"]
+    room_list = panel_config["ROOM_LIST"]
+    width = panel_config["PANEL"]["WIDTH"]
+    height = panel_config["PANEL"]["HEIGHT"]
 
     plt.style.use("grayscale")
 
@@ -261,7 +260,7 @@ def create_sensor_graph(config):
     cache = None
     range_map = {}
     time_begin = datetime.datetime.now(datetime.timezone.utc)
-    for row, param in enumerate(config["SENSOR"]["PARAM_LIST"]):
+    for row, param in enumerate(panel_config["PARAM_LIST"]):
         logging.info("fetch {name} data".format(name=param["NAME"]))
 
         param_min = float("inf")
@@ -269,7 +268,7 @@ def create_sensor_graph(config):
 
         for col in range(0, len(room_list)):
             data = sensor_data(
-                get_db_config(config),
+                db_config,
                 room_list[col]["HOST"],
                 param["NAME"],
             )
@@ -297,12 +296,12 @@ def create_sensor_graph(config):
             param_max + (param_max - param_min) * 0.05,
         ]
 
-    for row, param in enumerate(config["SENSOR"]["PARAM_LIST"]):
+    for row, param in enumerate(panel_config["PARAM_LIST"]):
         logging.info("draw {name} graph".format(name=param["NAME"]))
 
         for col in range(0, len(room_list)):
             data = sensor_data(
-                get_db_config(config),
+                db_config,
                 room_list[col]["HOST"],
                 param["NAME"],
             )
@@ -310,7 +309,7 @@ def create_sensor_graph(config):
                 data = cache
 
             ax = fig.add_subplot(
-                len(config["SENSOR"]["PARAM_LIST"]),
+                len(panel_config["PARAM_LIST"]),
                 len(room_list),
                 1 + len(room_list) * row + col,
             )
@@ -343,15 +342,13 @@ def create_sensor_graph(config):
                 if "AIRCON" in room_list[col]:
                     draw_aircon_icon(
                         ax,
-                        get_aircon_power(
-                            get_db_config(config), room_list[col]["AIRCON"]
-                        ),
-                        config["SENSOR"]["ICON"],
+                        get_aircon_power(db_config, room_list[col]["AIRCON"]),
+                        panel_config["ICON"],
                     )
 
             if param["NAME"] == "lux":
                 if room_list[col]["LIGHT_ICON"]:
-                    draw_light_icon(ax, data["value"], config["SENSOR"]["ICON"])
+                    draw_light_icon(ax, data["value"], panel_config["ICON"])
 
     fig.tight_layout()
     plt.subplots_adjust(hspace=0.1, wspace=0)
@@ -359,7 +356,29 @@ def create_sensor_graph(config):
     buf = io.BytesIO()
     plt.savefig(buf, format="png", dpi=IMAGE_DPI, transparent=True)
 
-    return (PIL.Image.open(buf), time.perf_counter() - start)
+    return PIL.Image.open(buf)
+
+
+def create_sensor_graph(config):
+    logging.info("draw sensor graph")
+    start = time.perf_counter()
+
+    panel_config = config["SENSOR"]
+    font_config = config["FONT"]
+    db_config = get_db_config(config)
+
+    try:
+        return (
+            create_sensor_graph_impl(panel_config, font_config, db_config),
+            time.perf_counter() - start,
+        )
+    except:
+        error_message = traceback.format_exc()
+        return (
+            error_image(panel_config, font_config, error_message),
+            time.perf_counter() - start,
+            error_message,
+        )
 
 
 if __name__ == "__main__":

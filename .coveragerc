@@ -19,6 +19,9 @@ exclude_lines =
     def get_day_sum
     def dump_data
 
+    # notify_slack.py
+    def info
+
     # flask_util.py
     def remote_host
     def auth_user

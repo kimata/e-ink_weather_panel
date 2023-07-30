@@ -34,6 +34,7 @@ class GZipRotator:
 def init(
     name, level=logging.WARNING, log_dir_path=None, log_queue=None, is_str_log=False
 ):
+    # if os.environ.get("NO_COLORED_LOGS", "false") != "true":
     coloredlogs.install(fmt=LOG_FORMAT.format(name=name), level=level)
 
     if log_dir_path is not None:

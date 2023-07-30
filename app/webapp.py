@@ -29,7 +29,7 @@ import generator
 import logger
 
 
-def create_app(config_file_normal, config_file_small, dummy_mode):
+def create_app(config_file_normal, config_file_small, dummy_mode=False):
     logger.init("panel.e-ink.weather", level=logging.INFO)
 
     # NOTE: アクセスログは無効にする

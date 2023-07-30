@@ -11,6 +11,8 @@ import datetime
 import tempfile
 import threading
 
+notify_hist = []
+
 ERROR_NOTIFY_FOOTPRINT = (
     pathlib.Path(os.path.dirname(__file__)).parent / "data" / "error_notify"
 )
@@ -125,6 +127,8 @@ def error(
 ):
     title = "Error: " + name
 
+    notify_hist.append(message)
+
     if not check_interval(interval_min):
         logging.warning("Interval is too short. Skipping.")
         return
@@ -147,6 +151,8 @@ def error_with_image(
 ):  # def error_with_image
     title = "Error: " + name
 
+    notify_hist.append(message)
+
     if not check_interval(interval_min):
         logging.warning("Interval is too short. Skipping.")
         return
@@ -154,13 +160,25 @@ def error_with_image(
     split_send(token, ch_name, title, message, formatter)
 
     if attatch_img is not None:
-        if ch_id is None:
-            logging.error("ch_id is not specified.")
-
+        assert ch_id is not None
         error_img(token, ch_id, title, attatch_img["data"], attatch_img["text"])
 
     ERROR_NOTIFY_FOOTPRINT.parent.mkdir(parents=True, exist_ok=True)
     ERROR_NOTIFY_FOOTPRINT.touch()
+
+
+# NOTE: テスト用
+def clear_hist():
+    global notify_hist
+
+    notify_hist = []
+
+
+# NOTE: テスト用
+def get_hist():
+    global notify_hist
+
+    return notify_hist
 
 
 if __name__ == "__main__":

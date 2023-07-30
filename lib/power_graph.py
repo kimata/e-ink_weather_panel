@@ -19,6 +19,7 @@ import io
 import matplotlib
 import PIL.Image
 import logging
+import traceback
 
 matplotlib.use("Agg")
 
@@ -30,6 +31,7 @@ register_matplotlib_converters()
 from matplotlib.font_manager import FontProperties
 from config import get_db_config
 from sensor_data import fetch_data
+from panel_util import error_image
 
 IMAGE_DPI = 100.0
 
@@ -127,14 +129,7 @@ def plot_item(ax, unit, data, ylabel, ylim, fmt, face_map):
     ax.label_outer()
 
 
-def create_power_graph(config):
-    logging.info("draw power graph")
-    start = time.perf_counter()
-
-    db_config = get_db_config(config)
-    panel_config = config["POWER"]
-    font_config = config["FONT"]
-
+def create_power_graph_impl(panel_config, font_config, db_config):
     face_map = get_face_map(font_config)
 
     width = panel_config["PANEL"]["WIDTH"]
@@ -179,7 +174,30 @@ def create_power_graph(config):
     buf = io.BytesIO()
     plt.savefig(buf, format="png", dpi=IMAGE_DPI, transparent=True)
 
-    return (PIL.Image.open(buf), time.perf_counter() - start)
+    return PIL.Image.open(buf)
+
+
+def create_power_graph(config):
+    logging.info("draw power graph")
+
+    start = time.perf_counter()
+
+    panel_config = config["POWER"]
+    font_config = config["FONT"]
+    db_config = get_db_config(config)
+
+    try:
+        return (
+            create_power_graph_impl(panel_config, font_config, db_config),
+            time.perf_counter() - start,
+        )
+    except:
+        error_message = traceback.format_exc()
+        return (
+            error_image(panel_config, font_config, error_message),
+            time.perf_counter() - start,
+            error_message,
+        )
 
 
 if __name__ == "__main__":

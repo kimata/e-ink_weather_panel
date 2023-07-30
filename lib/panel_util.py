@@ -8,9 +8,25 @@ import PIL.ImageDraw
 import textwrap
 
 from pil_util import get_font, draw_text
+import notify_slack
 
 
-def error_image(panel_config, font_config, error_text):
+def notify_error(config, message):
+    logging.error(message)
+
+    if "SLACK" not in config:
+        return
+
+    notify_slack.error(
+        config["SLACK"]["BOT_TOKEN"],
+        config["SLACK"]["ERROR"]["CHANNEL"]["NAME"],
+        config["SLACK"]["FROM"],
+        message,
+        config["SLACK"]["ERROR"]["INTERVAL_MIN"],
+    )
+
+
+def error_image(panel_config, font_config, message):
     img = PIL.Image.new(
         "RGBA",
         (panel_config["PANEL"]["WIDTH"], panel_config["PANEL"]["HEIGHT"]),
@@ -34,7 +50,7 @@ def error_image(panel_config, font_config, error_text):
 
     draw_text(
         img,
-        "\n".join(textwrap.wrap(error_text, 90)),
+        "\n".join(textwrap.wrap(message, 90)),
         (20, 150),
         get_font(font_config, "EN_MEDIUM", 30),
         "left" "#666",

@@ -30,7 +30,7 @@ sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
 
 import logger
 from config import load_config
-import notify_slack
+from panel_util import notify_error
 
 NOTIFY_THRESHOLD = 2
 CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
@@ -38,24 +38,12 @@ CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
 elapsed_list = []
 
 
-def notify_error(config, message):
-    if "SLACK" not in config:
-        return
-
-    notify_slack.error(
-        config["SLACK"]["BOT_TOKEN"],
-        config["SLACK"]["ERROR"]["CHANNEL"]["NAME"],
-        "E-Ink Weather Panel",
-        message,
-        config["SLACK"]["ERROR"]["INTERVAL_MIN"],
-    )
-
-
 def ssh_connect(hostname, key_filename):
     logging.info("Connect to {hostname}".format(hostname=hostname))
 
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
     ssh.connect(
         hostname,
         username="ubuntu",
@@ -65,16 +53,25 @@ def ssh_connect(hostname, key_filename):
         timeout=2,
         auth_timeout=2,
     )
+
     return ssh
 
 
-def display_image(config, args, old_ssh, is_small_mode, is_one_time):
+def display_image(
+    config,
+    rasp_hostname,
+    key_file_path,
+    config_file,
+    is_small_mode,
+    is_one_time,
+    prev_ssh=None,
+):
     start = time.perf_counter()
 
-    if old_ssh is not None:
+    if prev_ssh is not None:
         # NOTE: fbi コマンドのプロセスが残るので強制終了させる
-        old_ssh.exec_command("sudo killall -9 fbi")
-        old_ssh.close()
+        prev_ssh.exec_command("sudo killall -9 fbi")
+        prev_ssh.close()
 
     ssh = ssh_connect(rasp_hostname, key_file_path)
 
@@ -83,12 +80,14 @@ def display_image(config, args, old_ssh, is_small_mode, is_one_time):
     )[0]
 
     logging.info("Start drawing.")
-    cmd = ["python3", CREATE_IMAGE, "-c", args["-c"]]
+    cmd = ["python3", CREATE_IMAGE, "-c", config_file]
     if is_small_mode:
         cmd.append("-s")
+
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     ssh_stdin.write(proc.communicate()[0])
     proc.wait()
+
     ssh_stdin.close()
     print(proc.communicate()[1].decode("utf-8"), file=sys.stderr)
 
@@ -130,7 +129,7 @@ def display_image(config, args, old_ssh, is_small_mode, is_one_time):
             - statistics.median(elapsed_list)
             - datetime.datetime.now().second
         )
-        if sleep_time < 0:
+        while sleep_time < 0:
             sleep_time += 60
 
         logging.info("sleep {sleep_time} sec...".format(sleep_time=sleep_time))
@@ -141,37 +140,48 @@ def display_image(config, args, old_ssh, is_small_mode, is_one_time):
 
 
 ######################################################################
-args = docopt(__doc__)
+if __name__ == "__main__":
+    args = docopt(__doc__)
 
-logger.init("panel.e-ink.weather", level=logging.INFO)
+    logger.init("panel.e-ink.weather", level=logging.INFO)
 
-is_one_time = args["-O"]
-is_small_mode = args["-s"]
-rasp_hostname = os.environ.get("RASP_HOSTNAME", args["-t"])
-key_file_path = os.environ.get(
-    "SSH_KEY",
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/key/panel.id_rsa",
-)
+    config_file = args["-c"]
+    is_one_time = args["-O"]
+    is_small_mode = args["-s"]
+    rasp_hostname = os.environ.get("RASP_HOSTNAME", args["-t"])
+    key_file_path = os.environ.get(
+        "SSH_KEY",
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        + "/key/panel.id_rsa",
+    )
 
-logging.info("Raspberry Pi hostname: %s" % (rasp_hostname))
+    logging.info("Raspberry Pi hostname: %s" % (rasp_hostname))
 
-config = load_config(args["-c"])
+    config = load_config(config_file)
 
-fail_count = 0
-ssh = None
-while True:
-    try:
-        ssh = display_image(config, args, ssh, is_small_mode, is_one_time)
-        fail_count = 0
+    fail_count = 0
+    prev_ssh = None
+    while True:
+        try:
+            perv_ssh = display_image(
+                config,
+                rasp_hostname,
+                key_file_path,
+                config_file,
+                is_small_mode,
+                is_one_time,
+                prev_ssh,
+            )
+            fail_count = 0
 
-        if is_one_time:
-            break
-    except:
-        fail_count += 1
-        if is_one_time or (fail_count >= NOTIFY_THRESHOLD):
-            notify_error(config, traceback.format_exc())
-            logging.error("エラーが続いたので終了します．")
-            raise
-        else:
-            time.sleep(10)
-            pass
+            if is_one_time:
+                break
+        except:
+            fail_count += 1
+            if is_one_time or (fail_count >= NOTIFY_THRESHOLD):
+                notify_error(config, traceback.format_exc())
+                logging.error("エラーが続いたので終了します．")
+                raise
+            else:
+                time.sleep(10)
+                pass

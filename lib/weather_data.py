@@ -60,7 +60,7 @@ def parse_table(content, index):
                 day_info_by_type[label] = list(
                     map(lambda c: parse_wind(c), td_content_list)
                 )
-            case _:
+            case _:  # pragma: no cover
                 pass
 
     day_info_list = []
@@ -176,45 +176,38 @@ def fetch_page(url):
 
 
 def get_wbgt_measured_today(wbgt_config):
-    try:
-        content = fetch_page(
-            wbgt_config["DATA"]["ENV_GO"]["URL"].replace(
-                "graph_ref_td.php", "day_list.php"
-            )
-        )
-        wbgt_col_list = content.xpath(
-            '//table[contains(@class, "asc_tbl_daylist")]//td[contains(@class, "asc_body")]'
-        )
+    content = fetch_page(
+        wbgt_config["DATA"]["ENV_GO"]["URL"].replace("graph_ref_td.php", "day_list.php")
+    )
+    wbgt_col_list = content.xpath(
+        '//table[contains(@class, "asc_tbl_daylist")]//td[contains(@class, "asc_body")]'
+    )
 
-        wbgt_list = [None]
-        for i, col in enumerate(wbgt_col_list):
-            if i % 12 != 9:
-                continue
-            # NOTE: 0, 3, ..., 21 時のデータが入るようにする．0 時はダミーで可．
-            val = col.text_content().strip()
-            if val == "---":
-                wbgt_list.append(None)
-            else:
-                wbgt_list.append(float(val))
-        return wbgt_list
-    except:
-        return [None] * 9
+    wbgt_list = [None]
+    for i, col in enumerate(wbgt_col_list):
+        if i % 12 != 9:
+            continue
+        # NOTE: 0, 3, ..., 21 時のデータが入るようにする．0 時はダミーで可．
+        val = col.text_content().strip()
+        if val == "---":
+            wbgt_list.append(None)
+        else:
+            wbgt_list.append(float(val))
+
+    return wbgt_list
 
 
 def get_wbgt(wbgt_config):
-    try:
-        # NOTE: 当日の過去時間のデータは表示されず，
-        # 別ページに実測値があるので，それを取ってくる．
-        wbgt_measured_today = get_wbgt_measured_today(wbgt_config)
+    # NOTE: 当日の過去時間のデータは表示されず，
+    # 別ページに実測値があるので，それを取ってくる．
+    wbgt_measured_today = get_wbgt_measured_today(wbgt_config)
 
-        content = fetch_page(wbgt_config["DATA"]["ENV_GO"]["URL"])
+    content = fetch_page(wbgt_config["DATA"]["ENV_GO"]["URL"])
 
-        return {
-            "current": parse_wbgt_current(content),
-            "daily": parse_wbgt_daily(content, wbgt_measured_today),
-        }
-    except:
-        return {"current": None, "daily": {"today": None, "tomorro": None}}
+    return {
+        "current": parse_wbgt_current(content),
+        "daily": parse_wbgt_daily(content, wbgt_measured_today),
+    }
 
 
 if __name__ == "__main__":

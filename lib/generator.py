@@ -10,6 +10,7 @@ from flask import (
     current_app,
     jsonify,
     stream_with_context,
+    g,
 )
 
 from multiprocessing.pool import ThreadPool
@@ -24,8 +25,7 @@ from multiprocessing import Queue
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
 
 from webapp_config import CREATE_IMAGE_PATH
-from flask_util import support_jsonp
-
+from flask_util import support_jsonp, gzipped
 
 blueprint = Blueprint("webapp", __name__, url_prefix="/")
 
@@ -135,8 +135,13 @@ def generate_image(config_file, is_small_mode, is_dummy_mode, is_test_mode):
 
 
 @blueprint.route("/weather_panel/api/image", methods=["POST"])
+@gzipped
 def api_image():
     global panel_data_map
+
+    # NOTE: @gzipped をつけた場合，キャッシュ用のヘッダを付与しているので，
+    # 無効化する．
+    g.disable_cache = True
 
     token = request.form.get("token", "")
 

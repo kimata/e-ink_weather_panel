@@ -32,7 +32,6 @@ import pathlib
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
 
 import logger
-import notify_slack
 
 from pil_util import get_font, draw_text, load_image, alpha_paste, convert_to_gray
 from weather_panel import create_weather_panel
@@ -41,21 +40,9 @@ from sensor_graph import create_sensor_graph
 from rain_cloud_panel import create_rain_cloud_panel
 from wbgt_panel import create_wbgt_panel
 from time_panel import create_time_panel
+from panel_util import notify_error
 
 from config import load_config
-
-
-def notify_error(config, message):
-    if "SLACK" not in config:
-        return
-
-    notify_slack.error(
-        config["SLACK"]["BOT_TOKEN"],
-        config["SLACK"]["ERROR"]["CHANNEL"]["NAME"],
-        config["SLACK"]["FROM"],
-        message,
-        config["SLACK"]["ERROR"]["INTERVAL_MIN"],
-    )
 
 
 def draw_wall(config, img):
@@ -97,12 +84,17 @@ def draw_panel(config, img, is_small_mode=False):
         if "arg" in panel:
             arg += panel["arg"]
         panel["task"] = pool.apply_async(panel["func"], arg)
+
     pool.close()
     pool.join()
 
     for panel in panel_list:
         result = panel["task"].get()
-        panel_img, elapsed = result
+        panel_img = result[0]
+        elapsed = result[1]
+
+        if len(result) > 2:
+            notify_error(config, result[2])
 
         if "SCALE" in config[panel["name"]]["PANEL"]:
             panel_img = panel_img.resize(
@@ -206,7 +198,6 @@ def create_image(
         )
         notify_error(config, traceback.format_exc())
 
-        print(traceback.format_exc(), file=sys.stderr)
         # NOTE: 222 は，使われてなさそうな値．
         # display_image.py と合わせる必要あり．
         return (img, 222)

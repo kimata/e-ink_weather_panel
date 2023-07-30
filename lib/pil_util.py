@@ -3,6 +3,7 @@
 import os
 import pathlib
 import PIL.ImageDraw
+import PIL.ImageFont
 import logging
 
 

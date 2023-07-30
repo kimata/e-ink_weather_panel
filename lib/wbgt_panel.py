@@ -20,6 +20,7 @@ import time
 import logging
 from weather_data import get_wbgt
 from pil_util import get_font, draw_text, load_image, alpha_paste
+import traceback
 
 
 def get_face_map(font_config):
@@ -31,9 +32,6 @@ def get_face_map(font_config):
 
 
 def draw_wbgt(img, wbgt, panel_config, icon_config, face_map):
-    if wbgt is None:
-        return img
-
     title = "暑さ指数:"
     wbgt_str = "{wbgt:.1f}".format(wbgt=wbgt)
 
@@ -86,7 +84,7 @@ def draw_wbgt(img, wbgt, panel_config, icon_config, face_map):
     return img
 
 
-def create_wbgt_panel_impl(panel_config, wbgt_config, font_config):
+def create_wbgt_panel_impl(panel_config, font_config):
     face_map = get_face_map(font_config)
 
     img = PIL.Image.new(
@@ -95,9 +93,9 @@ def create_wbgt_panel_impl(panel_config, wbgt_config, font_config):
         (255, 255, 255, 0),
     )
 
-    wbgt = get_wbgt(wbgt_config)["current"]
+    wbgt = get_wbgt(panel_config)["current"]
 
-    draw_wbgt(img, wbgt, panel_config, wbgt_config["ICON"], face_map)
+    draw_wbgt(img, wbgt, panel_config, panel_config["ICON"], face_map)
 
     return img
 
@@ -106,9 +104,26 @@ def create_wbgt_panel(config, is_side_by_side=True):
     logging.info("draw WBGT panel")
     start = time.perf_counter()
 
-    img = create_wbgt_panel_impl(config["WBGT"], config["WBGT"], config["FONT"])
+    panel_config = config["WBGT"]
+    font_config = config["FONT"]
 
-    return (img, time.perf_counter() - start)
+    try:
+        return (
+            create_wbgt_panel_impl(panel_config["WBGT"], font_config),
+            time.perf_counter() - start,
+        )
+    except:
+        error_message = traceback.format_exc()
+        return (
+            # NOTE: WBGT はアイコンだけオーバレイで表示しているので，エラーメッセージ画像は生成しない
+            PIL.Image.new(
+                "RGBA",
+                (panel_config["PANEL"]["WIDTH"], panel_config["PANEL"]["HEIGHT"]),
+                (255, 255, 255, 0),
+            ),
+            time.perf_counter() - start,
+            error_message,
+        )
 
 
 if __name__ == "__main__":

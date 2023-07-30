@@ -14,12 +14,12 @@ INFLUXDB:
     TOKEN: strBCB9segqccgxsR5Xe_9RnCqkBFYX9aOKvxVR4lr3iLEb7HXuGqsN40YU6DIb6TZm9bvKLW5OWQS7sB8AQbQ==
     BUCKET: sensor
 
-# WALL:
-#   IMAGE:
-#     - PATH: ../img/mascot.png
-#       BRIGHTNESS: 2
-#       OFFSET_X: 1540
-#       OFFSET_Y: 565
+WALL:
+    IMAGE:
+        - PATH: ../img/mascot.png
+          BRIGHTNESS: 2
+          OFFSET_X: 1540
+          OFFSET_Y: 565
 
 TIME:
     PANEL:
@@ -142,12 +142,18 @@ SENSOR:
               - NAME: rpi-cm4-sensor-6
                 TYPE: sensor.rasp
           LIGHT_ICON: on
+          AIRCON:
+              MEASURE: hems.sharp
+              HOST: リビングエアコン
         - LABEL: 和室
           TYPE: rasp
           HOST:
               - NAME: rasp-meter-2
                 TYPE: sensor.rasp
           LIGHT_ICON: on
+          AIRCON:
+              MEASURE: hems.sharp
+              HOST: 和室エアコン
         - LABEL: 洋室A
           HOST:
               - NAME: rpi-cm4-sensor-1
@@ -173,6 +179,10 @@ SENSOR:
               - NAME: rasp-meter-3
                 TYPE: sensor.rasp
           LIGHT_ICON: on
+          AIRCON:
+              MEASURE: hems.sharp
+              HOST: 書斎エアコン
+
     PARAM_LIST:
         - NAME: temp
           FORMAT: "{:.1f}"
@@ -207,6 +217,8 @@ SENSOR:
                 PATH: ../img/light-on.png
             "OFF":
                 PATH: ../img/light-off.png
+        AIRCON:
+            PATH: ../img/aircon.png
 
 RAIN_CLOUD:
     PANEL:
@@ -268,15 +280,16 @@ FONT:
 
         # EN_MEDIUM: FrutigerNeueLTW1G-Medium.otf
         # EN_BOLD: FrutigerNeueLTW1G-Bold.otf
-# SLACK:
-#   NAME: E-Ink Weather Panel
 
-#   BOT_TOKEN: xoxb-XXXXXXXXXXXX-XXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXX
+SLACK:
+    NAME: E-Ink Weather Panel
 
-#   FROM: E-Ink Weather Panel
+    BOT_TOKEN: xoxb-XXXXXXXXXXXX-XXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXX
 
-#   ERROR:
-#     CHANNEL:
-#       NAME: "#error"
-#       ID: XXXXXXXXXXX
-#     INTERVAL_MIN: 180
+    FROM: E-Ink Weather Panel
+
+    ERROR:
+        CHANNEL:
+            NAME: "#error"
+            ID: XXXXXXXXXXX
+        INTERVAL_MIN: 180
