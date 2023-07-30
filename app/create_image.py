@@ -44,6 +44,11 @@ from panel_util import notify_error
 
 from config import load_config
 
+# 一部の描画でエラー
+ERROR_CODE_MINOR = 220
+# 描画全体がエラー
+ERROR_CODE_MAJOR = 222
+
 
 def draw_wall(config, img):
     if "WALL" not in config:
@@ -88,6 +93,7 @@ def draw_panel(config, img, is_small_mode=False):
     pool.close()
     pool.join()
 
+    ret = 0
     for panel in panel_list:
         result = panel["task"].get()
         panel_img = result[0]
@@ -95,6 +101,7 @@ def draw_panel(config, img, is_small_mode=False):
 
         if len(result) > 2:
             notify_error(config, result[2])
+            ret = ERROR_CODE_MINOR
 
         if "SCALE" in config[panel["name"]]["PANEL"]:
             panel_img = panel_img.resize(
@@ -131,6 +138,8 @@ def draw_panel(config, img, is_small_mode=False):
             ),
         )
 
+    return ret
+
 
 def create_image(
     config_file, small_mode=False, dummy_mode=False, test_mode=False, debug_mode=False
@@ -165,9 +174,9 @@ def create_image(
         return (img, 0)
 
     try:
-        draw_panel(config, img, small_mode)
+        ret = draw_panel(config, img, small_mode)
 
-        return (img, 0)
+        return (img, ret)
     except:
         draw = PIL.ImageDraw.Draw(img)
         draw.rectangle(
@@ -198,9 +207,7 @@ def create_image(
         )
         notify_error(config, traceback.format_exc())
 
-        # NOTE: 222 は，使われてなさそうな値．
-        # display_image.py と合わせる必要あり．
-        return (img, 222)
+        return (img, ERROR_CODE_MAJOR)
 
 
 ######################################################################
@@ -224,5 +231,10 @@ if __name__ == "__main__":
 
     logging.info("Save {out_file}.".format(out_file=str(out_file)))
     convert_to_gray(img).save(out_file, "PNG")
+
+    if status == 0:
+        logging.info("create_image: Succeeded.")
+    else:
+        logging.warning("create_image: Something wrong..")
 
     exit(status)

@@ -885,11 +885,14 @@ def test_display_image_onetime(mocker):
 def test_display_image_error(mocker):
     import builtins
     import display_image
+    import create_image
     from config import load_config
 
     ssh_client_mock = mocker.MagicMock()
     subprocess_popen_mock = mocker.MagicMock()
-    type(subprocess_popen_mock).returncode = mocker.PropertyMock(return_value=222)
+    type(subprocess_popen_mock).returncode = mocker.PropertyMock(
+        return_value=create_image.ERROR_CODE_MAJOR
+    )
 
     mocker.patch("paramiko.RSAKey.from_private_key")
     mocker.patch("paramiko.SSHClient", new=ssh_client_mock)
