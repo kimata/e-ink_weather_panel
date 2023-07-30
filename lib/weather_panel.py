@@ -343,7 +343,7 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face):
             ),
         )
 
-    pos_y += icon_orig_height
+    pos_y += icon_orig_height + 5
 
     next_pos_y = draw_text_info(
         img,
