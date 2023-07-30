@@ -264,7 +264,7 @@ test-coverage:
 
 deploy:
     stage: deploy
-    needs: ["test-display", "test-display-small", "test-webapp"]
+    needs: ["test-display", "test-display-small", "test-webapp", "test-coverage"]
 
     image:
         name: bitnami/kubectl:latest
