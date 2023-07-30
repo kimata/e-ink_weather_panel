@@ -163,7 +163,7 @@ if __name__ == "__main__":
     prev_ssh = None
     while True:
         try:
-            perv_ssh = display_image(
+            prev_ssh = display_image(
                 config,
                 rasp_hostname,
                 key_file_path,
