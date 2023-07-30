@@ -69,7 +69,7 @@ def draw_panel_patiently(
 ):
     start = time.perf_counter()
 
-    error_text = None
+    error_message = None
     for i in range(5):
         try:
             return (
@@ -79,13 +79,14 @@ def draw_panel_patiently(
                 time.perf_counter() - start,
             )
         except:
-            error_text = traceback.format_exc()
-            logging.error(error_text)
+            error_message = traceback.format_exc()
+            logging.error(error_message)
             pass
         logging.warning("retry")
         time.sleep(5)
 
     return (
-        error_image(panel_config, font_config, error_text),
+        error_image(panel_config, font_config, error_message),
         time.perf_counter() - start,
+        error_message,
     )
