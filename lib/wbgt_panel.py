@@ -109,7 +109,7 @@ def create_wbgt_panel(config, is_side_by_side=True):
 
     try:
         return (
-            create_wbgt_panel_impl(panel_config["WBGT"], font_config),
+            create_wbgt_panel_impl(panel_config, font_config),
             time.perf_counter() - start,
         )
     except:
