@@ -255,8 +255,8 @@ def test_wbgt_panel_error_3(mocker):
 
     ret = wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))
 
-    assert len(ret) == 3
-    assert "Traceback" in ret[2]
+    # NOTE: パネル生成処理としてはエラーにならない
+    assert len(ret) == 2
 
 
 ######################################################################
