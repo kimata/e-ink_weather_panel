@@ -280,7 +280,7 @@ deploy:
 renovate:
     stage: renovate
     image:
-        name: registry.green-rabbit.net:5000/kimata/local_renovate:35
+        name: registry.green-rabbit.net:5000/kimata/local_renovate:36
 
         entrypoint: [""]
     script:
