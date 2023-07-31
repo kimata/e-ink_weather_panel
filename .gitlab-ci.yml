@@ -199,7 +199,7 @@ test-display:
 
     script:
         - docker pull ${CI_REGISTRY_IMAGE}
-        - docker run --rm --tty=true ${CI_REGISTRY_IMAGE} app/display_image.py -c config.yaml -t ${RASP_HOSTNAME} -O
+        - docker run --rm --tty=true ${CI_REGISTRY_IMAGE} app/display_image.py -c config.yaml -d ${RASP_HOSTNAME} -O
 
 test-display-small:
     stage: test
@@ -210,7 +210,7 @@ test-display-small:
 
     script:
         - docker pull ${CI_REGISTRY_IMAGE}
-        - docker run --rm --tty=true ${CI_REGISTRY_IMAGE} app/display_image.py -s -c config-small.yaml -t ${RASP_HOSTNAME} -O
+        - docker run --rm --tty=true ${CI_REGISTRY_IMAGE} app/display_image.py -s -c config-small.yaml -d ${RASP_HOSTNAME} -O
 
 test-webapp:
     stage: test
