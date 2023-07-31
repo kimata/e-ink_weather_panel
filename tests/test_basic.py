@@ -831,7 +831,8 @@ def test_display_image(mocker):
         "TEST",
         "TEST",
         CONFIG_FILE,
-        is_small_mode=True,
+        small_mode=True,
+        test_mode=True,
         is_one_time=False,
         prev_ssh=mocker.MagicMock(),
     )
@@ -875,14 +876,15 @@ def test_display_image_onetime(mocker):
         "TEST",
         "TEST",
         CONFIG_FILE,
-        is_small_mode=False,
+        small_mode=False,
+        test_mode=True,
         is_one_time=True,
     )
 
     check_notify_slack(None)
 
 
-def test_display_image_error(mocker):
+def test_display_image_error_major(mocker):
     import builtins
     import display_image
     import create_image
@@ -926,10 +928,127 @@ def test_display_image_error(mocker):
         "TEST",
         "TEST",
         CONFIG_FILE,
-        is_small_mode=True,
+        small_mode=True,
+        test_mode=True,
         is_one_time=False,
         prev_ssh=mocker.MagicMock(),
     )
 
     # NOTE: 本来，create_image の中で通知されているので，上記の胡椒注入方法では通知はされない
     check_notify_slack(None)
+
+    healthz_file = pathlib.Path(config["LIVENESS"]["FILE"])
+    assert not healthz_file.exists(), "存在してはいけない healthz が存在します"
+
+
+def test_display_image_error_minor(mocker):
+    import builtins
+    import display_image
+    import create_image
+    from config import load_config
+
+    ssh_client_mock = mocker.MagicMock()
+    subprocess_popen_mock = mocker.MagicMock()
+    type(subprocess_popen_mock).returncode = mocker.PropertyMock(
+        return_value=create_image.ERROR_CODE_MAJOR
+    )
+
+    mocker.patch("paramiko.RSAKey.from_private_key")
+    mocker.patch("paramiko.SSHClient", new=ssh_client_mock)
+    mocker.patch("subprocess.Popen", return_value=subprocess_popen_mock)
+
+    orig_open = builtins.open
+
+    def open_mock(
+        file,
+        mode="r",
+        buffering=-1,
+        encoding=None,
+        errors=None,
+        newline=None,
+        closefd=True,
+        opener=None,
+    ):
+        if file == "TEST":
+            return mocker.MagicMock()
+        else:
+            return orig_open(
+                file, mode, buffering, encoding, errors, newline, closefd, opener
+            )
+
+    mocker.patch("builtins.open", side_effect=open_mock)
+
+    config = load_config(CONFIG_SMALL_FILE)
+    config["PANEL"]["UPDATE"]["INTERVAL"] = 60
+    display_image.display_image(
+        config,
+        "TEST",
+        "TEST",
+        CONFIG_FILE,
+        small_mode=True,
+        test_mode=True,
+        is_one_time=False,
+        prev_ssh=mocker.MagicMock(),
+    )
+
+    # NOTE: 本来，create_image の中で通知されているので，上記の故障注入方法では通知はされない
+    check_notify_slack(None)
+
+    healthz_file = pathlib.Path(config["LIVENESS"]["FILE"])
+    assert healthz_file.exists(), "healthz が存在しません"
+
+
+def test_display_image_error_unknown(mocker):
+    import builtins
+    import display_image
+    from config import load_config
+
+    ssh_client_mock = mocker.MagicMock()
+    subprocess_popen_mock = mocker.MagicMock()
+    type(subprocess_popen_mock).returncode = mocker.PropertyMock(return_value=-1)
+
+    mocker.patch("paramiko.RSAKey.from_private_key")
+    mocker.patch("paramiko.SSHClient", new=ssh_client_mock)
+    mocker.patch("subprocess.Popen", return_value=subprocess_popen_mock)
+
+    orig_open = builtins.open
+
+    def open_mock(
+        file,
+        mode="r",
+        buffering=-1,
+        encoding=None,
+        errors=None,
+        newline=None,
+        closefd=True,
+        opener=None,
+    ):
+        if file == "TEST":
+            return mocker.MagicMock()
+        else:
+            return orig_open(
+                file, mode, buffering, encoding, errors, newline, closefd, opener
+            )
+
+    mocker.patch("builtins.open", side_effect=open_mock)
+
+    config = load_config(CONFIG_SMALL_FILE)
+    config["PANEL"]["UPDATE"]["INTERVAL"] = 60
+
+    with pytest.raises(SystemExit):
+        display_image.display_image(
+            config,
+            "TEST",
+            "TEST",
+            CONFIG_FILE,
+            small_mode=True,
+            test_mode=True,
+            is_one_time=False,
+            prev_ssh=mocker.MagicMock(),
+        )
+
+    # NOTE: 本来，create_image の中で通知されているので，上記の故障注入方法では通知はされない
+    check_notify_slack(None)
+
+    healthz_file = pathlib.Path(config["LIVENESS"]["FILE"])
+    assert not healthz_file.exists(), "存在してはいけない healthz が存在します"

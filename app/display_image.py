@@ -4,12 +4,13 @@
 電子ペーパ表示用の画像を表示します．
 
 Usage:
-  display_image.py [-c CONFIG] [-t HOSTNAME] [-s] [-O]
+  display_image.py [-c CONFIG] [-d HOSTNAME] [-s] [-O]
 
 Options:
   -c CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
   -s           : 小型ディスプレイモードで実行します．
-  -t HOSTNAME  : 表示を行う Raspberry Pi のホスト名．
+  -t           : テストモードで実行します．
+  -d HOSTNAME  : 表示を行う Raspberry Pi のホスト名．
   -O           : 1回のみ表示
 """
 
@@ -63,7 +64,8 @@ def display_image(
     rasp_hostname,
     key_file_path,
     config_file,
-    is_small_mode,
+    small_mode,
+    test_mode,
     is_one_time,
     prev_ssh=None,
 ):
@@ -82,8 +84,10 @@ def display_image(
 
     logging.info("Start drawing.")
     cmd = ["python3", CREATE_IMAGE, "-c", config_file]
-    if is_small_mode:
+    if small_mode:
         cmd.append("-s")
+    if test_mode:
+        cmd.append("-t")
 
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     ssh_stdin.write(proc.communicate()[0])
@@ -95,19 +99,21 @@ def display_image(
     # NOTE: -24 は create_image.py の異常時の終了コードに合わせる．
     if proc.returncode == 0:
         logging.info("Succeeded.")
-    elif (proc.returncode == create_image.ERROR_CODE_MAJOR) or (
-        proc.returncode == create_image.ERROR_CODE_MINOR
-    ):
+        pathlib.Path(config["LIVENESS"]["FILE"]).touch()
+    elif proc.returncode == create_image.ERROR_CODE_MAJOR:
         logging.warning(
             "Something is wrong. (code: {code})".format(code=proc.returncode)
         )
+    elif proc.returncode == create_image.ERROR_CODE_MINOR:
+        logging.warning(
+            "Something is wrong. (code: {code})".format(code=proc.returncode)
+        )
+        pathlib.Path(config["LIVENESS"]["FILE"]).touch()
     else:
         logging.error(
             "Failed to create image. (code: {code})".format(code=proc.returncode)
         )
         sys.exit(proc.returncode)
-
-    pathlib.Path(config["LIVENESS"]["FILE"]).touch()
 
     if is_one_time:
         # NOTE: 表示がされるまで待つ
@@ -152,8 +158,9 @@ if __name__ == "__main__":
 
     config_file = args["-c"]
     is_one_time = args["-O"]
-    is_small_mode = args["-s"]
-    rasp_hostname = os.environ.get("RASP_HOSTNAME", args["-t"])
+    small_mode = args["-s"]
+    rasp_hostname = os.environ.get("RASP_HOSTNAME", args["-d"])
+    test_mode = args["-t"]
     key_file_path = os.environ.get(
         "SSH_KEY",
         os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -173,7 +180,8 @@ if __name__ == "__main__":
                 rasp_hostname,
                 key_file_path,
                 config_file,
-                is_small_mode,
+                small_mode,
+                test_mode,
                 is_one_time,
                 prev_ssh,
             )
