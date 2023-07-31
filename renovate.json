@@ -9,5 +9,12 @@
     ],
     "automerge": true,
     "labels": ["renovate"],
-    "schedule": ["every weekend"]
+    "schedule": ["every weekend"],
+
+    "packageRules": [
+        {
+            "matchPaths": ["package.json"],
+            "excludePackageNames": ["local_playwright"]
+        }
+    ]
 }
