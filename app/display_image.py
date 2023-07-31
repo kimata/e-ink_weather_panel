@@ -4,7 +4,7 @@
 電子ペーパ表示用の画像を表示します．
 
 Usage:
-  display_image.py [-c CONFIG] [-d HOSTNAME] [-s] [-O]
+  display_image.py [-c CONFIG] [-d HOSTNAME] [-s] [-t] [-O]
 
 Options:
   -c CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
