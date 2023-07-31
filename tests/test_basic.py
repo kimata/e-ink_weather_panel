@@ -950,7 +950,7 @@ def test_display_image_error_minor(mocker):
     ssh_client_mock = mocker.MagicMock()
     subprocess_popen_mock = mocker.MagicMock()
     type(subprocess_popen_mock).returncode = mocker.PropertyMock(
-        return_value=create_image.ERROR_CODE_MAJOR
+        return_value=create_image.ERROR_CODE_MINOR
     )
 
     mocker.patch("paramiko.RSAKey.from_private_key")
