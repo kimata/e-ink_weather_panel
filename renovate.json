@@ -13,7 +13,7 @@
 
     "packageRules": [
         {
-            "matchPaths": ["package.json"],
+            "matchPaths": [".gitlab-ci.yml"],
             "excludePackageNames": ["local_playwright"]
         }
     ]
