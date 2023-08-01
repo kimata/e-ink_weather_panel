@@ -14,7 +14,7 @@
     "packageRules": [
         {
             "matchPaths": [".gitlab-ci.yml"],
-            "excludePackageNames": ["local_playwright"]
+            "excludePackageNames": ["registry.green-rabbit.net:5000/kimata/local_playwright"]
         }
     ]
 }
