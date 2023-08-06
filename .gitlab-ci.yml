@@ -288,7 +288,8 @@ renovate:
         # # NOTE: ついでにお掃除
         #  - docker rm $(docker ps -a --filter "status=exited" -q) || true
     rules:
-        - if: '$CI_COMMIT_BRANCH == "master"'
+        - if: '$CI_COMMIT_BRANCH != "master"'
+          when: never
         - if: '$CI_PIPELINE_SOURCE == "schedule"'
         - changes:
               - renovate.json
