@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os
-import sys
-import pathlib
-import pytest
-import re
 import datetime
+import os
+import pathlib
+import re
+import sys
 from unittest import mock
+
+import pytest
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "app"))
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
@@ -136,8 +137,7 @@ def gen_sensor_data(value=[30, 34, 25], valid=True):
 
     for i in range(len(value)):
         sensor_data["time"].append(
-            datetime.datetime.now(datetime.timezone.utc)
-            + datetime.timedelta(minutes=i - len(value))
+            datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=i - len(value))
         )
 
     return sensor_data
@@ -150,9 +150,9 @@ def check_notify_slack(message, index=-1):
         assert notify_slack.get_hist() == [], "正常なはずなのに，エラー通知がされています．"
     else:
         assert len(notify_slack.get_hist()) != 0, "異常が発生したはずなのに，エラー通知がされていません．"
-        assert (
-            notify_slack.get_hist()[index].find(message) != -1
-        ), "「{message}」が Slack で通知されていません．".format(message=message)
+        assert notify_slack.get_hist()[index].find(message) != -1, "「{message}」が Slack で通知されていません．".format(
+            message=message
+        )
 
 
 ######################################################################
@@ -165,8 +165,9 @@ def test_weather_panel():
 
 
 def test_weather_panel_dummy(mocker):
-    import weather_panel
     import copy
+
+    import weather_panel
 
     wather_info_day = [
         {
@@ -287,9 +288,7 @@ def test_create_power_graph(mocker):
 def test_create_power_graph_invalid(mocker):
     import power_graph
 
-    mocker.patch(
-        "power_graph.fetch_data", return_value=gen_sensor_data([1000, 500, 0], False)
-    )
+    mocker.patch("power_graph.fetch_data", return_value=gen_sensor_data([1000, 500, 0], False))
 
     power_graph.create_power_graph(load_config(CONFIG_FILE))
 
@@ -367,14 +366,13 @@ def test_create_sensor_graph_dummy(freezer, mocker):
 
 
 def test_create_sensor_graph_invalid(mocker):
-    import sensor_graph
     import inspect
+
+    import sensor_graph
 
     def dummy_data(db_config, measure, hostname, field, start, stop, last=False):
         dummy_data.i += 1
-        if (dummy_data.i % 4 == 0) or (
-            inspect.stack()[4].function == "get_aircon_power"
-        ):
+        if (dummy_data.i % 4 == 0) or (inspect.stack()[4].function == "get_aircon_power"):
             return gen_sensor_data(valid=False)
         else:
             return gen_sensor_data()
@@ -405,16 +403,14 @@ def test_create_rain_cloud_panel(mocker):
     rain_cloud_panel.WINDOW_SIZE_CACHE.unlink(missing_ok=True)
     rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))
 
-    rain_cloud_panel.create_rain_cloud_panel(
-        load_config(CONFIG_SMALL_FILE), is_side_by_side=False
-    )
+    rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_SMALL_FILE), is_side_by_side=False)
 
     check_notify_slack(None)
 
 
 def test_create_rain_cloud_panel_cache_and_error(mocker):
-    from selenium_util import xpath_exists
     import rain_cloud_panel
+    from selenium_util import xpath_exists
 
     # NOTE: 一回だけエラーにする
     def xpath_exists_mock(driver, xpath):
@@ -431,9 +427,7 @@ def test_create_rain_cloud_panel_cache_and_error(mocker):
     month_ago = datetime.datetime.now() + datetime.timedelta(days=-1)
     month_ago_epoch = month_ago.timestamp()
     rain_cloud_panel.WINDOW_SIZE_CACHE.touch()
-    os.utime(
-        str(rain_cloud_panel.WINDOW_SIZE_CACHE), (month_ago_epoch, month_ago_epoch)
-    )
+    os.utime(str(rain_cloud_panel.WINDOW_SIZE_CACHE), (month_ago_epoch, month_ago_epoch))
 
     rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))
 
@@ -444,8 +438,8 @@ def test_create_rain_cloud_panel_cache_and_error(mocker):
 
 
 def test_create_rain_cloud_panel_selenium_error(mocker):
-    from selenium_util import create_driver_impl
     import rain_cloud_panel
+    from selenium_util import create_driver_impl
 
     # NOTE: 一回だけエラーにする
     def create_driver_impl_mock(profile_name, data_path):
@@ -457,9 +451,7 @@ def test_create_rain_cloud_panel_selenium_error(mocker):
 
     create_driver_impl_mock.i = 0
 
-    mocker.patch(
-        "selenium_util.create_driver_impl", side_effect=create_driver_impl_mock
-    )
+    mocker.patch("selenium_util.create_driver_impl", side_effect=create_driver_impl_mock)
 
     rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_SMALL_FILE))
 
@@ -468,8 +460,8 @@ def test_create_rain_cloud_panel_selenium_error(mocker):
 
 
 def test_create_rain_cloud_panel_xpath_error(mocker):
-    from selenium_util import xpath_exists
     import rain_cloud_panel
+    from selenium_util import xpath_exists
 
     # NOTE: 一回だけエラーにする
     def xpath_exists_mock(driver, xpath):
@@ -538,8 +530,8 @@ def test_create_image_influx_error(mocker):
 
 
 def test_slack_error(mocker):
-    import slack_sdk
     import create_image
+    import slack_sdk
 
     mock_sensor_fetch_data(mocker)
 
@@ -567,9 +559,7 @@ def test_slack_error_with_image(mocker):
 
     fetch_cloud_image_mock.i = 0
 
-    mocker.patch(
-        "rain_cloud_panel.fetch_cloud_image", side_effect=fetch_cloud_image_mock
-    )
+    mocker.patch("rain_cloud_panel.fetch_cloud_image", side_effect=fetch_cloud_image_mock)
 
     rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))
 
@@ -604,10 +594,11 @@ def test_index_with_other_status(client, mocker):
 
 
 def test_api_run(client, mocker):
-    import inspect
-    import PIL.Image
-    import io
     import gzip
+    import inspect
+    import io
+
+    import PIL.Image
 
     def dummy_time():
         dummy_time.i += 1
@@ -705,9 +696,7 @@ def test_api_run_small(client, mocker):
     )
     assert response.status_code == 200
 
-    m = re.compile(
-        r"{callback}\((.*)\)".format(callback=CALLBACK), re.MULTILINE | re.DOTALL
-    ).match(response.text)
+    m = re.compile(r"{callback}\((.*)\)".format(callback=CALLBACK), re.MULTILINE | re.DOTALL).match(response.text)
 
     assert m is not None
 
@@ -795,6 +784,7 @@ def test_api_run_normal(mocker):
 
 def test_display_image(mocker):
     import builtins
+
     import display_image
     from config import load_config
 
@@ -818,9 +808,7 @@ def test_display_image(mocker):
         if file == "TEST":
             return mocker.MagicMock()
         else:
-            return orig_open(
-                file, mode, buffering, encoding, errors, newline, closefd, opener
-            )
+            return orig_open(file, mode, buffering, encoding, errors, newline, closefd, opener)
 
     mocker.patch("builtins.open", side_effect=open_mock)
 
@@ -842,6 +830,7 @@ def test_display_image(mocker):
 
 def test_display_image_onetime(mocker):
     import builtins
+
     import display_image
     from config import load_config
 
@@ -865,9 +854,7 @@ def test_display_image_onetime(mocker):
         if file == "TEST":
             return mocker.MagicMock()
         else:
-            return orig_open(
-                file, mode, buffering, encoding, errors, newline, closefd, opener
-            )
+            return orig_open(file, mode, buffering, encoding, errors, newline, closefd, opener)
 
     mocker.patch("builtins.open", side_effect=open_mock)
 
@@ -886,15 +873,14 @@ def test_display_image_onetime(mocker):
 
 def test_display_image_error_major(mocker):
     import builtins
-    import display_image
+
     import create_image
+    import display_image
     from config import load_config
 
     ssh_client_mock = mocker.MagicMock()
     subprocess_popen_mock = mocker.MagicMock()
-    type(subprocess_popen_mock).returncode = mocker.PropertyMock(
-        return_value=create_image.ERROR_CODE_MAJOR
-    )
+    type(subprocess_popen_mock).returncode = mocker.PropertyMock(return_value=create_image.ERROR_CODE_MAJOR)
 
     mocker.patch("paramiko.RSAKey.from_private_key")
     mocker.patch("paramiko.SSHClient", new=ssh_client_mock)
@@ -915,9 +901,7 @@ def test_display_image_error_major(mocker):
         if file == "TEST":
             return mocker.MagicMock()
         else:
-            return orig_open(
-                file, mode, buffering, encoding, errors, newline, closefd, opener
-            )
+            return orig_open(file, mode, buffering, encoding, errors, newline, closefd, opener)
 
     mocker.patch("builtins.open", side_effect=open_mock)
 
@@ -943,15 +927,14 @@ def test_display_image_error_major(mocker):
 
 def test_display_image_error_minor(mocker):
     import builtins
-    import display_image
+
     import create_image
+    import display_image
     from config import load_config
 
     ssh_client_mock = mocker.MagicMock()
     subprocess_popen_mock = mocker.MagicMock()
-    type(subprocess_popen_mock).returncode = mocker.PropertyMock(
-        return_value=create_image.ERROR_CODE_MINOR
-    )
+    type(subprocess_popen_mock).returncode = mocker.PropertyMock(return_value=create_image.ERROR_CODE_MINOR)
 
     mocker.patch("paramiko.RSAKey.from_private_key")
     mocker.patch("paramiko.SSHClient", new=ssh_client_mock)
@@ -972,9 +955,7 @@ def test_display_image_error_minor(mocker):
         if file == "TEST":
             return mocker.MagicMock()
         else:
-            return orig_open(
-                file, mode, buffering, encoding, errors, newline, closefd, opener
-            )
+            return orig_open(file, mode, buffering, encoding, errors, newline, closefd, opener)
 
     mocker.patch("builtins.open", side_effect=open_mock)
 
@@ -1000,6 +981,7 @@ def test_display_image_error_minor(mocker):
 
 def test_display_image_error_unknown(mocker):
     import builtins
+
     import display_image
     from config import load_config
 
@@ -1026,9 +1008,7 @@ def test_display_image_error_unknown(mocker):
         if file == "TEST":
             return mocker.MagicMock()
         else:
-            return orig_open(
-                file, mode, buffering, encoding, errors, newline, closefd, opener
-            )
+            return orig_open(file, mode, buffering, encoding, errors, newline, closefd, opener)
 
     mocker.patch("builtins.open", side_effect=open_mock)
 

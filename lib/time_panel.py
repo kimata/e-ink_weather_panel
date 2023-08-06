@@ -11,15 +11,15 @@ Options:
   -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
 """
 
-import PIL.Image
-import PIL.ImageDraw
-import PIL.ImageFont
-import PIL.ImageEnhance
-import time
 import datetime
 import logging
+import time
 
-from pil_util import get_font, text_size, draw_text
+import PIL.Image
+import PIL.ImageDraw
+import PIL.ImageEnhance
+import PIL.ImageFont
+from pil_util import draw_text, get_font, text_size
 
 
 def get_face_map(font_config):
@@ -32,8 +32,7 @@ def get_face_map(font_config):
 
 def draw_time(img, pos_x, pos_y, face):
     time_text = (
-        datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9), "JST"))
-        + datetime.timedelta(minutes=1)
+        datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9), "JST")) + datetime.timedelta(minutes=1)
     ).strftime("%H:%M")
 
     pos_y -= text_size(img, face["value"], time_text)[1]
@@ -82,10 +81,9 @@ def create_time_panel(config):
 
 
 if __name__ == "__main__":
-    from docopt import docopt
-
     import logger
     from config import load_config
+    from docopt import docopt
     from pil_util import convert_to_gray
 
     args = docopt(__doc__)

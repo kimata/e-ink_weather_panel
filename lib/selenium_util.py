@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import logging
-import time
-import inspect
-import pathlib
-import os
 import datetime
-import subprocess
+import inspect
+import logging
+import os
+import pathlib
 import random
+import subprocess
+import time
 
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
 DUMP_PATH = DATA_PATH / "debug"
@@ -93,9 +93,7 @@ def click_xpath(driver, xpath, wait=None, is_warn=True):
 
 
 def is_display(driver, xpath):
-    return (len(driver.find_elements(By.XPATH, xpath)) != 0) and (
-        driver.find_element(By.XPATH, xpath).is_displayed()
-    )
+    return (len(driver.find_elements(By.XPATH, xpath)) != 0) and (driver.find_element(By.XPATH, xpath).is_displayed())
 
 
 def random_sleep(sec):
@@ -127,12 +125,8 @@ def dump_page(driver, index, dump_path=DUMP_PATH):
 
     dump_path.mkdir(parents=True, exist_ok=True)
 
-    png_path = dump_path / (
-        "{name}_{index:02d}.{ext}".format(name=name, index=index, ext="png")
-    )
-    htm_path = dump_path / (
-        "{name}_{index:02d}.{ext}".format(name=name, index=index, ext="htm")
-    )
+    png_path = dump_path / ("{name}_{index:02d}.{ext}".format(name=name, index=index, ext="png"))
+    htm_path = dump_path / ("{name}_{index:02d}.{ext}".format(name=name, index=index, ext="htm"))
 
     driver.save_screenshot(str(png_path))
 
@@ -151,27 +145,19 @@ def clean_dump(dump_path=DUMP_PATH, keep_days=1):
     for item in dump_path.iterdir():
         if not item.is_file():
             continue
-        time_diff = datetime.datetime.now() - datetime.datetime.fromtimestamp(
-            item.stat().st_mtime
-        )
+        time_diff = datetime.datetime.now() - datetime.datetime.fromtimestamp(item.stat().st_mtime)
         if time_diff > time_threshold:
-            logging.info(
-                "remove {path} [{day:,} day(s) old].".format(
-                    path=item.absolute(), day=time_diff.days
-                )
-            )
+            logging.info("remove {path} [{day:,} day(s) old].".format(path=item.absolute(), day=time_diff.days))
             item.unlink(missing_ok=True)
 
 
 def get_memory_info(driver):
-    total = subprocess.Popen(
-        "smem -t -c pss -P chrome | tail -n 1", shell=True, stdout=subprocess.PIPE
-    ).communicate()[0]
+    total = subprocess.Popen("smem -t -c pss -P chrome | tail -n 1", shell=True, stdout=subprocess.PIPE).communicate()[
+        0
+    ]
     total = int(str(total, "utf-8").strip()) // 1024
 
-    js_heap = driver.execute_script(
-        "return window.performance.memory.usedJSHeapSize"
-    ) // (1024 * 1024)
+    js_heap = driver.execute_script("return window.performance.memory.usedJSHeapSize") // (1024 * 1024)
 
     return {"total": total, "js_heap": js_heap}
 

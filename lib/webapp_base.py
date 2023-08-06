@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from flask import send_from_directory, redirect, Blueprint
-
-from webapp_config import APP_URL_PREFIX, STATIC_FILE_PATH
+from flask import Blueprint, redirect, send_from_directory
 from flask_util import gzipped
+from webapp_config import APP_URL_PREFIX, STATIC_FILE_PATH
 
 blueprint = Blueprint("webapp-base", __name__, url_prefix=APP_URL_PREFIX)
 

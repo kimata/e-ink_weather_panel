@@ -11,17 +11,17 @@ Options:
   -d                : デバッグモードで動作します．
 """
 
-from docopt import docopt
-
-import pathlib
 import datetime
-import sys
 import logging
+import pathlib
+import sys
+
+from docopt import docopt
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
 
-from config import load_config
 import logger
+from config import load_config
 
 config = load_config()
 
@@ -51,15 +51,9 @@ if __name__ == "__main__":
         logging.warning("Not executed.")
         sys.exit(-1)
 
-    elapsed = datetime.datetime.now() - datetime.datetime.fromtimestamp(
-        liveness_file.stat().st_mtime
-    )
+    elapsed = datetime.datetime.now() - datetime.datetime.fromtimestamp(liveness_file.stat().st_mtime)
     if elapsed.total_seconds() > config["PANEL"]["UPDATE"]["INTERVAL"]:
-        logging.warning(
-            "Execution interval is too long. ({elapsed:,} sec)".format(
-                elapsed=elapsed.seconds
-            )
-        )
+        logging.warning("Execution interval is too long. ({elapsed:,} sec)".format(elapsed=elapsed.seconds))
         sys.exit(-1)
 
     logging.info("OK.")

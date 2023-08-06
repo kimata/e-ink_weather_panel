@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import coloredlogs
+import bz2
+import io
 import logging
 import logging.handlers
-import bz2
-import pathlib
 import os
-import io
+import pathlib
+
+import coloredlogs
 
 MAX_SIZE = 10 * 1024 * 1024
 ROTATE_COUNT = 10
@@ -15,9 +16,7 @@ LOG_FORMAT = "{name} %(asctime)s %(levelname)s [%(filename)s:%(lineno)s %(funcNa
 
 
 def log_formatter(name):
-    return logging.Formatter(
-        fmt=LOG_FORMAT.format(name=name), datefmt="%Y-%m-%d %H:%M:%S"
-    )
+    return logging.Formatter(fmt=LOG_FORMAT.format(name=name), datefmt="%Y-%m-%d %H:%M:%S")
 
 
 class GZipRotator:
@@ -31,9 +30,7 @@ class GZipRotator:
         os.remove(source)
 
 
-def init(
-    name, level=logging.WARNING, log_dir_path=None, log_queue=None, is_str_log=False
-):
+def init(name, level=logging.WARNING, log_dir_path=None, log_queue=None, is_str_log=False):
     if os.environ.get("NO_COLORED_LOGS", "false") != "true":
         coloredlogs.install(fmt=LOG_FORMAT.format(name=name), level=level)
 

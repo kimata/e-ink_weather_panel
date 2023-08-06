@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import logging
+import textwrap
 import time
 import traceback
-import logging
+
+import notify_slack
 import PIL.Image
 import PIL.ImageDraw
-import textwrap
-
-from pil_util import get_font, draw_text
-import notify_slack
+from pil_util import draw_text, get_font
 
 
 def notify_error(config, message):
@@ -73,9 +73,7 @@ def draw_panel_patiently(
     for i in range(5):
         try:
             return (
-                func(
-                    panel_config, font_config, slack_config, is_side_by_side, opt_config
-                ),
+                func(panel_config, font_config, slack_config, is_side_by_side, opt_config),
                 time.perf_counter() - start,
             )
         except:

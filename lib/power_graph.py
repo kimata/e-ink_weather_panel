@@ -11,38 +11,35 @@ Options:
   -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
 """
 
-import pathlib
-import os
 import datetime
-import time
 import io
+import logging
+import os
+import pathlib
+import time
+import traceback
+
 import matplotlib
 import PIL.Image
-import logging
-import traceback
 
 matplotlib.use("Agg")
 
-import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
 from pandas.plotting import register_matplotlib_converters
 
 register_matplotlib_converters()
-from matplotlib.font_manager import FontProperties
 from config import get_db_config
-from sensor_data import fetch_data
+from matplotlib.font_manager import FontProperties
 from panel_util import error_image
+from sensor_data import fetch_data
 
 IMAGE_DPI = 100.0
 
 
 def get_plot_font(config, font_type, size):
     return FontProperties(
-        fname=str(
-            pathlib.Path(
-                os.path.dirname(__file__), config["PATH"], config["MAP"][font_type]
-            )
-        ),
+        fname=str(pathlib.Path(os.path.dirname(__file__), config["PATH"], config["MAP"][font_type])),
         size=size,
     )
 
@@ -201,10 +198,9 @@ def create_power_graph(config):
 
 
 if __name__ == "__main__":
-    from docopt import docopt
-
     import logger
     from config import load_config
+    from docopt import docopt
     from pil_util import convert_to_gray
 
     args = docopt(__doc__)

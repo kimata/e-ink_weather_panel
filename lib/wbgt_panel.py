@@ -12,15 +12,16 @@ Options:
 """
 
 
+import logging
+import time
+import traceback
+
 import PIL.Image
 import PIL.ImageDraw
-import PIL.ImageFont
 import PIL.ImageEnhance
-import time
-import logging
+import PIL.ImageFont
+from pil_util import alpha_paste, draw_text, get_font, load_image
 from weather_data import get_wbgt
-from pil_util import get_font, draw_text, load_image, alpha_paste
-import traceback
 
 
 def get_face_map(font_config):
@@ -127,10 +128,9 @@ def create_wbgt_panel(config, is_side_by_side=True):
 
 
 if __name__ == "__main__":
-    from docopt import docopt
-
     import logger
     from config import load_config
+    from docopt import docopt
     from pil_util import convert_to_gray
 
     args = docopt(__doc__)

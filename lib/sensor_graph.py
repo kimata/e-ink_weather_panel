@@ -11,30 +11,29 @@ Options:
   -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
 """
 
-import pathlib
-import os
-import time
 import datetime
 import io
-import matplotlib
-import PIL.Image
 import logging
+import os
+import pathlib
+import time
 import traceback
 
+import matplotlib
+import PIL.Image
 
 matplotlib.use("Agg")
 
-import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 from pandas.plotting import register_matplotlib_converters
 
 register_matplotlib_converters()
-from matplotlib.font_manager import FontProperties
-
 from config import get_db_config
-from sensor_data import fetch_data
+from matplotlib.font_manager import FontProperties
 from panel_util import error_image
+from sensor_data import fetch_data
 
 IMAGE_DPI = 100.0
 EMPTY_VALUE = -100.0
@@ -43,11 +42,7 @@ AIRCON_WORK_THRESHOLD = 30
 
 
 def get_plot_font(config, font_type, size):
-    font_path = str(
-        pathlib.Path(
-            os.path.dirname(__file__), config["PATH"], config["MAP"][font_type]
-        )
-    )
+    font_path = str(pathlib.Path(os.path.dirname(__file__), config["PATH"], config["MAP"][font_type]))
 
     logging.info("Load font: {path}".format(path=font_path))
 
@@ -75,9 +70,7 @@ def plot_item(ax, title, unit, data, xbegin, ylabel, ylim, fmt, scale, small, fa
         text = "?"
     else:
         # NOTE: 下記の next の記法だとカバレッジが正しく取れない
-        text = fmt.format(
-            next((item for item in reversed(y) if item is not None), None)
-        )  # pragma: no cover
+        text = fmt.format(next((item for item in reversed(y) if item is not None), None))  # pragma: no cover
 
     if scale == "log":
         # NOTE: エラーが出ないように値を補正
@@ -191,9 +184,7 @@ def draw_aircon_icon(ax, power, icon_config):
 
 def draw_light_icon(ax, lux_list, icon_config):
     # NOTE: 下記の next の記法だとカバレッジが正しく取れない
-    lux = next(
-        (item for item in reversed(lux_list) if item is not None), None
-    )  # pragma: no cover
+    lux = next((item for item in reversed(lux_list) if item is not None), None)  # pragma: no cover
 
     now = datetime.datetime.now()
     # NOTE: 昼間はアイコンを描画しない
@@ -382,10 +373,9 @@ def create_sensor_graph(config):
 
 
 if __name__ == "__main__":
-    from docopt import docopt
-
     import logger
     from config import load_config
+    from docopt import docopt
     from pil_util import convert_to_gray
 
     args = docopt(__doc__)

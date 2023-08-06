@@ -1,31 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import uuid
-import sys
-from flask import (
-    Response,
-    Blueprint,
-    request,
-    current_app,
-    jsonify,
-    stream_with_context,
-    g,
-)
-
-from multiprocessing.pool import ThreadPool
+import io
+import pathlib
 import subprocess
+import sys
 import threading
 import time
-import pathlib
-import io
 import traceback
+import uuid
 from multiprocessing import Queue
+from multiprocessing.pool import ThreadPool
+
+from flask import Blueprint, Response, current_app, g, jsonify, request, stream_with_context
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
 
+from flask_util import gzipped, support_jsonp
 from webapp_config import CREATE_IMAGE_PATH
-from flask_util import support_jsonp, gzipped
 
 blueprint = Blueprint("webapp", __name__, url_prefix="/")
 
@@ -72,9 +64,7 @@ def generate_image_impl(config_file, is_small_mode, is_dummy_mode, is_test_mode,
     if is_test_mode:
         cmd.append("-t")
 
-    proc = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False
-    )
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
 
     # NOTE: stdout も同時に読まないと，proc.poll の結果が None から
     # 変化してくれないので注意．
@@ -192,11 +182,7 @@ def api_run():
     is_small_mode = mode == "small"
     is_test_mode = request.args.get("test", False, type=bool)
 
-    config_file = (
-        current_app.config["CONFIG_FILE_SMALL"]
-        if is_small_mode
-        else current_app.config["CONFIG_FILE_NORMAL"]
-    )
+    config_file = current_app.config["CONFIG_FILE_SMALL"] if is_small_mode else current_app.config["CONFIG_FILE_NORMAL"]
     is_dummy_mode = current_app.config["DUMMY_MODE"]
 
     try:

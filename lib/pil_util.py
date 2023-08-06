@@ -1,18 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import logging
 import os
 import pathlib
+
 import PIL.ImageDraw
 import PIL.ImageFont
-import logging
 
 
 def get_font(config, font_type, size):
-    font_path = str(
-        pathlib.Path(
-            os.path.dirname(__file__), config["PATH"], config["MAP"][font_type]
-        )
-    )
+    font_path = str(pathlib.Path(os.path.dirname(__file__), config["PATH"], config["MAP"][font_type]))
 
     logging.info("Load font: {path}".format(path=font_path))
 

@@ -11,10 +11,11 @@ Options:
 """
 
 
-from urllib import request
-from lxml import html
-from datetime import datetime
 import re
+from datetime import datetime
+from urllib import request
+
+from lxml import html
 
 
 def parse_weather(content):
@@ -36,9 +37,7 @@ def parse_table(content, index):
 
     table_xpath = '(//table[@class="yjw_table2"])[{index}]'.format(index=index)
     for row, label in enumerate(ROW_LIST):
-        td_content_list = content.xpath(
-            table_xpath + "//tr[{row}]/td".format(row=row + 1)
-        )
+        td_content_list = content.xpath(table_xpath + "//tr[{row}]/td".format(row=row + 1))
         td_content_list.pop(0)
         match row:
             case 0:
@@ -49,17 +48,11 @@ def parse_table(content, index):
                     )
                 )
             case 1:
-                day_info_by_type[label] = list(
-                    map(lambda c: parse_weather(c), td_content_list)
-                )
+                day_info_by_type[label] = list(map(lambda c: parse_weather(c), td_content_list))
             case 2 | 3 | 4:
-                day_info_by_type[label] = list(
-                    map(lambda c: int(c.text_content().strip()), td_content_list)
-                )
+                day_info_by_type[label] = list(map(lambda c: int(c.text_content().strip()), td_content_list))
             case 5:
-                day_info_by_type[label] = list(
-                    map(lambda c: parse_wind(c), td_content_list)
-                )
+                day_info_by_type[label] = list(map(lambda c: parse_wind(c), td_content_list))
             case _:  # pragma: no cover
                 pass
 
@@ -74,10 +67,9 @@ def parse_table(content, index):
 
 
 def parse_clothing(content, index):
-    table_xpath = (
-        '(//dl[contains(@class, "indexList_item-clothing")])[{index}]'
-        + "//dd/p[1]/@class"
-    ).format(index=index)
+    table_xpath = ('(//dl[contains(@class, "indexList_item-clothing")])[{index}]' + "//dd/p[1]/@class").format(
+        index=index
+    )
     index = int(content.xpath(table_xpath)[0].split("-", 1)[1])
 
     return index
@@ -113,9 +105,7 @@ def parse_wbgt_current(content):
 
 
 def parse_wbgt_daily(content, wbgt_measured_today):
-    wbgt_col_list = content.xpath(
-        '//table[contains(@class, "forecast3day")]//td[contains(@class, "day")]'
-    )
+    wbgt_col_list = content.xpath('//table[contains(@class, "forecast3day")]//td[contains(@class, "day")]')
 
     if len(wbgt_col_list) != 35:
         logging.warning("Invalid format")
@@ -176,12 +166,8 @@ def fetch_page(url):
 
 
 def get_wbgt_measured_today(wbgt_config):
-    content = fetch_page(
-        wbgt_config["DATA"]["ENV_GO"]["URL"].replace("graph_ref_td.php", "day_list.php")
-    )
-    wbgt_col_list = content.xpath(
-        '//table[contains(@class, "asc_tbl_daylist")]//td[contains(@class, "asc_body")]'
-    )
+    content = fetch_page(wbgt_config["DATA"]["ENV_GO"]["URL"].replace("graph_ref_td.php", "day_list.php"))
+    wbgt_col_list = content.xpath('//table[contains(@class, "asc_tbl_daylist")]//td[contains(@class, "asc_body")]')
 
     wbgt_list = [None]
     for i, col in enumerate(wbgt_col_list):
@@ -211,11 +197,11 @@ def get_wbgt(wbgt_config):
 
 
 if __name__ == "__main__":
-    from docopt import docopt
     import logging
 
     import logger
     from config import load_config
+    from docopt import docopt
 
     args = docopt(__doc__)
 

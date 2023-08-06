@@ -12,21 +12,21 @@ Options:
   -D           : ダミーモードで実行します．
 """
 
-from docopt import docopt
-
-import sys
+import atexit
 import logging
+import os
+import pathlib
+import sys
+
+from docopt import docopt
 from flask import Flask
 from flask_cors import CORS
-import pathlib
-import os
-import atexit
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
 
-import webapp_base
 import generator
 import logger
+import webapp_base
 
 
 def create_app(config_file_normal, config_file_small, dummy_mode=False):

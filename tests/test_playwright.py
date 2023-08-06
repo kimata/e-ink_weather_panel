@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from playwright.sync_api import expect
-import pathlib
 import base64
 import logging
+import pathlib
+
+from playwright.sync_api import expect
 
 APP_URL_TMPL = "http://{host}:{port}/weather_panel/"
 EVIDENCE_PATH = pathlib.Path(__file__).parent / "evidence"
@@ -20,9 +21,7 @@ def test_webapp(page, host, port):
 
     page.on(
         "console",
-        lambda message: logging.error(message)
-        if message.type == "error"
-        else logging.info(message),
+        lambda message: logging.error(message) if message.type == "error" else logging.info(message),
     )
 
     page.goto(app_url(host, port))

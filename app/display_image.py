@@ -14,25 +14,25 @@ Options:
   -O           : 1回のみ表示
 """
 
-from docopt import docopt
+import datetime
+import logging
+import os
+import pathlib
+import statistics
+import subprocess
+import sys
+import time
+import traceback
 
 import paramiko
-import datetime
-import subprocess
-import time
-import sys
-import os
-import logging
-import pathlib
-import traceback
-import statistics
+from docopt import docopt
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
 
+import create_image
 import logger
 from config import load_config
 from panel_util import notify_error
-import create_image
 
 NOTIFY_THRESHOLD = 2
 CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
@@ -101,18 +101,12 @@ def display_image(
         logging.info("Succeeded.")
         pathlib.Path(config["LIVENESS"]["FILE"]).touch()
     elif proc.returncode == create_image.ERROR_CODE_MAJOR:
-        logging.warning(
-            "Something is wrong. (code: {code})".format(code=proc.returncode)
-        )
+        logging.warning("Something is wrong. (code: {code})".format(code=proc.returncode))
     elif proc.returncode == create_image.ERROR_CODE_MINOR:
-        logging.warning(
-            "Something is wrong. (code: {code})".format(code=proc.returncode)
-        )
+        logging.warning("Something is wrong. (code: {code})".format(code=proc.returncode))
         pathlib.Path(config["LIVENESS"]["FILE"]).touch()
     else:
-        logging.error(
-            "Failed to create image. (code: {code})".format(code=proc.returncode)
-        )
+        logging.error("Failed to create image. (code: {code})".format(code=proc.returncode))
         sys.exit(proc.returncode)
 
     if is_one_time:
@@ -123,9 +117,7 @@ def display_image(
         if diff_sec > 30:
             diff_sec = 60 - diff_sec
         if diff_sec > 3:
-            logging.warning(
-                "Update timing gap is large: {diff_sec}".format(diff_sec=diff_sec)
-            )
+            logging.warning("Update timing gap is large: {diff_sec}".format(diff_sec=diff_sec))
 
         # NOTE: 更新されていることが直感的に理解しやすくなるように，
         # 更新完了タイミングを各分の 0 秒に合わせる
@@ -136,9 +128,7 @@ def display_image(
         elapsed_list.append(elapsed)
 
         sleep_time = (
-            config["PANEL"]["UPDATE"]["INTERVAL"]
-            - statistics.median(elapsed_list)
-            - datetime.datetime.now().second
+            config["PANEL"]["UPDATE"]["INTERVAL"] - statistics.median(elapsed_list) - datetime.datetime.now().second
         )
         while sleep_time < 0:
             sleep_time += 60
@@ -163,8 +153,7 @@ if __name__ == "__main__":
     test_mode = args["-t"]
     key_file_path = os.environ.get(
         "SSH_KEY",
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        + "/key/panel.id_rsa",
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/key/panel.id_rsa",
     )
 
     logging.info("Raspberry Pi hostname: %s" % (rasp_hostname))

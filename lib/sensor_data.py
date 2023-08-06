@@ -12,13 +12,13 @@ Options:
   -w WINDOWE   : 算出に使うウィンドウ [default: 5]
 """
 
-from docopt import docopt
+import datetime
+import logging
+import os
+import traceback
 
 import influxdb_client
-import datetime
-import os
-import logging
-import traceback
+from docopt import docopt
 
 # NOTE: データが欠損している期間も含めてデータを敷き詰めるため，
 # timedMovingAverage を使う．timedMovingAverage の計算の結果，データが後ろに
@@ -81,9 +81,7 @@ def fetch_data_impl(
             query += " |> last()"
 
         logging.debug("Flux query = {query}".format(query=query))
-        client = influxdb_client.InfluxDBClient(
-            url=db_config["url"], token=token, org=db_config["org"]
-        )
+        client = influxdb_client.InfluxDBClient(url=db_config["url"], token=token, org=db_config["org"])
         query_api = client.query_api()
 
         return query_api.query(query=query)
@@ -146,11 +144,7 @@ def fetch_data(
                 # NOTE: aggregateWindow(createEmpty: true) と fill(usePrevious: true) の組み合わせ
                 # だとタイミングによって，先頭に None が入る
                 if record.get_value() is None:
-                    logging.debug(
-                        "DELETE {datetime}".format(
-                            datetime=record.get_time() + localtime_offset
-                        )
-                    )
+                    logging.debug("DELETE {datetime}".format(datetime=record.get_time() + localtime_offset))
                     continue
 
                 data.append(record.get_value())
@@ -267,9 +261,7 @@ def get_equip_mode_period(
             type=measure,
             host=hostname,
             field=field,
-            threshold="[{list_str}]".format(
-                list_str=",".join(map(lambda v: "{:.1f}".format(v), threshold_list))
-            ),
+            threshold="[{list_str}]".format(list_str=",".join(map(lambda v: "{:.1f}".format(v), threshold_list))),
             start=start,
             stop=stop,
             every=every_min,
@@ -306,11 +298,7 @@ def get_equip_mode_period(
             # NOTE: aggregateWindow(createEmpty: true) と fill(usePrevious: true) の組み合わせ
             # だとタイミングによって，先頭に None が入る
             if record.get_value() is None:
-                logging.debug(
-                    "DELETE {datetime}".format(
-                        datetime=record.get_time() + localtime_offset
-                    )
-                )
+                logging.debug("DELETE {datetime}".format(datetime=record.get_time() + localtime_offset))
                 continue
 
             is_idle = True
@@ -362,9 +350,7 @@ def get_day_sum(config, measure, hostname, field, offset_day=0):
         window_min = 5
         now = datetime.datetime.now()
 
-        start = "-{offset_day}d{hour}h{minute}m".format(
-            offset_day=offset_day, hour=now.hour, minute=now.minute
-        )
+        start = "-{offset_day}d{hour}h{minute}m".format(offset_day=offset_day, hour=now.hour, minute=now.minute)
         stop = "-{offset_day}d".format(offset_day=offset_day)
 
         table_list = fetch_data_impl(
@@ -393,16 +379,14 @@ def get_day_sum(config, measure, hostname, field, offset_day=0):
 
 def dump_data(data):
     for i in range(len(data["time"])):
-        logging.info(
-            "{time}: {value}".format(time=data["time"][i], value=data["value"][i])
-        )
+        logging.info("{time}: {value}".format(time=data["time"][i], value=data["value"][i]))
 
 
 if __name__ == "__main__":
-    import logger
     import json
 
-    from config import load_config, get_db_config
+    import logger
+    from config import get_db_config, load_config
 
     args = docopt(__doc__)
 
@@ -421,9 +405,7 @@ if __name__ == "__main__":
 
     db_config = get_db_config(config)
 
-    dump_data(
-        fetch_data(db_config, measure, hostname, param, start, "now()", every, window)
-    )
+    dump_data(fetch_data(db_config, measure, hostname, param, start, "now()", every, window))
 
     start = "-{hour}h{minute}m".format(hour=now.hour, minute=now.minute)
 
@@ -457,9 +439,7 @@ if __name__ == "__main__":
     logging.info(
         "Valve on period = {range_list}".format(
             range_list=json.dumps(
-                get_equip_mode_period(
-                    db_config, measure, hostname, param, threshold, start, "now()"
-                ),
+                get_equip_mode_period(db_config, measure, hostname, param, threshold, start, "now()"),
                 indent=2,
                 default=str,
             )

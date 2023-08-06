@@ -11,30 +11,27 @@ Options:
   -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
 """
 
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-
-import PIL.Image
-import PIL.ImageDraw
-
-import io
-import os
-import cv2
-import pathlib
-import numpy as np
-import traceback
 import datetime
+import io
+import logging
+import os
+import pathlib
 import pickle
+import time
+import traceback
 from concurrent import futures
 
-import time
-import logging
-
-from selenium_util import create_driver, click_xpath
-from pil_util import get_font, draw_text, text_size, alpha_paste
-from panel_util import draw_panel_patiently
+import cv2
 import notify_slack
+import numpy as np
+import PIL.Image
+import PIL.ImageDraw
+from panel_util import draw_panel_patiently
+from pil_util import alpha_paste, draw_text, get_font, text_size
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium_util import click_xpath, create_driver
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
 WINDOW_SIZE_CACHE = DATA_PATH / "window_size.cache"
@@ -216,9 +213,7 @@ def change_window_size_impl(driver, url, width, height):
     )
     logging.info(
         "size is {status}".format(
-            status="OK"
-            if (element_size["width"], element_size["height"]) == (width, height)
-            else "unmatch"
+            status="OK" if (element_size["width"], element_size["height"]) == (width, height) else "unmatch"
         )
     )
 
@@ -231,8 +226,7 @@ def change_window_size(driver, url, width, height):
     try:
         if pathlib.Path(WINDOW_SIZE_CACHE).exists():
             if (
-                datetime.datetime.now()
-                - datetime.datetime.fromtimestamp(WINDOW_SIZE_CACHE.stat().st_mtime)
+                datetime.datetime.now() - datetime.datetime.fromtimestamp(WINDOW_SIZE_CACHE.stat().st_mtime)
             ).total_seconds() < CACHE_EXPIRE_HOUR * 60 * 60:
                 with open(WINDOW_SIZE_CACHE, "rb") as f:
                     window_size_map = pickle.load(f)
@@ -243,11 +237,7 @@ def change_window_size(driver, url, width, height):
         pass
 
     if width in window_size_map and height in window_size_map[width]:
-        logging.info(
-            "change {width} x {height} based on a cache".format(
-                width=width, height=height
-            )
-        )
+        logging.info("change {width} x {height} based on a cache".format(width=width, height=height))
         driver.set_window_size(
             window_size_map[width][height]["width"],
             window_size_map[width][height]["height"],
@@ -276,9 +266,7 @@ def fetch_cloud_image(driver, url, width, height, is_future=False):
 
     shape_cloud_display(driver, wait, width, height, is_future)
 
-    wait.until(
-        lambda driver: driver.execute_script("return document.readyState") == "complete"
-    )
+    wait.until(lambda driver: driver.execute_script("return document.readyState") == "complete")
     time.sleep(0.5)
 
     png_data = driver.find_element(By.XPATH, CLOUD_IMAGE_XPATH).screenshot_as_png
@@ -291,9 +279,7 @@ def fetch_cloud_image(driver, url, width, height, is_future=False):
 def retouch_cloud_image(png_data, panel_config):
     logging.info("retouch image")
 
-    img_rgb = cv2.imdecode(
-        np.asarray(bytearray(png_data), dtype=np.uint8), cv2.IMREAD_COLOR
-    )
+    img_rgb = cv2.imdecode(np.asarray(bytearray(png_data), dtype=np.uint8), cv2.IMREAD_COLOR)
 
     img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2HSV_FULL).astype(np.float32)
     bar = np.zeros((1, len(RAINFALL_INTENSITY_LEVEL), 3))
@@ -306,10 +292,7 @@ def retouch_cloud_image(png_data, panel_config):
             80,
             255
             * (
-                (
-                    float(len(RAINFALL_INTENSITY_LEVEL) - i)
-                    / len(RAINFALL_INTENSITY_LEVEL)
-                )
+                (float(len(RAINFALL_INTENSITY_LEVEL) - i) / len(RAINFALL_INTENSITY_LEVEL))
                 ** panel_config["LEGEND"]["GAMMA"]
             ),
         )
@@ -418,9 +401,7 @@ def draw_caption(img, title, face_map):
 
 def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config):
     logging.info(
-        "create rain cloud image ({type})".format(
-            type="future" if sub_panel_config["is_future"] else "current"
-        )
+        "create rain cloud image ({type})".format(type="future" if sub_panel_config["is_future"] else "current")
     )
     # NOTE: 同時アクセスを避ける
     if sub_panel_config["is_future"]:
@@ -452,9 +433,7 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
                 slack_config["NAME"],
                 traceback.format_exc(),
                 {
-                    "data": PIL.Image.open(
-                        (io.BytesIO(driver.get_screenshot_as_png()))
-                    ),
+                    "data": PIL.Image.open((io.BytesIO(driver.get_screenshot_as_png()))),
                     "text": "エラー時のスクリーンショット",
                 },
                 interval_min=slack_config["ERROR"]["INTERVAL_MIN"],
@@ -523,9 +502,7 @@ def draw_legend(img, bar, panel_config, face_map):
         else:
             text = "mm/h"
             pos_x = PADDING + bar_size * (i + 1) - unit_overlap
-            pos_y = (
-                PADDING - 5 + text_size(img, face_map["legend"], "0")[1] - unit_height
-            )
+            pos_y = PADDING - 5 + text_size(img, face_map["legend"], "0")[1] - unit_height
             align = "left"
             font = face_map["legend_unit"]
 
@@ -550,9 +527,7 @@ def draw_legend(img, bar, panel_config, face_map):
     return img
 
 
-def create_rain_cloud_panel_impl(
-    panel_config, font_config, slack_config, is_side_by_side, opt_config=None
-):
+def create_rain_cloud_panel_impl(panel_config, font_config, slack_config, is_side_by_side, opt_config=None):
     if is_side_by_side:
         sub_width = int(panel_config["PANEL"]["WIDTH"] / 2)
         sub_height = panel_config["PANEL"]["HEIGHT"]
@@ -626,10 +601,9 @@ def create_rain_cloud_panel(config, is_side_by_side=True):
 
 
 if __name__ == "__main__":
-    from docopt import docopt
-
     import logger
     from config import load_config
+    from docopt import docopt
     from pil_util import convert_to_gray
 
     args = docopt(__doc__)

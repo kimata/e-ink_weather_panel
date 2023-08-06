@@ -15,34 +15,32 @@ Options:
   -d           : デバッグモード．
 """
 
-from docopt import docopt
-
-import sys
-import PIL.Image
-import time
 import logging
-import os
 
 # from concurrent import futures
 import multiprocessing
-import traceback
-import textwrap
+import os
 import pathlib
+import sys
+import textwrap
+import time
+import traceback
+
+import PIL.Image
+from docopt import docopt
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
 
 import logger
-
-from pil_util import get_font, draw_text, load_image, alpha_paste, convert_to_gray
-from weather_panel import create_weather_panel
-from power_graph import create_power_graph
-from sensor_graph import create_sensor_graph
-from rain_cloud_panel import create_rain_cloud_panel
-from wbgt_panel import create_wbgt_panel
-from time_panel import create_time_panel
-from panel_util import notify_error
-
 from config import load_config
+from panel_util import notify_error
+from pil_util import alpha_paste, convert_to_gray, draw_text, get_font, load_image
+from power_graph import create_power_graph
+from rain_cloud_panel import create_rain_cloud_panel
+from sensor_graph import create_sensor_graph
+from time_panel import create_time_panel
+from wbgt_panel import create_wbgt_panel
+from weather_panel import create_weather_panel
 
 # 一部の描画でエラー
 ERROR_CODE_MINOR = 220
@@ -114,14 +112,8 @@ def draw_panel(config, img, is_small_mode=False):
 
         panel_map[panel["name"]] = panel_img
 
-        logging.info(
-            "elapsed time: {name} panel = {time:.3f} sec".format(
-                name=panel["name"], time=elapsed
-            )
-        )
-    logging.info(
-        "total elapsed time: {time:.3f} sec".format(time=time.perf_counter() - start)
-    )
+        logging.info("elapsed time: {name} panel = {time:.3f} sec".format(name=panel["name"], time=elapsed))
+    logging.info("total elapsed time: {time:.3f} sec".format(time=time.perf_counter() - start))
 
     draw_wall(config, img)
 
@@ -141,9 +133,7 @@ def draw_panel(config, img, is_small_mode=False):
     return ret
 
 
-def create_image(
-    config_file, small_mode=False, dummy_mode=False, test_mode=False, debug_mode=False
-):
+def create_image(config_file, small_mode=False, dummy_mode=False, test_mode=False, debug_mode=False):
     if debug_mode:  # pragma: no cover
         log_level = logging.DEBUG
     else:
@@ -220,9 +210,7 @@ if __name__ == "__main__":
     test_mode = args["-t"]
     debug_mode = args["-d"]
 
-    img, status = create_image(
-        config_file, small_mode, dummy_mode, test_mode, debug_mode
-    )
+    img, status = create_image(config_file, small_mode, dummy_mode, test_mode, debug_mode)
 
     if args["-o"] is not None:
         out_file = args["-o"]

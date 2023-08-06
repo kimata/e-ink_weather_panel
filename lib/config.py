@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import pathlib
-import yaml
 import os
+import pathlib
+
+import yaml
 
 CONFIG_PATH = "config.yaml"
 

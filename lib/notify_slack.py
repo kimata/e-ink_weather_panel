@@ -1,21 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import slack_sdk
-
+import datetime
 import json
 import logging
 import os
 import pathlib
-import datetime
 import tempfile
 import threading
 
+import slack_sdk
+
 notify_hist = []
 
-ERROR_NOTIFY_FOOTPRINT = (
-    pathlib.Path(os.path.dirname(__file__)).parent / "data" / "error_notify"
-)
+ERROR_NOTIFY_FOOTPRINT = pathlib.Path(os.path.dirname(__file__)).parent / "data" / "error_notify"
 
 SIMPLE_TMPL = """\
 [
@@ -42,9 +40,7 @@ interval_check_lock = threading.Lock()
 def format_simple(title, message):
     return {
         "text": message,
-        "json": json.loads(
-            SIMPLE_TMPL.format(title=title, message=json.dumps(message))
-        ),
+        "json": json.loads(SIMPLE_TMPL.format(title=title, message=json.dumps(message))),
     }
 
 
@@ -84,10 +80,7 @@ def check_interval(interval_min):
         if (
             ERROR_NOTIFY_FOOTPRINT.exists()
             and (
-                datetime.datetime.now()
-                - datetime.datetime.fromtimestamp(
-                    ERROR_NOTIFY_FOOTPRINT.stat().st_mtime
-                )
+                datetime.datetime.now() - datetime.datetime.fromtimestamp(ERROR_NOTIFY_FOOTPRINT.stat().st_mtime)
             ).seconds
             < interval_min * 60
         ):
@@ -110,9 +103,7 @@ def error_img(token, ch_id, title, img, text):
         img.save(img_path)
 
         try:
-            client.files_upload_v2(
-                channel=ch_id, file=img_path, title=title, initial_comment=text
-            )
+            client.files_upload_v2(channel=ch_id, file=img_path, title=title, initial_comment=text)
         except slack_sdk.errors.SlackApiError as e:
             logging.warning(e.response["error"])
 
@@ -183,8 +174,9 @@ def get_hist():
 
 if __name__ == "__main__":
     import os
-    import logger
     import sys
+
+    import logger
     import PIL.Image
     from config import load_config
 
@@ -202,11 +194,7 @@ if __name__ == "__main__":
 
     client = slack_sdk.WebClient(token=config["SLACK"]["BOT_TOKEN"])
 
-    img = PIL.Image.open(
-        pathlib.Path(
-            os.path.dirname(__file__), config["WEATHER"]["ICON"]["THERMO"]["PATH"]
-        )
-    )
+    img = PIL.Image.open(pathlib.Path(os.path.dirname(__file__), config["WEATHER"]["ICON"]["THERMO"]["PATH"]))
     if "INFO" in config["SLACK"]:
         info(
             config["SLACK"]["BOT_TOKEN"],

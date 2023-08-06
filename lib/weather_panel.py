@@ -11,25 +11,25 @@ Options:
   -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
 """
 
-from cv2 import dnn_superres
-from urllib import request
-from urllib.parse import urlparse
-import PIL.Image
-import PIL.ImageDraw
-import PIL.ImageFont
-import PIL.ImageEnhance
-import cv2
 import datetime
 import locale
+import logging
 import math
-import numpy as np
 import os
 import pathlib
-import logging
+from urllib import request
+from urllib.parse import urlparse
 
-from pil_util import get_font, text_size, draw_text, load_image, alpha_paste
-from weather_data import get_weather_yahoo, get_clothing_yahoo, get_wbgt
+import cv2
+import numpy as np
+import PIL.Image
+import PIL.ImageDraw
+import PIL.ImageEnhance
+import PIL.ImageFont
+from cv2 import dnn_superres
 from panel_util import draw_panel_patiently
+from pil_util import alpha_paste, draw_text, get_font, load_image, text_size
+from weather_data import get_clothing_yahoo, get_wbgt, get_weather_yahoo
 
 # NOTE: 天気アイコンの周りにアイコンサイズの何倍の空きを確保するか
 ICON_MARGIN = 0.48
@@ -96,9 +96,7 @@ def get_image(weather_info):
     tone = 32
     gamma = 0.24
 
-    file_bytes = np.asarray(
-        bytearray(request.urlopen(weather_info["icon_url"]).read()), dtype=np.uint8
-    )
+    file_bytes = np.asarray(bytearray(request.urlopen(weather_info["icon_url"]).read()), dtype=np.uint8)
     img = cv2.imdecode(file_bytes, cv2.IMREAD_UNCHANGED)
 
     # NOTE: 透過部分を白で塗りつぶす
@@ -109,9 +107,7 @@ def get_image(weather_info):
         pathlib.Path(
             os.path.dirname(__file__),
             "img",
-            weather_info["text"]
-            + "_"
-            + os.path.basename(urlparse(weather_info["icon_url"]).path),
+            weather_info["text"] + "_" + os.path.basename(urlparse(weather_info["icon_url"]).path),
         )
     )
 
@@ -153,11 +149,7 @@ def get_image(weather_info):
 # NOTE: 体感温度の計算 (Gregorczuk, 1972)
 def calc_misnar_formula(temp, humi, wind):
     a = 1.76 + 1.4 * (wind**0.75)
-    return (
-        37
-        - (37 - temp) / (0.68 - 0.0014 * humi + 1 / a)
-        - 0.29 * temp * (1 - humi / 100)
-    )
+    return 37 - (37 - temp) / (0.68 - 0.0014 * humi + 1 / a) - 0.29 * temp * (1 - humi / 100)
 
 
 def draw_weather(img, weather, overlay, pos_x, pos_y, icon_margin, face_map):
@@ -200,23 +192,13 @@ def draw_text_info(
             img,
             icon,
             (
-                int(
-                    pos_x
-                    - icon.size[0] / 2
-                    - text_size(img, face["value"], "0")[0] * 0.5
-                ),
-                int(
-                    pos_y + (text_size(img, face["value"], "0")[1] - icon.size[1]) / 2.0
-                ),
+                int(pos_x - icon.size[0] / 2 - text_size(img, face["value"], "0")[0] * 0.5),
+                int(pos_y + (text_size(img, face["value"], "0")[1] - icon.size[1]) / 2.0),
             ),
         )
 
     value_pos_x = pos_x + text_size(img, face["value"], "10")[0]
-    unit_pos_y = (
-        pos_y
-        + text_size(img, face["value"], "0")[1]
-        - text_size(img, face["unit"], "℃")[1]
-    )
+    unit_pos_y = pos_y + text_size(img, face["value"], "0")[1] - text_size(img, face["unit"], "℃")[1]
     unit_pos_x = value_pos_x + 5
 
     draw_text(
@@ -336,9 +318,7 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face):
             img,
             arrow_icon,
             (
-                int(
-                    pos_x + text_size(img, face["value"], "10")[0] - arrow_icon.size[0]
-                ),
+                int(pos_x + text_size(img, face["value"], "10")[0] - arrow_icon.size[0]),
                 int(pos_y + (icon_orig_height - icon["arrow"].size[1]) / 2.0),
             ),
         )
@@ -386,9 +366,7 @@ def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
 
     cur_hour = datetime.datetime.now().hour
     if is_today and (
-        (hour <= cur_hour and cur_hour < hour + 3)
-        or (cur_hour < 6 and hour == 6)
-        or (21 <= cur_hour and hour == 21)
+        (hour <= cur_hour and cur_hour < hour + 3) or (cur_hour < 6 and hour == 6) or (21 <= cur_hour and hour == 21)
     ):
         draw = PIL.ImageDraw.Draw(img)
         circle_height = text_size(img, face["value"], str(21))[1]
@@ -435,12 +413,8 @@ def draw_weather_info(
     icon,
     face_map,
 ):
-    next_pos_y = (
-        pos_y + text_size(img, face_map["hour"]["value"], "0")[1] * HOUR_CIRCLE_RATIO
-    )
-    next_pos_x, next_pos_y = draw_weather(
-        img, info["weather"], overlay, pos_x, next_pos_y, ICON_MARGIN, face_map
-    )
+    next_pos_y = pos_y + text_size(img, face_map["hour"]["value"], "0")[1] * HOUR_CIRCLE_RATIO
+    next_pos_x, next_pos_y = draw_weather(img, info["weather"], overlay, pos_x, next_pos_y, ICON_MARGIN, face_map)
     draw_hour(
         img,
         info["hour"],
@@ -493,9 +467,7 @@ def draw_weather_info(
             face_map["temp_sens"],
         )
     else:
-        temp_sens = calc_misnar_formula(
-            info["temp"], info["humi"], info["wind"]["speed"]
-        )
+        temp_sens = calc_misnar_formula(info["temp"], info["humi"], info["wind"]["speed"])
         next_pos_y = draw_temp(
             img,
             int(temp_sens),
@@ -509,9 +481,7 @@ def draw_weather_info(
     return pos_x + (next_pos_x - pos_x) * 1.0
 
 
-def draw_day_weather(
-    img, info, wbgt_info, is_today, pos_x, pos_y, overlay, icon, face_map
-):
+def draw_day_weather(img, info, wbgt_info, is_today, pos_x, pos_y, overlay, icon, face_map):
     next_pos_x = pos_x
     for hour_index in range(2, 8):
         next_pos_x = draw_weather_info(
@@ -575,9 +545,7 @@ def draw_clothing(img, pos_x, pos_y, clothing_info, icon):
 
     icon_height_max = 0
     for i in range(1, 6):
-        icon_height_max = max(
-            icon["clothing-full-{index}".format(index=i)].size[1], icon_height_max
-        )
+        icon_height_max = max(icon["clothing-full-{index}".format(index=i)].size[1], icon_height_max)
 
     full_icon = icon["clothing-full-{index}".format(index=icon_index)]
     half_icon = icon["clothing-half-{index}".format(index=icon_index)]
@@ -620,9 +588,7 @@ def draw_panel_weather_day(
         img,
         pos_x,
         pos_y,
-        datetime.datetime.now()
-        if is_today
-        else datetime.datetime.now() + datetime.timedelta(days=1),
+        datetime.datetime.now() if is_today else datetime.datetime.now() + datetime.timedelta(days=1),
         face_map,
     )
     draw_clothing(img, text_pos_x, next_pos_y + 50, clothing_info, icon)
@@ -705,9 +671,7 @@ def draw_panel_weather(
     )
 
 
-def create_weather_panel_impl(
-    panel_config, font_config, slack_config, is_side_by_side, wbgt_config
-):
+def create_weather_panel_impl(panel_config, font_config, slack_config, is_side_by_side, wbgt_config):
     weather_info = get_weather_yahoo(panel_config["DATA"]["YAHOO"])
     clothing_info = get_clothing_yahoo(panel_config["DATA"]["YAHOO"])
     wbgt_info = get_wbgt(wbgt_config)
@@ -745,10 +709,9 @@ def create_weather_panel(config, is_side_by_side=True):
 
 
 if __name__ == "__main__":
-    from docopt import docopt
-
     import logger
     from config import load_config
+    from docopt import docopt
     from pil_util import convert_to_gray
 
     args = docopt(__doc__)
@@ -758,9 +721,7 @@ if __name__ == "__main__":
     config = load_config(args["-c"])
     out_file = args["-o"]
 
-    img = create_weather_panel_impl(
-        config["WEATHER"], config["FONT"], None, True, config["WBGT"]
-    )
+    img = create_weather_panel_impl(config["WEATHER"], config["FONT"], None, True, config["WBGT"])
 
     logging.info("Save {out_file}.".format(out_file=out_file))
     convert_to_gray(img).save(out_file, "PNG")
