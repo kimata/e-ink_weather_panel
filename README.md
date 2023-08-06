@@ -33,12 +33,7 @@ https://weather-panel-webapp-demo.kubernetes.green-rabbit.net/weather_panel/
 ### ライブラリのインストール
 
 ```bash:bash
-apt-get install -y python3 python3-pip
-apt-get install -y python3-yaml python3-coloredlogs
-apt-get install -y python3-pil python3-matplotlib python3-pandas
-apt-get install -y python3-opencv
-apt-get install -y python3-paramiko
-pip3 install -r requirements.txt
+poetry install
 ```
 
 後述する Docker を使った方法で実行する場合は，インストール不要です．
