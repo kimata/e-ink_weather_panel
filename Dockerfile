@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     python3 \
     python3-dev \
+    locales \
     libgl1-mesa-glx \
  && apt-get clean \
  && rm -rf /va/rlib/apt/lists/*
@@ -23,10 +24,15 @@ RUN poetry config virtualenvs.create false \
  && poetry install \
  && rm -rf ~/.cache
 
+RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
+ && sed -i -e 's/# ja_JP.UTF-8 UTF-8/ja_JP.UTF-8 UTF-8/' /etc/locale.gen \
+ && dpkg-reconfigure --frontend=noninteractive locales
+
 FROM python:3.11.4-slim-bookworm as prod
 
 COPY --from=build /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=build /usr/lib/x86_64-linux-gnu/libGL.so.1 /usr/lib/x86_64-linux-gnu/libGL.so.1
+COPY --from=build /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu
+COPY --from=build /usr/lib/locale/locale-archive /usr/lib/locale/locale-archive
 
 WORKDIR /opt/e-ink_weather
 
