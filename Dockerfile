@@ -1,34 +1,33 @@
-FROM ubuntu:22.04
+FROM python:3.11.4-bookworm as build
 
 ENV TZ=Asia/Tokyo
-ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
+    gcc \
     curl \
+    python3 \
+    python3-dev \
  && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
-RUN curl -O  https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-
-RUN apt-get update && apt-get install -y \
-    language-pack-ja \
-    python3 python3-pip python3-poetry \
-    python3-docopt \
-    python3-yaml python3-coloredlogs \
-    python3-pil python3-matplotlib python3-pandas \
-    python3-opencv \
-    python3-paramiko \
-    python3-flask python3-flask-cors \
-    ./google-chrome-stable_current_amd64.deb \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /va/rlib/apt/lists/*
 
 WORKDIR /opt/e-ink_weather
 
-COPY requirements.txt .
-RUN pip3 install -r requirements.txt
+RUN curl -sSL https://install.python-poetry.org | python3 -
+ENV PATH="/root/.local/bin:$PATH"
 
-RUN locale-gen en_US.UTF-8
+COPY pyproject.toml .
+
+RUN poetry config virtualenvs.create false \
+ && poetry install \
+ && rm -rf ~/.cache
+
+FROM python:3.11.4-slim-bookworm as prod
+
+COPY --from=build /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+
+WORKDIR /opt/e-ink_weather
+
+ENV PATH="/root/.local/bin:$PATH"
 
 RUN useradd -m ubuntu
 
