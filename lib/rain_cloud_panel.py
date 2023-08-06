@@ -580,7 +580,7 @@ def create_rain_cloud_panel_impl(panel_config, font_config, slack_config, is_sid
             )
             # NOTE: タイミングをずらさないと，初回起動時 user-data-dir を生成しようとした
             # タイミングでエラーになる．
-            time.sleep(1)
+            time.sleep(3)
 
     for i, sub_panel_config in enumerate(SUB_PANEL_CONFIG_LIST):
         sub_img, bar = task_list[i].result()
