@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     python3 \
     python3-dev \
+    libgl1-mesa-glx \ # OpenCV で必要
  && apt-get clean \
  && rm -rf /va/rlib/apt/lists/*
 
