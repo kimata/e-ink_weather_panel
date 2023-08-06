@@ -26,6 +26,7 @@ RUN poetry config virtualenvs.create false \
 FROM python:3.11.4-slim-bookworm as prod
 
 COPY --from=build /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=build /usr/lib/x86_64-linux-gnu/libGL.so.1 /usr/lib/x86_64-linux-gnu/libGL.so.1
 
 WORKDIR /opt/e-ink_weather
 
