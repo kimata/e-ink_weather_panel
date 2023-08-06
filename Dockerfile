@@ -3,13 +3,13 @@ FROM python:3.11.4-bookworm as build
 ENV TZ=Asia/Tokyo
 
 # NOTE: libgl1-mesa-glx は OpenCV に必要
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install --assume-yes --no-install-recommends --no-install-suggests \
     gcc \
     curl \
     python3 \
     python3-dev \
     locales \
-    libgl1-mesa-glx \
+    chromium \
  && apt-get clean \
  && rm -rf /va/rlib/apt/lists/*
 
