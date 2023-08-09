@@ -364,7 +364,7 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face):
 def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
     face = face_map["hour"]
 
-    cur_hour = datetime.datetime.now().hour
+    cur_hour = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9))).hour
     if is_today and (
         (hour <= cur_hour and cur_hour < hour + 3) or (cur_hour < 6 and hour == 6) or (21 <= cur_hour and hour == 21)
     ):
@@ -584,13 +584,11 @@ def draw_panel_weather_day(
     icon,
     face_map,
 ):
-    next_pos_x, next_pos_y, text_pos_x = draw_date(
-        img,
-        pos_x,
-        pos_y,
-        datetime.datetime.now() if is_today else datetime.datetime.now() + datetime.timedelta(days=1),
-        face_map,
-    )
+    date = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9)))
+    if not is_today:
+        date += datetime.timedelta(days=1)
+
+    next_pos_x, next_pos_y, text_pos_x = draw_date(img, pos_x, pos_y, date, face_map)
     draw_clothing(img, text_pos_x, next_pos_y + 50, clothing_info, icon)
     draw_day_weather(
         img,
