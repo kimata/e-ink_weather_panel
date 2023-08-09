@@ -27,7 +27,7 @@ build-image:
     stage: build-image
     needs: ["build-react"]
 
-    image: registry.green-rabbit.net:5000/kimata/ubuntu-docker-build:latest
+    image: registry.green-rabbit.net:5000/kimata/local-ubuntu:230807A
 
     script:
         # - docker rm $(docker ps -a --filter 'status=exited' -q) || true
