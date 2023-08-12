@@ -30,15 +30,8 @@ def error_image(panel_config, font_config, message):
     img = PIL.Image.new(
         "RGBA",
         (panel_config["PANEL"]["WIDTH"], panel_config["PANEL"]["HEIGHT"]),
-        (255, 255, 255, 255),
+        (255, 255, 255, 100),
     )
-
-    draw = PIL.ImageDraw.Draw(img)
-    draw.rectangle(
-        (0, 0, panel_config["PANEL"]["WIDTH"], panel_config["PANEL"]["HEIGHT"]),
-        fill=(255, 255, 255, 255),
-    )
-
     draw_text(
         img,
         "ERROR",
