@@ -12,7 +12,7 @@ RUN curl -O  https://dl.google.com/linux/direct/google-chrome-stable_current_amd
 
 RUN apt-get update && apt-get install -y \
     language-pack-ja \
-    python3 \
+    python3 python3-pip \
     ./google-chrome-stable_current_amd64.deb \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
