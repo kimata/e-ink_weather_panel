@@ -1,6 +1,4 @@
-FROM python:3.11.4-bookworm as build
-
-ENV TZ=Asia/Tokyo
+FROM ubuntu:22.04 as build
 
 # NOTE: libgl1-mesa-glx は OpenCV に必要
 RUN apt-get update && apt-get install --assume-yes --no-install-recommends --no-install-suggests \
@@ -28,7 +26,14 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
  && sed -i -e 's/# ja_JP.UTF-8 UTF-8/ja_JP.UTF-8 UTF-8/' /etc/locale.gen \
  && dpkg-reconfigure --frontend=noninteractive locales
 
-FROM python:3.11.4-slim-bookworm as prod
+FROM ubuntu:22.04 as prod
+
+ENV TZ=Asia/Tokyo
+
+RUN apt-get update && apt-get install --assume-yes --no-install-recommends --no-install-suggests \
+    python3 \
+ && apt-get clean \
+ && rm -rf /va/rlib/apt/lists/*
 
 COPY --from=build /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=build /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu
