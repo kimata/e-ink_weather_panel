@@ -113,7 +113,9 @@ test-rain-cloud-panel:
         - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
         - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
     artifacts:
+        when: always
         paths:
+            - data/log/webdriver.log
             - ${CI_JOB_NAME}.png
 
 # サンプル設定ファイルで，問題なく動くかチェック
