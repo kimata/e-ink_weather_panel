@@ -30,12 +30,15 @@ pytest-html = "^3.2.0"
 pytest-mock = "^3.11.1"
 pytest-playwright = "^0.3.3"
 
-
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--verbose --cov=app --cov=flask --capture=sys --cov-report=html --html=tests/evidence/index.htm --self-contained-html"
+addopts = "--verbose --cov=app --cov=lib --capture=sys --cov-report=html --html=tests/evidence/index.htm --self-contained-html"
 testpaths = [
     "tests",
+]
+filterwarnings = [
+    "ignore:The hookimpl CovPlugin.pytest_configure_node uses",
+    "ignore:The hookimpl CovPlugin.pytest_testnodedown uses"
 ]
 
 [tool.coverage.run]
