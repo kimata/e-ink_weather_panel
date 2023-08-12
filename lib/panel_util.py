@@ -41,13 +41,18 @@ def error_image(panel_config, font_config, message):
         "#666",
     )
 
-    draw_text(
-        img,
-        "\n".join(textwrap.wrap(message, 90)),
-        (20, 150),
-        get_font(font_config, "EN_MEDIUM", 30),
-        "left" "#666",
-    )
+    next_pos_y = 110
+    for line in textwrap.wrap(message, 90):
+        next_pos_y = (
+            draw_text(
+                img,
+                line,
+                (20, next_pos_y),
+                get_font(font_config, "EN_MEDIUM", 30),
+                "left" "#666",
+            )[1]
+            + 10
+        )
 
     return img
 
