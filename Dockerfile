@@ -27,6 +27,10 @@ RUN useradd -m ubuntu
 RUN mkdir -p data
 RUN chown -R ubuntu:ubuntu .
 
+RUN poetry config virtualenvs.create false \
+ && poetry install \
+ && rm -rf ~/.cache
+
 USER ubuntu
 
 COPY font /usr/share/fonts/
