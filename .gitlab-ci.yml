@@ -109,13 +109,13 @@ test-rain-cloud-panel:
         - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop --time 5 $id; docker rm $id; done || true
         - docker pull ${CI_REGISTRY_IMAGE}
         - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} lib/rain_cloud_panel.py -c config.yaml -o ${CI_JOB_NAME}.png
+        - sleep 2600
         - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
         - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
         - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
     artifacts:
         when: always
         paths:
-            - data/log/webdriver.log
             - ${CI_JOB_NAME}.png
 
 # サンプル設定ファイルで，問題なく動くかチェック
