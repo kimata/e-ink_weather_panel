@@ -18,6 +18,8 @@ from webapp import create_app
 
 CONFIG_FILE = "config.example.yaml"
 CONFIG_SMALL_FILE = "config-small.example.yaml"
+EVIDENCE_DIR = pathlib.Path(__file__).parent / "evidence" / "image"
+EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -137,7 +139,8 @@ def gen_sensor_data(value=[30, 34, 25], valid=True):
 
     for i in range(len(value)):
         sensor_data["time"].append(
-            datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=i - len(value))
+            datetime.datetime.now(datetime.timezone.utc)
+            + datetime.timedelta(minutes=i - len(value))
         )
 
     return sensor_data
@@ -150,21 +153,33 @@ def check_notify_slack(message, index=-1):
         assert notify_slack.get_hist() == [], "正常なはずなのに，エラー通知がされています．"
     else:
         assert len(notify_slack.get_hist()) != 0, "異常が発生したはずなのに，エラー通知がされていません．"
-        assert notify_slack.get_hist()[index].find(message) != -1, "「{message}」が Slack で通知されていません．".format(
-            message=message
-        )
+        assert (
+            notify_slack.get_hist()[index].find(message) != -1
+        ), "「{message}」が Slack で通知されていません．".format(message=message)
+
+
+def save_image(request, img, index=None):
+    from pil_util import convert_to_gray
+
+    if index is None:
+        file_name = "{test_name}.png".format(test_name=request.node.name)
+    else:
+        file_name = "{test_name}_{index}.png".format(test_name=request.node.name, index=index)
+
+    convert_to_gray(img).save(EVIDENCE_DIR / file_name, "PNG")
 
 
 ######################################################################
-def test_weather_panel():
+def test_weather_panel(request):
     import weather_panel
 
-    weather_panel.create_weather_panel(load_config(CONFIG_FILE), False)
+    img = weather_panel.create_weather_panel(load_config(CONFIG_SMALL_FILE), False)[0]
+    save_image(request, img)
 
     check_notify_slack(None)
 
 
-def test_weather_panel_dummy(mocker):
+def test_weather_panel_dummy(mocker, request):
     import copy
 
     import weather_panel
@@ -202,70 +217,77 @@ def test_weather_panel_dummy(mocker):
     mocker.patch("weather_panel.get_clothing_yahoo", return_value=clothing_info)
     mocker.patch("weather_panel.get_wbgt", return_value=wbgt_info)
 
-    weather_panel.create_weather_panel(load_config(CONFIG_FILE))
+    img = weather_panel.create_weather_panel(load_config(CONFIG_FILE))[0]
+    save_image(request, img)
 
     check_notify_slack(None)
 
 
 ######################################################################
-def test_wbgt_panel():
+def test_wbgt_panel(request):
     import wbgt_panel
 
-    wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))
+    img = wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))[0]
+    save_image(request, img)
 
     check_notify_slack(None)
 
 
-def test_wbgt_panel_var(mocker):
+def test_wbgt_panel_var(mocker, request):
     import wbgt_panel
 
     wbgt_info = gen_wbgt_info()
     for i in range(20, 34, 2):
         wbgt_info["current"] = i
         mocker.patch("wbgt_panel.get_wbgt", return_value=wbgt_info)
-        wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))
+        img = wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))[0]
+        save_image(request, img, i)
 
     check_notify_slack(None)
 
 
-def test_wbgt_panel_error_1(mocker):
+def test_wbgt_panel_error_1(mocker, request):
     import wbgt_panel
 
     mocker.patch("weather_data.fetch_page", side_effect=RuntimeError())
     ret = wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))
+    save_image(request, ret[0])
 
     assert len(ret) == 3
     assert "Traceback" in ret[2]
 
 
-def test_wbgt_panel_error_2(mocker):
+def test_wbgt_panel_error_2(mocker, request):
     import wbgt_panel
 
     mocker.patch("lxml.html.HtmlElement.xpath", return_value=[])
 
     ret = wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))
+    save_image(request, ret[0])
 
     assert len(ret) == 3
     assert "Traceback" in ret[2]
 
 
-def test_wbgt_panel_error_3(mocker):
+def test_wbgt_panel_error_3(mocker, request):
     import wbgt_panel
 
     mock = mocker.patch("weather_data.datetime")
     mock.date.day.return_value = 100
 
     ret = wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))
+    save_image(request, ret[0])
 
     # NOTE: パネル生成処理としてはエラーにならない
     assert len(ret) == 2
 
 
 ######################################################################
-def test_time_panel():
+def test_time_panel(request):
     import time_panel
 
-    time_panel.create_time_panel(load_config(CONFIG_FILE))
+    img = time_panel.create_time_panel(load_config(CONFIG_FILE))[0]
+    save_image(request, img)
 
     check_notify_slack(None)
 
@@ -397,18 +419,20 @@ def test_create_sensor_graph_influx_error(mocker):
 
 
 ######################################################################
-def test_create_rain_cloud_panel(mocker):
+def test_create_rain_cloud_panel(mocker, request):
     import rain_cloud_panel
 
     rain_cloud_panel.WINDOW_SIZE_CACHE.unlink(missing_ok=True)
-    rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))
+    img = rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))[0]
+    save_image(request, img, 0)
 
     rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_SMALL_FILE), is_side_by_side=False)
+    save_image(request, img, 1)
 
     check_notify_slack(None)
 
 
-def test_create_rain_cloud_panel_cache_and_error(mocker):
+def test_create_rain_cloud_panel_cache_and_error(mocker, request):
     import rain_cloud_panel
     from selenium_util import xpath_exists
 
@@ -429,15 +453,17 @@ def test_create_rain_cloud_panel_cache_and_error(mocker):
     rain_cloud_panel.WINDOW_SIZE_CACHE.touch()
     os.utime(str(rain_cloud_panel.WINDOW_SIZE_CACHE), (month_ago_epoch, month_ago_epoch))
 
-    rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))
+    img = rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))[0]
+    save_image(request, img, 0)
 
     mocker.patch("pickle.load", side_effect=RuntimeError())
-    rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))
+    img = rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))[0]
+    save_image(request, img, 1)
 
     check_notify_slack("Traceback")
 
 
-def test_create_rain_cloud_panel_selenium_error(mocker):
+def test_create_rain_cloud_panel_selenium_error(mocker, request):
     import rain_cloud_panel
     from selenium_util import create_driver_impl
 
@@ -453,13 +479,14 @@ def test_create_rain_cloud_panel_selenium_error(mocker):
 
     mocker.patch("selenium_util.create_driver_impl", side_effect=create_driver_impl_mock)
 
-    rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_SMALL_FILE))
+    img = rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_SMALL_FILE))[0]
+    save_image(request, img)
 
     # NOTE: CONFIG_SMALL_FILE には Slack の設定がないので，None になる
     check_notify_slack(None)
 
 
-def test_create_rain_cloud_panel_xpath_error(mocker):
+def test_create_rain_cloud_panel_xpath_error(mocker, request):
     import rain_cloud_panel
     from selenium_util import xpath_exists
 
@@ -475,7 +502,8 @@ def test_create_rain_cloud_panel_xpath_error(mocker):
 
     mocker.patch("selenium_util.xpath_exists", side_effect=xpath_exists_mock)
 
-    rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_SMALL_FILE))
+    img = rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_SMALL_FILE))[0]
+    save_image(request, img)
 
     # NOTE: CONFIG_SMALL_FILE には Slack の設定がないので，None になる
     check_notify_slack(None)
@@ -546,7 +574,7 @@ def test_slack_error(mocker):
     check_notify_slack("Traceback")
 
 
-def test_slack_error_with_image(mocker):
+def test_slack_error_with_image(mocker, request):
     import rain_cloud_panel
     from rain_cloud_panel import fetch_cloud_image
 
@@ -561,7 +589,8 @@ def test_slack_error_with_image(mocker):
 
     mocker.patch("rain_cloud_panel.fetch_cloud_image", side_effect=fetch_cloud_image_mock)
 
-    rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))
+    img = rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))[0]
+    save_image(request, img)
 
     check_notify_slack("Traceback")
 
@@ -696,7 +725,9 @@ def test_api_run_small(client, mocker):
     )
     assert response.status_code == 200
 
-    m = re.compile(r"{callback}\((.*)\)".format(callback=CALLBACK), re.MULTILINE | re.DOTALL).match(response.text)
+    m = re.compile(r"{callback}\((.*)\)".format(callback=CALLBACK), re.MULTILINE | re.DOTALL).match(
+        response.text
+    )
 
     assert m is not None
 
@@ -880,7 +911,9 @@ def test_display_image_error_major(mocker):
 
     ssh_client_mock = mocker.MagicMock()
     subprocess_popen_mock = mocker.MagicMock()
-    type(subprocess_popen_mock).returncode = mocker.PropertyMock(return_value=create_image.ERROR_CODE_MAJOR)
+    type(subprocess_popen_mock).returncode = mocker.PropertyMock(
+        return_value=create_image.ERROR_CODE_MAJOR
+    )
 
     mocker.patch("paramiko.RSAKey.from_private_key")
     mocker.patch("paramiko.SSHClient", new=ssh_client_mock)
@@ -934,7 +967,9 @@ def test_display_image_error_minor(mocker):
 
     ssh_client_mock = mocker.MagicMock()
     subprocess_popen_mock = mocker.MagicMock()
-    type(subprocess_popen_mock).returncode = mocker.PropertyMock(return_value=create_image.ERROR_CODE_MINOR)
+    type(subprocess_popen_mock).returncode = mocker.PropertyMock(
+        return_value=create_image.ERROR_CODE_MINOR
+    )
 
     mocker.patch("paramiko.RSAKey.from_private_key")
     mocker.patch("paramiko.SSHClient", new=ssh_client_mock)
