@@ -27,6 +27,8 @@ RUN useradd -m ubuntu
 RUN mkdir -p data
 RUN chown -R ubuntu:ubuntu .
 
+COPY pyproject.toml .
+
 RUN poetry config virtualenvs.create false \
  && poetry install \
  && rm -rf ~/.cache
