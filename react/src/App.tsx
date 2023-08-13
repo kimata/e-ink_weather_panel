@@ -111,14 +111,28 @@ function App() {
     const GenerateButton = () => {
         if (finish) {
             return (
-                <button className="btn btn-primary w-auto" type="button" data-testid="button" onClick={generate}>
+                <button
+                    className="btn btn-primary w-auto"
+                    type="button"
+                    data-testid="button"
+                    onClick={generate}
+                >
                     生成
                 </button>
             );
         } else {
             return (
-                <button className="btn btn-primary w-auto" type="button" disabled>
-                    <span className="spinner-border spinner-border-sm me-3" role="status" aria-hidden="true" />
+                <button
+                    className="btn btn-primary w-auto"
+                    type="button"
+                    data-testid="button"
+                    disabled
+                >
+                    <span
+                        className="spinner-border spinner-border-sm me-3"
+                        role="status"
+                        aria-hidden="true"
+                    />
                     生成中...
                 </button>
             );
@@ -205,7 +219,10 @@ function App() {
                 <div className="row mt-2">
                     <div className="p-1 float-end text-end">
                         <p className="display-6">
-                            <a href="https://github.com/kimata/e-ink_weather_panel/" className="text-secondary">
+                            <a
+                                href="https://github.com/kimata/e-ink_weather_panel/"
+                                className="text-secondary"
+                            >
                                 <Github />
                             </a>
                         </p>

@@ -21,13 +21,16 @@ def test_webapp(page, host, port):
 
     page.on(
         "console",
-        lambda message: logging.error(message) if message.type == "error" else logging.info(message),
+        lambda message: logging.error(message)
+        if message.type == "error"
+        else logging.info(message),
     )
 
     page.goto(app_url(host, port))
 
     page.get_by_test_id("button").click()
-    assert page.get_by_test_id("button").is_enabled(timeout=180000)
+    expect(page.get_by_test_id("button")).to_contain_text("生成中")
+    expect(page.get_by_test_id("button")).to_be_enabled(timeout=180000)
 
     log_list = page.locator('//div[contains(@data-testid,"log")]/small/span')
     for i in range(log_list.count()):
