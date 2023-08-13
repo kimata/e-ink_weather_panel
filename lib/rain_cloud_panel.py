@@ -410,15 +410,16 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
         time.sleep(2)
 
     driver = create_driver()
-    change_window_size(
-        driver,
-        panel_config["DATA"]["JMA"]["URL"],
-        sub_panel_config["width"],
-        sub_panel_config["height"],
-    )
 
     img = None
     try:
+        change_window_size(
+            driver,
+            panel_config["DATA"]["JMA"]["URL"],
+            sub_panel_config["width"],
+            sub_panel_config["height"],
+        )
+
         img = fetch_cloud_image(
             driver,
             panel_config["DATA"]["JMA"]["URL"],
