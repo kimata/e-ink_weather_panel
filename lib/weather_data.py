@@ -126,7 +126,7 @@ def parse_wbgt_daily(content, wbgt_measured_today):
             else:
                 wbgt_list.append(int(val))
 
-    if wbgt_list[0] == datetime.now().date().day:
+    if wbgt_list[0] == datetime.now(datetime.timezone(datetime.timedelta(hours=+9))).date().day:
         # NOTE: 日付が入っている部分は誤解を招くので None で上書きしておく
         wbgt_list[0] = None
         wbgt_list[9] = None
