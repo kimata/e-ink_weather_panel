@@ -28,9 +28,7 @@ USER ubuntu
 
 # NOTE: apt にあるものはバージョンが古いので直接入れる
 RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH="/home/ubuntu/.local/bin:$PATH"
-
-RUN mkdir -p data
+ENV PATH="/root/.local/bin:$PATH"
 
 COPY pyproject.toml .
 
@@ -39,5 +37,7 @@ RUN poetry config virtualenvs.create false \
  && rm -rf ~/.cache
 
 COPY font /usr/share/fonts/
+
+RUN mkdir -p data
 
 CMD ["./app/display_image.py"]
