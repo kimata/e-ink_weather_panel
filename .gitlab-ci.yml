@@ -224,6 +224,7 @@ test-webapp:
         - docker pull ${CI_REGISTRY_IMAGE}
         - docker run --rm --detach=true --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} ./app/webapp.py -c config-demo.yaml -D
         - poetry install --no-interaction --with test
+        - poetry run playwright install --with-deps chromium
         - poetry run pytest tests/test_playwright.py --host $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
         - docker logs ${CI_JOB_NAME}-${CI_JOB_ID} > flask_log.txt
         - docker stop ${CI_JOB_NAME}-${CI_JOB_ID}
