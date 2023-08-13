@@ -28,7 +28,7 @@ USER ubuntu
 
 # NOTE: apt にあるものはバージョンが古いので直接入れる
 RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH="/root/.local/bin:$PATH"
+ENV PATH="/home/ubuntu/.local/bin:$PATH"
 
 COPY pyproject.toml .
 
