@@ -17,8 +17,8 @@ RUN apt-get update && apt-get install -y \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# NOTE: apt にあるものはバージョンが古いので pip で入れる
-RUN pip3 install poetry
+# NOTE: apt にあるものはバージョンが古いので直接入れる
+RUN curl -sSL https://install.python-poetry.org | python3 -
 
 WORKDIR /opt/e-ink_weather
 

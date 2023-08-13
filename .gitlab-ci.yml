@@ -224,9 +224,8 @@ test-webapp:
 
         - docker pull ${CI_REGISTRY_IMAGE}
         - docker run --rm --detach=true --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} ./app/webapp.py -c config-demo.yaml -D
-        - python3 -m pytest --log-cli-level=INFO --capture=sys
-          tests/test_playwright.py
-          --host $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
+        - poetry install --no-interaction --with test
+        - poetry run pytest tests/test_playwright.py --host $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
         - docker logs ${CI_JOB_NAME}-${CI_JOB_ID} > flask_log.txt
         - docker stop ${CI_JOB_NAME}-${CI_JOB_ID}
     artifacts:
@@ -249,15 +248,8 @@ test-coverage:
         - mv panel_config/e-ink_weather.yaml config.yaml
         - mv panel_config/e-ink_weather-demo.yaml config-demo.yaml
         - mv panel_config/e-ink_weather-small.yaml config-small.yaml
-        - apt-get update
-        - apt-get install -y curl
-        - curl -sSL https://install.python-poetry.org | python3 -
-        - export PATH="/root/.local/bin:$PATH"
-        - poetry install --no-interaction
-        - poetry run pytest --verbose --log-cli-level=INFO --capture=sys
-          --cov=lib --cov=app --cov-config=.coveragerc --cov-branch --cov-report=html
-          --html=tests/evidence/index.htm --self-contained-html
-          tests/test_basic.py
+        - poetry install --no-interaction --with test
+        - poetry run pytest tests/test_basic.py
 
     artifacts:
         when: always
