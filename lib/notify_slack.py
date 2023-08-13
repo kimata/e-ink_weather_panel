@@ -7,11 +7,13 @@ import os
 import pathlib
 import tempfile
 import threading
+from multiprocessing import Queue
 
 import footprint
 import slack_sdk
 
-notify_hist = []
+# NOTE: テスト用
+notify_hist = Queue()
 
 ERROR_NOTIFY_FOOTPRINT = pathlib.Path(os.path.dirname(__file__)).parent / "data" / "error_notify"
 
@@ -106,7 +108,7 @@ def error(
 ):
     title = "Error: " + name
 
-    notify_hist.append(message)
+    notify_hist.put(message)
 
     if not check_interval(interval_min):
         logging.warning("Interval is too short. Skipping.")
@@ -129,7 +131,7 @@ def error_with_image(
 ):  # def error_with_image
     title = "Error: " + name
 
-    notify_hist.append(message)
+    notify_hist.put(message)
 
     if not check_interval(interval_min):
         logging.warning("Interval is too short. Skipping.")
@@ -148,14 +150,19 @@ def error_with_image(
 def clear_hist():
     global notify_hist
 
-    notify_hist = []
+    while not notify_hist.empty():
+        notify_hist.get()
 
 
 # NOTE: テスト用
 def get_hist():
     global notify_hist
 
-    return notify_hist
+    hist = []
+    while not notify_hist.empty():
+        hist.append(notify_hist.get())
+
+    return hist
 
 
 if __name__ == "__main__":
