@@ -104,25 +104,25 @@ def mock_sensor_fetch_data(mocker):
         count = fetch_data_mock.count[field]
 
         if field == "temp":
-            return gen_sensor_data([30, 15, 0])
+            return gen_sensor_data([30, 20, 15, 0])
         elif field == "power":
             if count % 3 == 1:
-                return gen_sensor_data([1500, 750, 0])
+                return gen_sensor_data([1500, 500, 750, 0])
             elif count % 3 == 2:
-                return gen_sensor_data([20, 10, 0])
+                return gen_sensor_data([20, 15, 10, 0])
             else:
-                return gen_sensor_data([1000, 500, 0], False)
+                return gen_sensor_data([1000, 750, 500, 0], False)
         elif field == "lux":
             if count % 3 == 0:
-                return gen_sensor_data([0, 250, 500])
+                return gen_sensor_data([0, 250, 400, 500])
             elif count % 3 == 1:
-                return gen_sensor_data([0, 4, 8])
+                return gen_sensor_data([0, 4, 6, 8])
             else:
-                return gen_sensor_data([0, 25, 500], False)
+                return gen_sensor_data([0, 25, 200, 500], False)
         elif field == "solar_rad":
-            return gen_sensor_data([300, 150, 0])
+            return gen_sensor_data([300, 150, 50, 0])
         else:
-            return gen_sensor_data([30, 15, 0])
+            return gen_sensor_data([30, 20, 15, 0])
 
     fetch_data_mock.count = {}
 
@@ -130,16 +130,12 @@ def mock_sensor_fetch_data(mocker):
     mocker.patch("power_graph.fetch_data", side_effect=fetch_data_mock)
 
 
-def gen_sensor_data(value=[30, 34, 25], valid=True):
-    sensor_data = {
-        "value": value,
-        "time": [],
-        "valid": valid,
-    }
+def gen_sensor_data(value=[30, 34, 25, 20], valid=True):
+    sensor_data = {"value": value, "time": [], "valid": valid}
 
     for i in range(len(value)):
         sensor_data["time"].append(
-            datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=i - len(value))
+            datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=i - len(value))
         )
 
     return sensor_data
