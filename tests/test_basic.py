@@ -169,6 +169,54 @@ def save_image(request, img, index=None):
 
 
 ######################################################################
+def test_create_image(mocker):
+    import create_image
+
+    mock_sensor_fetch_data(mocker)
+
+    create_image.create_image(CONFIG_FILE, test_mode=True)
+    create_image.create_image(CONFIG_FILE)
+
+    check_notify_slack(None)
+
+
+def test_create_image_small(mocker):
+    import create_image
+
+    mock_sensor_fetch_data(mocker)
+
+    create_image.create_image(CONFIG_SMALL_FILE, test_mode=False)
+
+    check_notify_slack(None)
+
+
+def test_create_image_error(mocker):
+    import create_image
+
+    mock_sensor_fetch_data(mocker)
+    mocker.patch("create_image.draw_panel", side_effect=RuntimeError())
+
+    create_image.create_image(CONFIG_FILE, small_mode=True, dummy_mode=True)
+
+    # NOTE: 2回目
+    create_image.create_image(CONFIG_SMALL_FILE)
+
+    check_notify_slack("Traceback")
+
+
+def test_create_image_influx_error(mocker):
+    import create_image
+
+    mocker.patch("influxdb_client.InfluxDBClient.query_api", side_effect=RuntimeError())
+
+    create_image.create_image(CONFIG_FILE, small_mode=False, dummy_mode=True)
+
+    # NOTE: sensor_graph と power_graph のそれぞれでエラーが発生
+    check_notify_slack("Traceback", index=-1)
+    check_notify_slack("Traceback", index=-2)
+
+
+######################################################################
 def test_weather_panel(request):
     import weather_panel
 
@@ -509,53 +557,6 @@ def test_create_rain_cloud_panel_xpath_error(mocker, request):
 
 
 ######################################################################
-def test_create_image(mocker):
-    import create_image
-
-    mock_sensor_fetch_data(mocker)
-
-    create_image.create_image(CONFIG_FILE, test_mode=True)
-    create_image.create_image(CONFIG_FILE)
-
-    check_notify_slack(None)
-
-
-def test_create_image_small(mocker):
-    import create_image
-
-    mock_sensor_fetch_data(mocker)
-
-    create_image.create_image(CONFIG_SMALL_FILE, test_mode=False)
-
-    check_notify_slack(None)
-
-
-def test_create_image_error(mocker):
-    import create_image
-
-    mock_sensor_fetch_data(mocker)
-    mocker.patch("create_image.draw_panel", side_effect=RuntimeError())
-
-    create_image.create_image(CONFIG_FILE, small_mode=True, dummy_mode=True)
-
-    # NOTE: 2回目
-    create_image.create_image(CONFIG_SMALL_FILE)
-
-    check_notify_slack("Traceback")
-
-
-def test_create_image_influx_error(mocker):
-    import create_image
-
-    mocker.patch("influxdb_client.InfluxDBClient.query_api", side_effect=RuntimeError())
-
-    create_image.create_image(CONFIG_FILE, small_mode=False, dummy_mode=True)
-
-    # NOTE: sensor_graph と power_graph のそれぞれでエラーが発生
-    check_notify_slack("Traceback", index=-1)
-    check_notify_slack("Traceback", index=-2)
-
-
 def test_slack_error(mocker):
     import create_image
     import slack_sdk
