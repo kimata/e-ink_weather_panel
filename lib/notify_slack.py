@@ -151,7 +151,7 @@ def clear_hist():
     global notify_hist
 
     while not notify_hist.empty():
-        notify_hist.get()
+        notify_hist.get(False)
 
 
 # NOTE: テスト用
@@ -160,7 +160,10 @@ def get_hist():
 
     hist = []
     while not notify_hist.empty():
-        hist.append(notify_hist.get())
+        try:
+            hist.append(notify_hist.get(False))
+        except:  # pragma: no cover
+            pass
 
     return hist
 

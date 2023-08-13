@@ -141,6 +141,7 @@ def gen_sensor_data(value=[30, 34, 25, 20], valid=True):
     return sensor_data
 
 
+# NOTE: テストを並列実行すると，この関数が結果を誤判定する可能性あり
 def check_notify_slack(message, index=-1):
     import notify_slack
 
