@@ -36,6 +36,7 @@ RUN poetry config virtualenvs.create false \
 
 RUN useradd -m ubuntu
 
+COPY . .
 RUN mkdir -p data
 RUN chown -R ubuntu:ubuntu .
 
