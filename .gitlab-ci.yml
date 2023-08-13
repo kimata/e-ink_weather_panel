@@ -258,6 +258,8 @@ test-coverage:
 
 pages:
     stage: test
+    needs: ["test-coverage"]
+
     script:
         - mkdir -p public/
         - cp tests/evidence/* public/
