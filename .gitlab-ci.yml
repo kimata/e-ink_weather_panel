@@ -262,7 +262,7 @@ pages:
 
     script:
         - mkdir -p public/
-        - cp tests/evidence/* public/
+        - cp -r tests/evidence/* public/
 
     artifacts:
         paths:
