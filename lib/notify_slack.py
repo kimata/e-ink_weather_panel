@@ -76,7 +76,7 @@ def info(token, ch_name, name, message, formatter=format_simple):
 
 
 def check_interval(interval_min):
-    return footprint.elapsed(ERROR_NOTIFY_FOOTPRINT) < interval_min * 60
+    return footprint.elapsed(ERROR_NOTIFY_FOOTPRINT) > interval_min * 60
 
 
 def clear_interval():
