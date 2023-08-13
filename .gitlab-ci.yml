@@ -249,6 +249,7 @@ test-coverage-debug:
         - mv panel_config/e-ink_weather-demo.yaml config-demo.yaml
         - mv panel_config/e-ink_weather-small.yaml config-small.yaml
         - poetry install --no-interaction --with test
+        - sleep 3600
         - poetry run pytest tests/test_basic.py::test_create_image
 
     artifacts:
