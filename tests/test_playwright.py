@@ -17,6 +17,8 @@ def app_url(host, port):
 
 ######################################################################
 def test_webapp(page, host, port):
+    import PIL.Image
+
     page.set_viewport_size({"width": 2400, "height": 1600})
 
     page.on(
@@ -51,5 +53,13 @@ def test_webapp(page, host, port):
         }
         """
     )
-    with open(EVIDENCE_PATH / "generated.png", "wb") as f:
+    img_path = EVIDENCE_PATH / "generated.png"
+    with open(img_path, "wb") as f:
         f.write(base64.b64decode(img_base64))
+
+    # NOTE: サイズが一定以上あること
+    assert img_path.stat().st_size > (256 * 1024)
+
+    # NOTE: 画像として正常に認識できること
+    img_size = PIL.Image.open(img_path).size
+    assert (img_size[0]) > 100 and (img_size[1] > 100)
