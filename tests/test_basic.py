@@ -153,7 +153,7 @@ def check_notify_slack(message, index=-1):
         )
 
 
-def save_image(request, img, index=None):
+def save_image(request, img, index):
     from pil_util import convert_to_gray
 
     if index is None:
@@ -164,48 +164,75 @@ def save_image(request, img, index=None):
     convert_to_gray(img).save(EVIDENCE_DIR / file_name, "PNG")
 
 
+def check_image(request, img, size, index=None):
+    save_image(request, img, index)
+
+    assert (img.size[0] == size["WIDTH"]) and (img.size[1] == size["HEIGHT"])
+
+
 ######################################################################
-def test_create_image(mocker):
+def test_create_image(request, mocker):
     import create_image
 
     mock_sensor_fetch_data(mocker)
 
-    create_image.create_image(CONFIG_FILE, test_mode=True)
-    create_image.create_image(CONFIG_FILE)
+    check_image(
+        request,
+        create_image.create_image(CONFIG_FILE, test_mode=True)[0],
+        load_config(CONFIG_FILE)["PANEL"]["DEVICE"],
+    )
+    check_image(
+        request, create_image.create_image(CONFIG_FILE)[0], load_config(CONFIG_FILE)["PANEL"]["DEVICE"]
+    )
 
     check_notify_slack(None)
 
 
-def test_create_image_small(mocker):
+def test_create_image_small(request, mocker):
     import create_image
 
     mock_sensor_fetch_data(mocker)
 
-    create_image.create_image(CONFIG_SMALL_FILE, test_mode=False)
+    check_image(
+        request,
+        create_image.create_image(CONFIG_SMALL_FILE, test_mode=False)[0],
+        load_config(CONFIG_SMALL_FILE)["PANEL"]["DEVICE"],
+    )
 
     check_notify_slack(None)
 
 
-def test_create_image_error(mocker):
+def test_create_image_error(request, mocker):
     import create_image
 
     mock_sensor_fetch_data(mocker)
     mocker.patch("create_image.draw_panel", side_effect=RuntimeError())
 
-    create_image.create_image(CONFIG_FILE, small_mode=True, dummy_mode=True)
+    check_image(
+        request,
+        create_image.create_image(CONFIG_FILE, small_mode=True, dummy_mode=True)[0],
+        load_config(CONFIG_SMALL_FILE)["PANEL"]["DEVICE"],
+    )
 
-    # NOTE: 2回目
-    create_image.create_image(CONFIG_SMALL_FILE)
+    check_image(
+        request,
+        create_image.create_image(CONFIG_FILE)[0],
+        load_config(CONFIG_FILE)["PANEL"]["DEVICE"],
+    )
 
     check_notify_slack("Traceback")
 
 
-def test_create_image_influx_error(mocker):
+def test_create_image_influx_error(request, mocker):
     import create_image
 
     mocker.patch("influxdb_client.InfluxDBClient.query_api", side_effect=RuntimeError())
 
-    create_image.create_image(CONFIG_FILE, small_mode=False, dummy_mode=True)
+    check_image(
+        request,
+        create_image.create_image(CONFIG_FILE, small_mode=False, dummy_mode=True)[0],
+        load_config(CONFIG_FILE)["PANEL"]["DEVICE"],
+    )
 
     # NOTE: sensor_graph と power_graph のそれぞれでエラーが発生
     check_notify_slack("Traceback", index=-1)
@@ -216,8 +243,11 @@ def test_create_image_influx_error(mocker):
 def test_weather_panel(request):
     import weather_panel
 
-    img = weather_panel.create_weather_panel(load_config(CONFIG_SMALL_FILE), False)[0]
-    save_image(request, img)
+    check_image(
+        request,
+        weather_panel.create_weather_panel(load_config(CONFIG_SMALL_FILE), False)[0],
+        load_config(CONFIG_SMALL_FILE)["WEATHER"]["PANEL"],
+    )
 
     check_notify_slack(None)
 
@@ -260,8 +290,11 @@ def test_weather_panel_dummy(mocker, request):
     mocker.patch("weather_panel.get_clothing_yahoo", return_value=clothing_info)
     mocker.patch("weather_panel.get_wbgt", return_value=wbgt_info)
 
-    img = weather_panel.create_weather_panel(load_config(CONFIG_FILE))[0]
-    save_image(request, img)
+    check_image(
+        request,
+        weather_panel.create_weather_panel(load_config(CONFIG_FILE))[0],
+        load_config(CONFIG_FILE)["WEATHER"]["PANEL"],
+    )
 
     check_notify_slack(None)
 
@@ -270,8 +303,11 @@ def test_weather_panel_dummy(mocker, request):
 def test_wbgt_panel(request):
     import wbgt_panel
 
-    img = wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))[0]
-    save_image(request, img)
+    check_image(
+        request,
+        wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))[0],
+        load_config(CONFIG_FILE)["WBGT"]["PANEL"],
+    )
 
     check_notify_slack(None)
 
@@ -354,6 +390,16 @@ def test_create_power_graph_invalid(mocker):
     import power_graph
 
     mocker.patch("power_graph.fetch_data", return_value=gen_sensor_data([1000, 500, 0], False))
+
+    power_graph.create_power_graph(load_config(CONFIG_FILE))
+
+    check_notify_slack(None)
+
+
+def test_create_power_graph_error(mocker):
+    import power_graph
+
+    mocker.patch("power_graph.create_power_graph_impl", side_effect=RuntimeError())
 
     power_graph.create_power_graph(load_config(CONFIG_FILE))
 
