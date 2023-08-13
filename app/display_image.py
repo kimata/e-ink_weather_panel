@@ -113,7 +113,7 @@ def display_image(
         # NOTE: 表示がされるまで待つ
         sleep_time = 5
     else:
-        diff_sec = datetime.datetime.now().second
+        diff_sec = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9))).second
         if diff_sec > 30:
             diff_sec = 60 - diff_sec
         if diff_sec > 3:
@@ -130,7 +130,7 @@ def display_image(
         sleep_time = (
             config["PANEL"]["UPDATE"]["INTERVAL"]
             - statistics.median(elapsed_list)
-            - datetime.datetime.now().second
+            - datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9))).second
         )
         while sleep_time < 0:
             sleep_time += 60
