@@ -7,8 +7,8 @@ import os
 import pathlib
 import tempfile
 import threading
-import time
 
+import footprint
 import slack_sdk
 
 notify_hist = []
@@ -35,23 +35,6 @@ SIMPLE_TMPL = """\
 ]
 """
 interval_check_lock = threading.Lock()
-
-
-def footprint_update():
-    ERROR_NOTIFY_FOOTPRINT.parent.mkdir(parents=True, exist_ok=True)
-    with open(ERROR_NOTIFY_FOOTPRINT, mode="w") as f:
-        f.write(str(time.time()))
-
-
-def footprint_check():
-    diff_sec = time.time()
-    if not ERROR_NOTIFY_FOOTPRINT.exists():
-        return diff_sec
-
-    with open(ERROR_NOTIFY_FOOTPRINT) as f:
-        diff_sec -= float(f.read())
-
-    return diff_sec
 
 
 def format_simple(title, message):
@@ -93,12 +76,11 @@ def info(token, ch_name, name, message, formatter=format_simple):
 
 
 def check_interval(interval_min):
-    return footprint_check() < interval_min * 60
+    return footprint.elapsed(ERROR_NOTIFY_FOOTPRINT) < interval_min * 60
 
 
 def clear_interval():
-    with interval_check_lock:
-        ERROR_NOTIFY_FOOTPRINT.unlink(missing_ok=True)
+    footprint.clear(ERROR_NOTIFY_FOOTPRINT)
 
 
 def error_img(token, ch_id, title, img, text):
@@ -132,7 +114,7 @@ def error(
 
     split_send(token, ch_name, title, message, formatter)
 
-    footprint_update()
+    footprint.update(ERROR_NOTIFY_FOOTPRINT)
 
 
 def error_with_image(
@@ -159,7 +141,7 @@ def error_with_image(
         assert ch_id is not None
         error_img(token, ch_id, title, attatch_img["data"], attatch_img["text"])
 
-    footprint_update()
+    footprint.update(ERROR_NOTIFY_FOOTPRINT)
 
 
 # NOTE: テスト用
@@ -198,9 +180,7 @@ if __name__ == "__main__":
 
     client = slack_sdk.WebClient(token=config["SLACK"]["BOT_TOKEN"])
 
-    img = PIL.Image.open(
-        pathlib.Path(os.path.dirname(__file__), config["WEATHER"]["ICON"]["THERMO"]["PATH"])
-    )
+    img = PIL.Image.open(pathlib.Path(os.path.dirname(__file__), config["WEATHER"]["ICON"]["THERMO"]["PATH"]))
     if "INFO" in config["SLACK"]:
         info(
             config["SLACK"]["BOT_TOKEN"],
