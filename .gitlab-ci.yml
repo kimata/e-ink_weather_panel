@@ -27,7 +27,7 @@ build-image:
     stage: build-image
     needs: ["build-react"]
 
-    image: registry.green-rabbit.net:5000/kimata/local_ubuntu:230812A
+    image: registry.green-rabbit.net:5000/kimata/local_ubuntu:230812B
 
     script:
         # - docker rm $(docker ps -a --filter 'status=exited' -q) || true
@@ -217,11 +217,10 @@ test-webapp:
     stage: test
     needs: ["test-demo"]
 
-    image: registry.green-rabbit.net:5000/kimata/local_ubuntu:230812A
+    image: registry.green-rabbit.net:5000/kimata/local_ubuntu:230812B
     script:
         # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
         - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop -t 5 $id; done || true
-
         - docker pull ${CI_REGISTRY_IMAGE}
         - docker run --rm --detach=true --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} ./app/webapp.py -c config-demo.yaml -D
         - poetry install --no-interaction --with test
@@ -241,7 +240,7 @@ test-coverage:
     dependencies:
         - build-react
 
-    image: registry.green-rabbit.net:5000/kimata/local_ubuntu:230812A
+    image: registry.green-rabbit.net:5000/kimata/local_ubuntu:230812B
     script:
         - export GIT_SSL_NO_VERIFY=1
         - git clone https://gitlab.green-rabbit.net/kimata/panel_config.git

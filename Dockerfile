@@ -24,12 +24,13 @@ RUN locale-gen ja_JP.UTF-8
 
 RUN useradd -m ubuntu
 
+USER ubuntu
+
 # NOTE: apt にあるものはバージョンが古いので直接入れる
 RUN curl -sSL https://install.python-poetry.org | python3 -
 ENV PATH="/home/ubuntu/.local/bin:$PATH"
 
 RUN mkdir -p data
-RUN chown -R ubuntu:ubuntu .
 
 COPY pyproject.toml .
 
@@ -37,9 +38,6 @@ RUN poetry config virtualenvs.create false \
  && poetry install \
  && rm -rf ~/.cache
 
-USER ubuntu
-
 COPY font /usr/share/fonts/
-COPY --chown=ubuntu . .
 
 CMD ["./app/display_image.py"]
