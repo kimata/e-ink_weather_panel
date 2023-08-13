@@ -234,6 +234,28 @@ test-webapp:
             - flask_log.txt
             - tests/evidence/**
 
+test-coverage-debug:
+    stage: test
+
+    needs: ["build-react", "test-regular", "test-regular-small"]
+    dependencies:
+        - build-react
+
+    image: registry.green-rabbit.net:5000/kimata/local_ubuntu:230812C
+    script:
+        - export GIT_SSL_NO_VERIFY=1
+        - git clone https://gitlab.green-rabbit.net/kimata/panel_config.git
+        - mv panel_config/e-ink_weather.yaml config.yaml
+        - mv panel_config/e-ink_weather-demo.yaml config-demo.yaml
+        - mv panel_config/e-ink_weather-small.yaml config-small.yaml
+        - poetry install --no-interaction --with test
+        - poetry run pytest tests/test_basic.py::test_create_image
+
+    artifacts:
+        when: always
+        paths:
+            - tests/evidence/**
+
 test-coverage:
     stage: test
 
