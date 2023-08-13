@@ -901,7 +901,7 @@ def test_display_image_onetime(mocker):
     check_notify_slack(None)
 
 
-def test_display_image_error_major(mocker):
+def test_display_image_error_major(mocker, request):
     import builtins
 
     import create_image
@@ -936,6 +936,10 @@ def test_display_image_error_major(mocker):
     mocker.patch("builtins.open", side_effect=open_mock)
 
     config = load_config(CONFIG_SMALL_FILE)
+
+    config["LIVENESS"]["FILE"] = "/dev/shm/healthz-{name}".format(name=request.node.name)
+    pathlib.Path(config["LIVENESS"]["FILE"]).unlink(missing_ok=True)
+
     config["PANEL"]["UPDATE"]["INTERVAL"] = 60
     display_image.display_image(
         config,
@@ -955,7 +959,7 @@ def test_display_image_error_major(mocker):
     assert not healthz_file.exists(), "存在してはいけない healthz が存在します"
 
 
-def test_display_image_error_minor(mocker):
+def test_display_image_error_minor(mocker, request):
     import builtins
 
     import create_image
@@ -990,6 +994,10 @@ def test_display_image_error_minor(mocker):
     mocker.patch("builtins.open", side_effect=open_mock)
 
     config = load_config(CONFIG_SMALL_FILE)
+
+    config["LIVENESS"]["FILE"] = "/dev/shm/healthz-{name}".format(name=request.node.name)
+    pathlib.Path(config["LIVENESS"]["FILE"]).unlink(missing_ok=True)
+
     config["PANEL"]["UPDATE"]["INTERVAL"] = 60
     display_image.display_image(
         config,

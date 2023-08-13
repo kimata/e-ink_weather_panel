@@ -249,7 +249,7 @@ test-coverage:
         - mv panel_config/e-ink_weather-demo.yaml config-demo.yaml
         - mv panel_config/e-ink_weather-small.yaml config-small.yaml
         - poetry install --no-interaction --with test
-        - poetry run pytest tests/test_basic.py
+        - poetry run pytest --numprocesses 4 tests/test_basic.py
 
     artifacts:
         when: always
