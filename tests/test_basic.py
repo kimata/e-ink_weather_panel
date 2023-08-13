@@ -144,11 +144,13 @@ def gen_sensor_data(value=[30, 34, 25, 20], valid=True):
 def check_notify_slack(message, index=-1):
     import notify_slack
 
+    notify_hist = notify_slack.get_hist()
+
     if message is None:
-        assert notify_slack.get_hist() == [], "正常なはずなのに，エラー通知がされています．"
+        assert notify_hist == [], "正常なはずなのに，エラー通知がされています．"
     else:
-        assert len(notify_slack.get_hist()) != 0, "異常が発生したはずなのに，エラー通知がされていません．"
-        assert notify_slack.get_hist()[index].find(message) != -1, "「{message}」が Slack で通知されていません．".format(
+        assert len(notify_hist) != 0, "異常が発生したはずなのに，エラー通知がされていません．"
+        assert notify_hist[index].find(message) != -1, "「{message}」が Slack で通知されていません．".format(
             message=message
         )
 
