@@ -167,7 +167,12 @@ def save_image(request, img, index):
 def check_image(request, img, size, index=None):
     save_image(request, img, index)
 
-    assert (img.size[0] == size["WIDTH"]) and (img.size[1] == size["HEIGHT"])
+    # NOTE: matplotlib で生成した画像の場合，期待値より 1pix 小さい場合がある
+    assert (abs(img.size[0] - size["WIDTH"]) < 2) and (
+        abs(img.size[1] - size["HEIGHT"]) < 2
+    ), "画像サイズが期待値と一致しません．(期待値: {exp_x} x {exp_y}, 実際: {act_x} x {act_y})".format(
+        exp_x=size["WIDTH"], exp_y=size["HEIGHT"], act_x=img.size[0], act_y=img.size[1]
+    )
 
 
 ######################################################################
@@ -211,7 +216,7 @@ def test_create_image_error(request, mocker):
     check_image(
         request,
         create_image.create_image(CONFIG_FILE, small_mode=True, dummy_mode=True)[0],
-        load_config(CONFIG_SMALL_FILE)["PANEL"]["DEVICE"],
+        load_config(CONFIG_FILE)["PANEL"]["DEVICE"],
     )
 
     check_image(
@@ -319,8 +324,12 @@ def test_wbgt_panel_var(mocker, request):
     for i in range(20, 34, 2):
         wbgt_info["current"] = i
         mocker.patch("wbgt_panel.get_wbgt", return_value=wbgt_info)
-        img = wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))[0]
-        save_image(request, img, i)
+        check_image(
+            request,
+            wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))[0],
+            load_config(CONFIG_FILE)["WBGT"]["PANEL"],
+            i,
+        )
 
     check_notify_slack(None)
 
@@ -329,8 +338,9 @@ def test_wbgt_panel_error_1(mocker, request):
     import wbgt_panel
 
     mocker.patch("weather_data.fetch_page", side_effect=RuntimeError())
+
     ret = wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))
-    save_image(request, ret[0])
+    check_image(request, ret[0], load_config(CONFIG_FILE)["WBGT"]["PANEL"])
 
     assert len(ret) == 3
     assert "Traceback" in ret[2]
@@ -342,7 +352,7 @@ def test_wbgt_panel_error_2(mocker, request):
     mocker.patch("lxml.html.HtmlElement.xpath", return_value=[])
 
     ret = wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))
-    save_image(request, ret[0])
+    check_image(request, ret[0], load_config(CONFIG_FILE)["WBGT"]["PANEL"])
 
     assert len(ret) == 3
     assert "Traceback" in ret[2]
@@ -355,7 +365,7 @@ def test_wbgt_panel_error_3(mocker, request):
     mock.date.day.return_value = 100
 
     ret = wbgt_panel.create_wbgt_panel(load_config(CONFIG_FILE))
-    save_image(request, ret[0])
+    check_image(request, ret[0], load_config(CONFIG_FILE)["WBGT"]["PANEL"])
 
     # NOTE: パネル生成処理としてはエラーにならない
     assert len(ret) == 2
@@ -365,63 +375,96 @@ def test_wbgt_panel_error_3(mocker, request):
 def test_time_panel(request):
     import time_panel
 
-    img = time_panel.create_time_panel(load_config(CONFIG_FILE))[0]
-    save_image(request, img)
+    check_image(
+        request,
+        time_panel.create_time_panel(load_config(CONFIG_FILE))[0],
+        load_config(CONFIG_FILE)["TIME"]["PANEL"],
+    )
 
     check_notify_slack(None)
 
 
 ######################################################################
-def test_create_power_graph(mocker):
+def test_create_power_graph(mocker, request):
     import power_graph
 
     mock_sensor_fetch_data(mocker)
 
-    power_graph.create_power_graph(load_config(CONFIG_FILE))
+    check_image(
+        request,
+        power_graph.create_power_graph(load_config(CONFIG_FILE))[0],
+        load_config(CONFIG_FILE)["POWER"]["PANEL"],
+        0,
+    )
 
     mocker.patch.dict("os.environ", {"DUMMY_MODE": "true"})
 
-    power_graph.create_power_graph(load_config(CONFIG_FILE))
+    check_image(
+        request,
+        power_graph.create_power_graph(load_config(CONFIG_FILE))[0],
+        load_config(CONFIG_FILE)["POWER"]["PANEL"],
+        1,
+    )
 
     check_notify_slack(None)
 
 
-def test_create_power_graph_invalid(mocker):
+def test_create_power_graph_invalid(mocker, request):
     import power_graph
 
     mocker.patch("power_graph.fetch_data", return_value=gen_sensor_data([1000, 500, 0], False))
 
-    power_graph.create_power_graph(load_config(CONFIG_FILE))
+    check_image(
+        request,
+        power_graph.create_power_graph(load_config(CONFIG_FILE))[0],
+        load_config(CONFIG_FILE)["POWER"]["PANEL"],
+    )
 
     check_notify_slack(None)
 
 
-def test_create_power_graph_error(mocker):
+def test_create_power_graph_error(mocker, request):
     import power_graph
 
     mocker.patch("power_graph.create_power_graph_impl", side_effect=RuntimeError())
 
-    power_graph.create_power_graph(load_config(CONFIG_FILE))
+    check_image(
+        request,
+        power_graph.create_power_graph(load_config(CONFIG_FILE))[0],
+        load_config(CONFIG_FILE)["POWER"]["PANEL"],
+    )
 
     check_notify_slack(None)
 
 
 ######################################################################
-def test_create_sensor_graph_1(freezer, mocker):
+def test_create_sensor_graph_1(freezer, mocker, request):
     import sensor_graph
 
     mock_sensor_fetch_data(mocker)
 
     freezer.move_to(datetime.datetime.now().replace(hour=12))
-    sensor_graph.create_sensor_graph(load_config(CONFIG_FILE))
+
+    check_image(
+        request,
+        sensor_graph.create_sensor_graph(load_config(CONFIG_FILE))[0],
+        load_config(CONFIG_FILE)["SENSOR"]["PANEL"],
+        0,
+    )
 
     freezer.move_to(datetime.datetime.now().replace(hour=20))
-    sensor_graph.create_sensor_graph(load_config(CONFIG_FILE))
+
+    check_image(
+        request,
+        sensor_graph.create_sensor_graph(load_config(CONFIG_FILE))[0],
+        load_config(CONFIG_FILE)["SENSOR"]["PANEL"],
+        1,
+    )
 
     check_notify_slack(None)
 
 
-def test_create_sensor_graph_2(freezer, mocker):
+def test_create_sensor_graph_2(freezer, mocker, request):
     import sensor_graph
 
     def value_mock():
@@ -455,12 +498,17 @@ def test_create_sensor_graph_2(freezer, mocker):
     )
 
     freezer.move_to(datetime.datetime.now().replace(hour=12))
-    sensor_graph.create_sensor_graph(load_config(CONFIG_FILE))
+
+    check_image(
+        request,
+        sensor_graph.create_sensor_graph(load_config(CONFIG_FILE))[0],
+        load_config(CONFIG_FILE)["SENSOR"]["PANEL"],
+    )
 
     check_notify_slack(None)
 
 
-def test_create_sensor_graph_dummy(freezer, mocker):
+def test_create_sensor_graph_dummy(freezer, mocker, request):
     import sensor_graph
 
     mocker.patch.dict("os.environ", {"DUMMY_MODE": "true"})
@@ -468,15 +516,27 @@ def test_create_sensor_graph_dummy(freezer, mocker):
     mock_sensor_fetch_data(mocker)
 
     freezer.move_to(datetime.datetime.now().replace(hour=12))
-    sensor_graph.create_sensor_graph(load_config(CONFIG_FILE))
+
+    check_image(
+        request,
+        sensor_graph.create_sensor_graph(load_config(CONFIG_FILE))[0],
+        load_config(CONFIG_FILE)["SENSOR"]["PANEL"],
+        0,
+    )
 
     freezer.move_to(datetime.datetime.now().replace(hour=20))
-    sensor_graph.create_sensor_graph(load_config(CONFIG_FILE))
+
+    check_image(
+        request,
+        sensor_graph.create_sensor_graph(load_config(CONFIG_FILE))[0],
+        load_config(CONFIG_FILE)["SENSOR"]["PANEL"],
+        1,
+    )
 
     check_notify_slack(None)
 
 
-def test_create_sensor_graph_invalid(mocker):
+def test_create_sensor_graph_invalid(mocker, request):
     import inspect
 
     import sensor_graph
@@ -491,17 +551,24 @@ def test_create_sensor_graph_invalid(mocker):
     dummy_data.i = 0
 
     mocker.patch("sensor_graph.fetch_data", side_effect=dummy_data)
-    sensor_graph.create_sensor_graph(load_config(CONFIG_FILE))
+
+    check_image(
+        request,
+        sensor_graph.create_sensor_graph(load_config(CONFIG_FILE))[0],
+        load_config(CONFIG_FILE)["SENSOR"]["PANEL"],
+    )
 
     check_notify_slack(None)
 
 
-def test_create_sensor_graph_influx_error(mocker):
+def test_create_sensor_graph_influx_error(mocker, request):
     import sensor_graph
 
     mocker.patch("influxdb_client.InfluxDBClient.query_api", side_effect=RuntimeError())
 
     ret = sensor_graph.create_sensor_graph(load_config(CONFIG_FILE))
+
+    check_image(request, ret[0], load_config(CONFIG_FILE)["SENSOR"]["PANEL"])
 
     assert len(ret) == 3
     assert "Traceback" in ret[2]
@@ -512,11 +579,20 @@ def test_create_rain_cloud_panel(mocker, request):
     import rain_cloud_panel
 
     rain_cloud_panel.WINDOW_SIZE_CACHE.unlink(missing_ok=True)
-    img = rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))[0]
-    save_image(request, img, 0)
 
-    rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_SMALL_FILE), is_side_by_side=False)
-    save_image(request, img, 1)
+    check_image(
+        request,
+        rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))[0],
+        load_config(CONFIG_FILE)["RAIN_CLOUD"]["PANEL"],
+        0,
+    )
+
+    check_image(
+        request,
+        rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_SMALL_FILE), is_side_by_side=False)[0],
+        load_config(CONFIG_SMALL_FILE)["RAIN_CLOUD"]["PANEL"],
+        1,
+    )
 
     check_notify_slack(None)
 
@@ -542,12 +618,21 @@ def test_create_rain_cloud_panel_cache_and_error(mocker, request):
     rain_cloud_panel.WINDOW_SIZE_CACHE.touch()
     os.utime(str(rain_cloud_panel.WINDOW_SIZE_CACHE), (month_ago_epoch, month_ago_epoch))
 
-    img = rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))[0]
-    save_image(request, img, 0)
+    check_image(
+        request,
+        rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))[0],
+        load_config(CONFIG_FILE)["RAIN_CLOUD"]["PANEL"],
+        0,
+    )
 
     mocker.patch("pickle.load", side_effect=RuntimeError())
-    img = rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))[0]
-    save_image(request, img, 1)
+
+    check_image(
+        request,
+        rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))[0],
+        load_config(CONFIG_FILE)["RAIN_CLOUD"]["PANEL"],
+        1,
+    )
 
     check_notify_slack("Traceback")
 
@@ -568,8 +653,11 @@ def test_create_rain_cloud_panel_selenium_error(mocker, request):
 
     mocker.patch("selenium_util.create_driver_impl", side_effect=create_driver_impl_mock)
 
-    img = rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_SMALL_FILE))[0]
-    save_image(request, img)
+    check_image(
+        request,
+        rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_SMALL_FILE))[0],
+        load_config(CONFIG_SMALL_FILE)["RAIN_CLOUD"]["PANEL"],
+    )
 
     # NOTE: CONFIG_SMALL_FILE には Slack の設定がないので，None になる
     check_notify_slack(None)
@@ -591,15 +679,18 @@ def test_create_rain_cloud_panel_xpath_error(mocker, request):
 
     mocker.patch("selenium_util.xpath_exists", side_effect=xpath_exists_mock)
 
-    img = rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_SMALL_FILE))[0]
-    save_image(request, img)
+    check_image(
+        request,
+        rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_SMALL_FILE))[0],
+        load_config(CONFIG_SMALL_FILE)["RAIN_CLOUD"]["PANEL"],
+    )
 
     # NOTE: CONFIG_SMALL_FILE には Slack の設定がないので，None になる
     check_notify_slack(None)
 
 
 ######################################################################
-def test_slack_error(mocker):
+def test_slack_error(mocker, request):
     import create_image
     import slack_sdk
 
@@ -611,7 +702,11 @@ def test_slack_error(mocker):
     mocker.patch.object(slack_sdk.web.client.WebClient, "__init__", webclient_mock)
     mocker.patch("create_image.draw_panel", side_effect=RuntimeError())
 
-    create_image.create_image(CONFIG_FILE, small_mode=True, dummy_mode=True)
+    check_image(
+        request,
+        create_image.create_image(CONFIG_FILE, small_mode=True, dummy_mode=True)[0],
+        load_config(CONFIG_FILE)["PANEL"]["DEVICE"],
+    )
 
     check_notify_slack("Traceback")
 
@@ -631,8 +726,11 @@ def test_slack_error_with_image(mocker, request):
 
     mocker.patch("rain_cloud_panel.fetch_cloud_image", side_effect=fetch_cloud_image_mock)
 
-    img = rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))[0]
-    save_image(request, img)
+    check_image(
+        request,
+        rain_cloud_panel.create_rain_cloud_panel(load_config(CONFIG_FILE))[0],
+        load_config(CONFIG_FILE)["RAIN_CLOUD"]["PANEL"],
+    )
 
     check_notify_slack("Traceback")
 
