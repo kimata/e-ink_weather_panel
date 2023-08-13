@@ -401,7 +401,9 @@ def draw_caption(img, title, face_map):
 
 def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config):
     logging.info(
-        "create rain cloud image ({type})".format(type="future" if sub_panel_config["is_future"] else "current")
+        "create rain cloud image ({type})".format(
+            type="future" if sub_panel_config["is_future"] else "current"
+        )
     )
     # NOTE: 同時アクセスを避ける
     if sub_panel_config["is_future"]:

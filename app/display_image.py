@@ -128,7 +128,9 @@ def display_image(
         elapsed_list.append(elapsed)
 
         sleep_time = (
-            config["PANEL"]["UPDATE"]["INTERVAL"] - statistics.median(elapsed_list) - datetime.datetime.now().second
+            config["PANEL"]["UPDATE"]["INTERVAL"]
+            - statistics.median(elapsed_list)
+            - datetime.datetime.now().second
         )
         while sleep_time < 0:
             sleep_time += 60

@@ -67,9 +67,9 @@ def parse_table(content, index):
 
 
 def parse_clothing(content, index):
-    table_xpath = ('(//dl[contains(@class, "indexList_item-clothing")])[{index}]' + "//dd/p[1]/@class").format(
-        index=index
-    )
+    table_xpath = (
+        '(//dl[contains(@class, "indexList_item-clothing")])[{index}]' + "//dd/p[1]/@class"
+    ).format(index=index)
     index = int(content.xpath(table_xpath)[0].split("-", 1)[1])
 
     return index
@@ -167,7 +167,9 @@ def fetch_page(url):
 
 def get_wbgt_measured_today(wbgt_config):
     content = fetch_page(wbgt_config["DATA"]["ENV_GO"]["URL"].replace("graph_ref_td.php", "day_list.php"))
-    wbgt_col_list = content.xpath('//table[contains(@class, "asc_tbl_daylist")]//td[contains(@class, "asc_body")]')
+    wbgt_col_list = content.xpath(
+        '//table[contains(@class, "asc_tbl_daylist")]//td[contains(@class, "asc_body")]'
+    )
 
     wbgt_list = [None]
     for i, col in enumerate(wbgt_col_list):

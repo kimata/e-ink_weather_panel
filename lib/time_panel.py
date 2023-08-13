@@ -32,7 +32,8 @@ def get_face_map(font_config):
 
 def draw_time(img, pos_x, pos_y, face):
     time_text = (
-        datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9), "JST")) + datetime.timedelta(minutes=1)
+        datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9), "JST"))
+        + datetime.timedelta(minutes=1)
     ).strftime("%H:%M")
 
     pos_y -= text_size(img, face["value"], time_text)[1]

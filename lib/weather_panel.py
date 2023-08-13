@@ -366,7 +366,9 @@ def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
 
     cur_hour = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9))).hour
     if is_today and (
-        (hour <= cur_hour and cur_hour < hour + 3) or (cur_hour < 6 and hour == 6) or (21 <= cur_hour and hour == 21)
+        (hour <= cur_hour and cur_hour < hour + 3)
+        or (cur_hour < 6 and hour == 6)
+        or (21 <= cur_hour and hour == 21)
     ):
         draw = PIL.ImageDraw.Draw(img)
         circle_height = text_size(img, face["value"], str(21))[1]
@@ -414,7 +416,9 @@ def draw_weather_info(
     face_map,
 ):
     next_pos_y = pos_y + text_size(img, face_map["hour"]["value"], "0")[1] * HOUR_CIRCLE_RATIO
-    next_pos_x, next_pos_y = draw_weather(img, info["weather"], overlay, pos_x, next_pos_y, ICON_MARGIN, face_map)
+    next_pos_x, next_pos_y = draw_weather(
+        img, info["weather"], overlay, pos_x, next_pos_y, ICON_MARGIN, face_map
+    )
     draw_hour(
         img,
         info["hour"],

@@ -1,5 +1,9 @@
 FROM ubuntu:22.04
 
+# NOTE:
+# python:3.11.4-bookworm とかを使った場合，Selenium を同時に複数動かせないので，
+# Ubuntu イメージを使う
+
 ENV TZ=Asia/Tokyo
 ENV DEBIAN_FRONTEND=noninteractive
 

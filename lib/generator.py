@@ -182,7 +182,9 @@ def api_run():
     is_small_mode = mode == "small"
     is_test_mode = request.args.get("test", False, type=bool)
 
-    config_file = current_app.config["CONFIG_FILE_SMALL"] if is_small_mode else current_app.config["CONFIG_FILE_NORMAL"]
+    config_file = (
+        current_app.config["CONFIG_FILE_SMALL"] if is_small_mode else current_app.config["CONFIG_FILE_NORMAL"]
+    )
     is_dummy_mode = current_app.config["DUMMY_MODE"]
 
     try:

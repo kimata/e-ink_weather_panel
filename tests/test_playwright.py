@@ -23,9 +23,7 @@ def test_webapp(page, host, port):
 
     page.on(
         "console",
-        lambda message: logging.error(message)
-        if message.type == "error"
-        else logging.info(message),
+        lambda message: logging.error(message) if message.type == "error" else logging.info(message),
     )
 
     page.goto(app_url(host, port))

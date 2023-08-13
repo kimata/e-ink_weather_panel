@@ -261,7 +261,9 @@ def get_equip_mode_period(
             type=measure,
             host=hostname,
             field=field,
-            threshold="[{list_str}]".format(list_str=",".join(map(lambda v: "{:.1f}".format(v), threshold_list))),
+            threshold="[{list_str}]".format(
+                list_str=",".join(map(lambda v: "{:.1f}".format(v), threshold_list))
+            ),
             start=start,
             stop=stop,
             every=every_min,
@@ -350,7 +352,9 @@ def get_day_sum(config, measure, hostname, field, offset_day=0):
         window_min = 5
         now = datetime.datetime.now()
 
-        start = "-{offset_day}d{hour}h{minute}m".format(offset_day=offset_day, hour=now.hour, minute=now.minute)
+        start = "-{offset_day}d{hour}h{minute}m".format(
+            offset_day=offset_day, hour=now.hour, minute=now.minute
+        )
         stop = "-{offset_day}d".format(offset_day=offset_day)
 
         table_list = fetch_data_impl(

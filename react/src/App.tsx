@@ -122,12 +122,7 @@ function App() {
             );
         } else {
             return (
-                <button
-                    className="btn btn-primary w-auto"
-                    type="button"
-                    data-testid="button"
-                    disabled
-                >
+                <button className="btn btn-primary w-auto" type="button" data-testid="button" disabled>
                     <span
                         className="spinner-border spinner-border-sm me-3"
                         role="status"

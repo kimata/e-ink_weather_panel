@@ -93,7 +93,9 @@ def click_xpath(driver, xpath, wait=None, is_warn=True):
 
 
 def is_display(driver, xpath):
-    return (len(driver.find_elements(By.XPATH, xpath)) != 0) and (driver.find_element(By.XPATH, xpath).is_displayed())
+    return (len(driver.find_elements(By.XPATH, xpath)) != 0) and (
+        driver.find_element(By.XPATH, xpath).is_displayed()
+    )
 
 
 def random_sleep(sec):
@@ -147,14 +149,16 @@ def clean_dump(dump_path=DUMP_PATH, keep_days=1):
             continue
         time_diff = datetime.datetime.now() - datetime.datetime.fromtimestamp(item.stat().st_mtime)
         if time_diff > time_threshold:
-            logging.info("remove {path} [{day:,} day(s) old].".format(path=item.absolute(), day=time_diff.days))
+            logging.info(
+                "remove {path} [{day:,} day(s) old].".format(path=item.absolute(), day=time_diff.days)
+            )
             item.unlink(missing_ok=True)
 
 
 def get_memory_info(driver):
-    total = subprocess.Popen("smem -t -c pss -P chrome | tail -n 1", shell=True, stdout=subprocess.PIPE).communicate()[
-        0
-    ]
+    total = subprocess.Popen(
+        "smem -t -c pss -P chrome | tail -n 1", shell=True, stdout=subprocess.PIPE
+    ).communicate()[0]
     total = int(str(total, "utf-8").strip()) // 1024
 
     js_heap = driver.execute_script("return window.performance.memory.usedJSHeapSize") // (1024 * 1024)

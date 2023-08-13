@@ -139,8 +139,7 @@ def gen_sensor_data(value=[30, 34, 25], valid=True):
 
     for i in range(len(value)):
         sensor_data["time"].append(
-            datetime.datetime.now(datetime.timezone.utc)
-            + datetime.timedelta(minutes=i - len(value))
+            datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=i - len(value))
         )
 
     return sensor_data
@@ -153,9 +152,9 @@ def check_notify_slack(message, index=-1):
         assert notify_slack.get_hist() == [], "正常なはずなのに，エラー通知がされています．"
     else:
         assert len(notify_slack.get_hist()) != 0, "異常が発生したはずなのに，エラー通知がされていません．"
-        assert (
-            notify_slack.get_hist()[index].find(message) != -1
-        ), "「{message}」が Slack で通知されていません．".format(message=message)
+        assert notify_slack.get_hist()[index].find(message) != -1, "「{message}」が Slack で通知されていません．".format(
+            message=message
+        )
 
 
 def save_image(request, img, index=None):
@@ -911,9 +910,7 @@ def test_display_image_error_major(mocker):
 
     ssh_client_mock = mocker.MagicMock()
     subprocess_popen_mock = mocker.MagicMock()
-    type(subprocess_popen_mock).returncode = mocker.PropertyMock(
-        return_value=create_image.ERROR_CODE_MAJOR
-    )
+    type(subprocess_popen_mock).returncode = mocker.PropertyMock(return_value=create_image.ERROR_CODE_MAJOR)
 
     mocker.patch("paramiko.RSAKey.from_private_key")
     mocker.patch("paramiko.SSHClient", new=ssh_client_mock)
@@ -967,9 +964,7 @@ def test_display_image_error_minor(mocker):
 
     ssh_client_mock = mocker.MagicMock()
     subprocess_popen_mock = mocker.MagicMock()
-    type(subprocess_popen_mock).returncode = mocker.PropertyMock(
-        return_value=create_image.ERROR_CODE_MINOR
-    )
+    type(subprocess_popen_mock).returncode = mocker.PropertyMock(return_value=create_image.ERROR_CODE_MINOR)
 
     mocker.patch("paramiko.RSAKey.from_private_key")
     mocker.patch("paramiko.SSHClient", new=ssh_client_mock)
