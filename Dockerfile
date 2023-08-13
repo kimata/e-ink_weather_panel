@@ -22,7 +22,12 @@ WORKDIR /opt/e-ink_weather
 RUN locale-gen en_US.UTF-8
 RUN locale-gen ja_JP.UTF-8
 
+COPY font /usr/share/fonts/
+
 RUN useradd -m ubuntu
+
+RUN mkdir -p data
+RUN chown -R ubuntu:ubuntu .
 
 USER ubuntu
 
@@ -35,9 +40,5 @@ COPY pyproject.toml .
 RUN poetry config virtualenvs.create false \
  && poetry install \
  && rm -rf ~/.cache
-
-COPY font /usr/share/fonts/
-
-RUN mkdir -p data
 
 CMD ["./app/display_image.py"]
