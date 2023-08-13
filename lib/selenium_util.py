@@ -41,14 +41,7 @@ def create_driver_impl(profile_name, data_path):
     options.add_argument("--lang=ja-JP")
     options.add_argument("--window-size=1920,1080")
 
-    options.add_argument(
-        '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:108.0) Gecko/20100101 Firefox/108.0"'
-    )
     options.add_argument("--user-data-dir=" + str(chrome_data_path / profile_name))
-
-    # NOTE: 下記がないと，snap で入れた chromium が「LC_ALL: cannot change locale (ja_JP.UTF-8)」
-    # と出力し，その結果 ChromeDriverManager がバージョンを正しく取得できなくなる
-    os.environ["LC_ALL"] = "C"
 
     driver = webdriver.Chrome(
         service=Service(
