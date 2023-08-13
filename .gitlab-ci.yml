@@ -256,6 +256,22 @@ test-coverage:
         paths:
             - tests/evidence/**
 
+pages:
+    stage: test
+    script:
+        - mkdir -p public/
+        - cp tests/evidence/* public/
+
+    artifacts:
+        paths:
+            - public
+
+    dependencies:
+        - test-coverage
+
+    only:
+        - master
+
 deploy:
     stage: deploy
     needs: ["test-display", "test-display-small", "test-webapp", "test-coverage"]
