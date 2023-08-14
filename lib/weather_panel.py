@@ -364,7 +364,7 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face):
 def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
     face = face_map["hour"]
 
-    cur_hour = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9))).hour
+    cur_hour = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9), "JST")).hour
     if is_today and (
         (hour <= cur_hour and cur_hour < hour + 3)
         or (cur_hour < 6 and hour == 6)
@@ -588,7 +588,7 @@ def draw_panel_weather_day(
     icon,
     face_map,
 ):
-    date = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9)))
+    date = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9), "JST"))
     if not is_today:
         date += datetime.timedelta(days=1)
 

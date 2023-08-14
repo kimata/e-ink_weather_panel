@@ -350,7 +350,7 @@ def get_day_sum(config, measure, hostname, field, day_before=0, day_offset=0):
     try:
         every_min = 1
         window_min = 5
-        now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9)))
+        now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9), "JST"))
 
         if day_before == 0:
             start = "-{day}d{hour}h{minute}m".format(day=day_offset, hour=now.hour, minute=now.minute)
@@ -406,7 +406,7 @@ if __name__ == "__main__":
     every = args["-e"]
     window = args["-w"]
 
-    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9)))
+    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9), "JST"))
     measure = config["USAGE"]["TARGET"]["TYPE"]
     hostname = config["USAGE"]["TARGET"]["HOST"]
     param = config["USAGE"]["TARGET"]["PARAM"]

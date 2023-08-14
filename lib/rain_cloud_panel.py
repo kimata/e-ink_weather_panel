@@ -11,7 +11,6 @@ Options:
   -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
 """
 
-import datetime
 import io
 import logging
 import os
@@ -225,9 +224,7 @@ def change_window_size(driver, url, width, height):
     window_size_map = {}
     try:
         if pathlib.Path(WINDOW_SIZE_CACHE).exists():
-            if (
-                datetime.datetime.now() - datetime.datetime.fromtimestamp(WINDOW_SIZE_CACHE.stat().st_mtime)
-            ).total_seconds() < CACHE_EXPIRE_HOUR * 60 * 60:
+            if (time.time() - WINDOW_SIZE_CACHE.stat().st_mtime) < CACHE_EXPIRE_HOUR * 60 * 60:
                 with open(WINDOW_SIZE_CACHE, "rb") as f:
                     window_size_map = pickle.load(f)
             else:

@@ -186,7 +186,7 @@ def draw_light_icon(ax, lux_list, icon_config):
     # NOTE: 下記の next の記法だとカバレッジが正しく取れない
     lux = next((item for item in reversed(lux_list) if item is not None), None)  # pragma: no cover
 
-    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9)))
+    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9), "JST"))
     # NOTE: 昼間はアイコンを描画しない
     if (now.hour > 7) and (now.hour < 17):
         return
