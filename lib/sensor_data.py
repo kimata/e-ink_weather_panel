@@ -346,16 +346,22 @@ def get_equip_mode_period(
         return []
 
 
-def get_day_sum(config, measure, hostname, field, offset_day=0):
+def get_day_sum(config, measure, hostname, field, day_before=0, day_offset=0):
     try:
         every_min = 1
         window_min = 5
         now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9)))
 
-        start = "-{offset_day}d{hour}h{minute}m".format(
-            offset_day=offset_day, hour=now.hour, minute=now.minute
-        )
-        stop = "-{offset_day}d".format(offset_day=offset_day)
+        if day_before == 0:
+            start = "-{day}d{hour}h{minute}m".format(day=day_offset, hour=now.hour, minute=now.minute)
+            stop = "-{day}d".format(day=day_before + day_offset)
+        else:
+            start = "-{day}d{hour}h{minute}m".format(
+                day=day_before + day_offset, hour=now.hour, minute=now.minute
+            )
+            stop = "-{day}d{hour}h{minute}m".format(
+                day=day_before + day_offset - 1, hour=now.hour, minute=now.minute
+            )
 
         table_list = fetch_data_impl(
             config,
