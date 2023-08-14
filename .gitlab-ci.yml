@@ -234,7 +234,7 @@ test-webapp:
             - flask_log.txt
             - tests/evidence/**
 
-test-coverage:
+test-walk-through:
     stage: test
 
     needs: ["build-react", "test-regular", "test-regular-small"]
@@ -253,7 +253,7 @@ test-coverage:
 
 pages:
     stage: test
-    needs: ["test-coverage"]
+    needs: ["test-walk-through"]
 
     script:
         - mkdir -p public/
@@ -264,14 +264,14 @@ pages:
             - public
 
     dependencies:
-        - test-coverage
+        - test-walk-through
 
     only:
         - master
 
 deploy:
     stage: deploy
-    needs: ["test-display", "test-display-small", "test-webapp", "test-coverage"]
+    needs: ["test-display", "test-display-small", "test-webapp", "test-walk-through"]
 
     image:
         name: bitnami/kubectl:latest
