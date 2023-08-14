@@ -33,7 +33,8 @@ pytest-playwright = "^0.4.0"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--verbose --cov=app --cov=lib --log-cli-level=INFO --capture=sys --cov-report=html --html=tests/evidence/index.htm --self-contained-html"
+addopts = "--verbose --cov=app --cov=lib --capture=sys --cov-report=html --html=tests/evidence/index.htm --self-contained-html"
+# addopts = "--verbose --cov=app --cov=lib --log-cli-level=INFO --capture=sys --cov-report=html --html=tests/evidence/index.htm --self-contained-html"
 testpaths = [
     "tests",
 ]

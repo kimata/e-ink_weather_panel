@@ -9,7 +9,6 @@ import sys
 from unittest import mock
 
 import pytest
-from flaky import flaky
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "app"))
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
@@ -29,7 +28,7 @@ def env_mock():
         "os.environ",
         {
             "TEST": "true",
-            # "NO_COLORED_LOGS": "true",
+            "NO_COLORED_LOGS": "true",
         },
     ) as fixture:
         yield fixture
@@ -233,8 +232,9 @@ def test_create_image_error(request, mocker):
 
 
 # NOTE: テストの安定性に問題があるので複数リトライする
-@flaky(max_runs=3, min_passes=1)
 def test_create_image_influx_error(request, mocker):
+    import time
+
     import create_image
 
     mocker.patch("influxdb_client.InfluxDBClient.query_api", side_effect=RuntimeError())
@@ -244,6 +244,11 @@ def test_create_image_influx_error(request, mocker):
         create_image.create_image(CONFIG_FILE, small_mode=False, dummy_mode=True)[0],
         load_config(CONFIG_FILE)["PANEL"]["DEVICE"],
     )
+
+    # NOTE: テスト結果を安定させるため，ウェイトを追加
+    # (本当はちゃんとマルチスレッド対応した方が良いけど，単純に multiprocessing.Queue に置き換える
+    # 方法を試したら何故かデッドロックが発生したので，お茶を濁す)
+    time.sleep(1)
 
     # NOTE: sensor_graph と power_graph のそれぞれでエラーが発生
     check_notify_slack("Traceback", index=-1)
