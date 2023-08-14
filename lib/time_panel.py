@@ -66,7 +66,7 @@ def draw_panel_time(img, config):
     )
 
 
-def create_time_panel(config):
+def create(config):
     logging.info("draw time panel")
     start = time.perf_counter()
 
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     config = load_config(args["-c"])
     out_file = args["-o"]
 
-    img = create_time_panel(config)[0]
+    img = create(config)[0]
 
     logging.info("Save {out_file}.".format(out_file=out_file))
     convert_to_gray(img).save(out_file, "PNG")

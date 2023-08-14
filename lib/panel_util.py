@@ -65,13 +65,14 @@ def draw_panel_patiently(
     is_side_by_side,
     opt_config=None,
 ):
+    RETRY_COUNT = 5
     start = time.perf_counter()
 
     error_message = None
-    for i in range(5):
+    for i in range(RETRY_COUNT):
         try:
             return (
-                func(panel_config, font_config, slack_config, is_side_by_side, opt_config),
+                func(panel_config, font_config, slack_config, is_side_by_side, i + 1, opt_config),
                 time.perf_counter() - start,
             )
         except:
@@ -79,7 +80,7 @@ def draw_panel_patiently(
             logging.error(error_message)
             pass
         logging.warning("retry")
-        time.sleep(5)
+        time.sleep(2)
 
     return (
         error_image(panel_config, font_config, error_message),

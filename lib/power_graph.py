@@ -174,7 +174,7 @@ def create_power_graph_impl(panel_config, font_config, db_config):
     return PIL.Image.open(buf)
 
 
-def create_power_graph(config):
+def create(config):
     logging.info("draw power graph")
 
     start = time.perf_counter()
@@ -210,7 +210,7 @@ if __name__ == "__main__":
     config = load_config(args["-c"])
     out_file = args["-o"]
 
-    img = create_power_graph(config)[0]
+    img = create(config)[0]
 
     logging.info("Save {out_file}.".format(out_file=out_file))
     convert_to_gray(img).save(out_file, "PNG")

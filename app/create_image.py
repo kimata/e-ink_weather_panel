@@ -32,15 +32,15 @@ from docopt import docopt
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
 
 import logger
+import power_graph
+import rain_cloud_panel
+import sensor_graph
+import time_panel
+import wbgt_panel
+import weather_panel
 from config import load_config
 from panel_util import notify_error
 from pil_util import alpha_paste, convert_to_gray, draw_text, get_font, load_image
-from power_graph import create_power_graph
-from rain_cloud_panel import create_rain_cloud_panel
-from sensor_graph import create_sensor_graph
-from time_panel import create_time_panel
-from wbgt_panel import create_wbgt_panel
-from weather_panel import create_weather_panel
 
 # 一部の描画でエラー
 ERROR_CODE_MINOR = 220
@@ -62,19 +62,19 @@ def draw_wall(config, img):
 def draw_panel(config, img, is_small_mode=False):
     if is_small_mode:
         panel_list = [
-            {"name": "RAIN_CLOUD", "func": create_rain_cloud_panel, "arg": (False,)},
-            {"name": "WEATHER", "func": create_weather_panel, "arg": (False,)},
-            {"name": "WBGT", "func": create_wbgt_panel},
-            {"name": "TIME", "func": create_time_panel},
+            {"name": "RAIN_CLOUD", "func": rain_cloud_panel.create, "arg": (False,)},
+            {"name": "WEATHER", "func": weather_panel.create, "arg": (False,)},
+            {"name": "WBGT", "func": wbgt_panel.create},
+            {"name": "TIME", "func": time_panel.create},
         ]
     else:
         panel_list = [
-            {"name": "RAIN_CLOUD", "func": create_rain_cloud_panel},
-            {"name": "SENSOR", "func": create_sensor_graph},
-            {"name": "POWER", "func": create_power_graph},
-            {"name": "WEATHER", "func": create_weather_panel},
-            {"name": "WBGT", "func": create_wbgt_panel},
-            {"name": "TIME", "func": create_time_panel},
+            {"name": "RAIN_CLOUD", "func": rain_cloud_panel.create},
+            {"name": "SENSOR", "func": sensor_graph.create},
+            {"name": "POWER", "func": power_graph.create},
+            {"name": "WEATHER", "func": weather_panel.create},
+            {"name": "WBGT", "func": wbgt_panel.create},
+            {"name": "TIME", "func": time_panel.create},
         ]
 
     panel_map = {}

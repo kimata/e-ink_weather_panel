@@ -101,7 +101,7 @@ def create_wbgt_panel_impl(panel_config, font_config):
     return img
 
 
-def create_wbgt_panel(config, is_side_by_side=True):
+def create(config, is_side_by_side=True):
     logging.info("draw WBGT panel")
     start = time.perf_counter()
 
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     config = load_config(args["-c"])
     out_file = args["-o"]
 
-    img = create_wbgt_panel(config)[0]
+    img = create(config)[0]
 
     logging.info("Save {out_file}.".format(out_file=out_file))
     convert_to_gray(img).save(out_file, "PNG")

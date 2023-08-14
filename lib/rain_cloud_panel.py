@@ -399,7 +399,7 @@ def draw_caption(img, title, face_map):
     return img
 
 
-def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config):
+def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config, trial):
     logging.info(
         "create rain cloud image ({type})".format(
             type="future" if sub_panel_config["is_future"] else "current"
@@ -428,7 +428,8 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
             sub_panel_config["is_future"],
         )
     except:
-        if slack_config is not None:
+        # NOTE: 2回目以降のみ通知する
+        if (trial > 1) and (slack_config is not None):
             notify_slack.error_with_image(
                 slack_config["BOT_TOKEN"],
                 slack_config["ERROR"]["CHANNEL"]["NAME"],
@@ -530,7 +531,9 @@ def draw_legend(img, bar, panel_config, face_map):
     return img
 
 
-def create_rain_cloud_panel_impl(panel_config, font_config, slack_config, is_side_by_side, opt_config=None):
+def create_rain_cloud_panel_impl(
+    panel_config, font_config, slack_config, is_side_by_side, trial, unused=None
+):
     if is_side_by_side:
         sub_width = int(panel_config["PANEL"]["WIDTH"] / 2)
         sub_height = panel_config["PANEL"]["HEIGHT"]
@@ -579,6 +582,7 @@ def create_rain_cloud_panel_impl(panel_config, font_config, slack_config, is_sid
                     sub_panel_config,
                     face_map,
                     slack_config,
+                    trial,
                 )
             )
             # NOTE: タイミングをずらさないと，初回起動時 user-data-dir を生成しようとした
@@ -594,7 +598,7 @@ def create_rain_cloud_panel_impl(panel_config, font_config, slack_config, is_sid
     return img
 
 
-def create_rain_cloud_panel(config, is_side_by_side=True):
+def create(config, is_side_by_side=True):
     logging.info("draw rain cloud panel")
 
     return draw_panel_patiently(

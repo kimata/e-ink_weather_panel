@@ -673,7 +673,7 @@ def draw_panel_weather(
     )
 
 
-def create_weather_panel_impl(panel_config, font_config, slack_config, is_side_by_side, wbgt_config):
+def create_weather_panel_impl(panel_config, font_config, slack_config, is_side_by_side, trial, wbgt_config):
     weather_info = get_weather_yahoo(panel_config["DATA"]["YAHOO"])
     clothing_info = get_clothing_yahoo(panel_config["DATA"]["YAHOO"])
     wbgt_info = get_wbgt(wbgt_config)
@@ -697,7 +697,7 @@ def create_weather_panel_impl(panel_config, font_config, slack_config, is_side_b
     return img
 
 
-def create_weather_panel(config, is_side_by_side=True):
+def create(config, is_side_by_side=True):
     logging.info("draw weather panel")
 
     return draw_panel_patiently(
