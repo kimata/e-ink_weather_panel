@@ -178,6 +178,25 @@ def check_image(request, img, size, index=None):
     )
 
 
+def load_test_config(config_file, tmp_path, request):
+    config = load_config(config_file)
+
+    config["LIVENESS"]["FILE"] = "{dir_path}/healthz-{name}".format(dir_path=tmp_path, name=request.node.name)
+    pathlib.Path(config["LIVENESS"]["FILE"]).unlink(missing_ok=True)
+    config["PANEL"]["UPDATE"]["INTERVAL"] = 60
+
+    return config
+
+
+def check_liveness(config, is_should_exist):
+    healthz_file = pathlib.Path(config["LIVENESS"]["FILE"])
+
+    if is_should_exist:
+        assert healthz_file.exists(), "存在すべき healthz が存在しません．"
+    else:
+        assert not healthz_file.exists(), "存在してはいけない healthz が存在します．"
+
+
 ######################################################################
 def test_create_image(request, mocker):
     import create_image
@@ -989,11 +1008,10 @@ def test_api_run_normal(mocker):
 ######################################################################
 
 
-def test_display_image(mocker):
+def test_display_image(mocker, tmp_path, request):
     import builtins
 
     import display_image
-    from config import load_config
 
     ssh_client_mock = mocker.MagicMock()
 
@@ -1019,8 +1037,8 @@ def test_display_image(mocker):
 
     mocker.patch("builtins.open", side_effect=open_mock)
 
-    config = load_config(CONFIG_SMALL_FILE)
-    config["PANEL"]["UPDATE"]["INTERVAL"] = 60
+    config = load_test_config(CONFIG_SMALL_FILE, tmp_path, request)
+
     display_image.display_image(
         config,
         "TEST",
@@ -1033,13 +1051,13 @@ def test_display_image(mocker):
     )
 
     check_notify_slack(None)
+    check_liveness(config, True)
 
 
-def test_display_image_onetime(mocker):
+def test_display_image_onetime(mocker, tmp_path, request):
     import builtins
 
     import display_image
-    from config import load_config
 
     ssh_client_mock = mocker.MagicMock()
 
@@ -1065,8 +1083,10 @@ def test_display_image_onetime(mocker):
 
     mocker.patch("builtins.open", side_effect=open_mock)
 
+    config = load_test_config(CONFIG_FILE, tmp_path, request)
+
     display_image.display_image(
-        load_config(CONFIG_FILE),
+        config,
         "TEST",
         "TEST",
         CONFIG_FILE,
@@ -1076,14 +1096,14 @@ def test_display_image_onetime(mocker):
     )
 
     check_notify_slack(None)
+    check_liveness(config, True)
 
 
-def test_display_image_error_major(mocker, request):
+def test_display_image_error_major(mocker, tmp_path, request):
     import builtins
 
     import create_image
     import display_image
-    from config import load_config
 
     ssh_client_mock = mocker.MagicMock()
     subprocess_popen_mock = mocker.MagicMock()
@@ -1112,12 +1132,8 @@ def test_display_image_error_major(mocker, request):
 
     mocker.patch("builtins.open", side_effect=open_mock)
 
-    config = load_config(CONFIG_SMALL_FILE)
+    config = load_test_config(CONFIG_SMALL_FILE, tmp_path, request)
 
-    config["LIVENESS"]["FILE"] = "/dev/shm/healthz-{name}".format(name=request.node.name)
-    pathlib.Path(config["LIVENESS"]["FILE"]).unlink(missing_ok=True)
-
-    config["PANEL"]["UPDATE"]["INTERVAL"] = 60
     display_image.display_image(
         config,
         "TEST",
@@ -1129,19 +1145,16 @@ def test_display_image_error_major(mocker, request):
         prev_ssh=mocker.MagicMock(),
     )
 
-    # NOTE: 本来，create_image の中で通知されているので，上記の胡椒注入方法では通知はされない
+    # NOTE: 本来，create_image の中で通知されているので，上記の故障注入方法では通知はされない
     check_notify_slack(None)
-
-    healthz_file = pathlib.Path(config["LIVENESS"]["FILE"])
-    assert not healthz_file.exists(), "存在してはいけない healthz が存在します"
+    check_liveness(config, False)
 
 
-def test_display_image_error_minor(mocker, request):
+def test_display_image_error_minor(mocker, tmp_path, request):
     import builtins
 
     import create_image
     import display_image
-    from config import load_config
 
     ssh_client_mock = mocker.MagicMock()
     subprocess_popen_mock = mocker.MagicMock()
@@ -1170,12 +1183,8 @@ def test_display_image_error_minor(mocker, request):
 
     mocker.patch("builtins.open", side_effect=open_mock)
 
-    config = load_config(CONFIG_SMALL_FILE)
+    config = load_test_config(CONFIG_SMALL_FILE, tmp_path, request)
 
-    config["LIVENESS"]["FILE"] = "/dev/shm/healthz-{name}".format(name=request.node.name)
-    pathlib.Path(config["LIVENESS"]["FILE"]).unlink(missing_ok=True)
-
-    config["PANEL"]["UPDATE"]["INTERVAL"] = 60
     display_image.display_image(
         config,
         "TEST",
@@ -1189,16 +1198,13 @@ def test_display_image_error_minor(mocker, request):
 
     # NOTE: 本来，create_image の中で通知されているので，上記の故障注入方法では通知はされない
     check_notify_slack(None)
-
-    healthz_file = pathlib.Path(config["LIVENESS"]["FILE"])
-    assert healthz_file.exists(), "healthz が存在しません"
+    check_liveness(config, True)
 
 
-def test_display_image_error_unknown(mocker):
+def test_display_image_error_unknown(mocker, tmp_path, request):
     import builtins
 
     import display_image
-    from config import load_config
 
     ssh_client_mock = mocker.MagicMock()
     subprocess_popen_mock = mocker.MagicMock()
@@ -1227,8 +1233,7 @@ def test_display_image_error_unknown(mocker):
 
     mocker.patch("builtins.open", side_effect=open_mock)
 
-    config = load_config(CONFIG_SMALL_FILE)
-    config["PANEL"]["UPDATE"]["INTERVAL"] = 60
+    config = load_test_config(CONFIG_SMALL_FILE, tmp_path, request)
 
     with pytest.raises(SystemExit):
         display_image.display_image(
@@ -1244,6 +1249,4 @@ def test_display_image_error_unknown(mocker):
 
     # NOTE: 本来，create_image の中で通知されているので，上記の故障注入方法では通知はされない
     check_notify_slack(None)
-
-    healthz_file = pathlib.Path(config["LIVENESS"]["FILE"])
-    assert not healthz_file.exists(), "存在してはいけない healthz が存在します"
+    check_liveness(config, False)
