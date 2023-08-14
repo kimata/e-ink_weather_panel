@@ -723,7 +723,7 @@ if __name__ == "__main__":
     config = load_config(args["-c"])
     out_file = args["-o"]
 
-    img = create_weather_panel_impl(config["WEATHER"], config["FONT"], None, True, config["WBGT"])
+    img = create_weather_panel_impl(config["WEATHER"], config["FONT"], None, True, 1, config["WBGT"])
 
     logging.info("Save {out_file}.".format(out_file=out_file))
     convert_to_gray(img).save(out_file, "PNG")
