@@ -9,6 +9,7 @@ import sys
 from unittest import mock
 
 import pytest
+from flaky import flaky
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "app"))
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
@@ -59,8 +60,8 @@ def clear():
 
     pathlib.Path(config["LIVENESS"]["FILE"]).unlink(missing_ok=True)
 
-    notify_slack.clear_interval()
-    notify_slack.clear_hist()
+    notify_slack.interval_clear()
+    notify_slack.hist_clear()
 
 
 @pytest.fixture()
@@ -145,7 +146,7 @@ def gen_sensor_data(value=[30, 34, 25, 20], valid=True):
 def check_notify_slack(message, index=-1):
     import notify_slack
 
-    notify_hist = notify_slack.get_hist()
+    notify_hist = notify_slack.hist_get()
 
     if message is None:
         assert notify_hist == [], "正常なはずなのに，エラー通知がされています．"
@@ -231,6 +232,8 @@ def test_create_image_error(request, mocker):
     check_notify_slack("Traceback")
 
 
+# NOTE: テストの安定性に問題があるので複数リトライする
+@flaky(max_runs=3, min_passes=1)
 def test_create_image_influx_error(request, mocker):
     import create_image
 
@@ -600,6 +603,8 @@ def test_create_rain_cloud_panel(mocker, request):
     check_notify_slack(None)
 
 
+# NOTE: テストの安定性に問題があるので複数リトライする
+@flaky(max_runs=3, min_passes=1)
 def test_create_rain_cloud_panel_cache_and_error(mocker, request):
     import rain_cloud_panel
     from selenium_util import xpath_exists

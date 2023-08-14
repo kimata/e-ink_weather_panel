@@ -76,11 +76,11 @@ def info(token, ch_name, name, message, formatter=format_simple):
     split_send(token, ch_name, title, message, formatter)
 
 
-def check_interval(interval_min):
+def interval_check(interval_min):
     return footprint.elapsed(ERROR_NOTIFY_FOOTPRINT) > interval_min * 60
 
 
-def clear_interval():
+def interval_clear():
     footprint.clear(ERROR_NOTIFY_FOOTPRINT)
 
 
@@ -107,9 +107,9 @@ def error(
 ):
     title = "Error: " + name
 
-    notify_hist.append(message)
+    hist_add(message)
 
-    if not check_interval(interval_min):
+    if not interval_check(interval_min):
         logging.warning("Interval is too short. Skipping.")
         return
 
@@ -130,9 +130,9 @@ def error_with_image(
 ):  # def error_with_image
     title = "Error: " + name
 
-    notify_hist.append(message)
+    hist_add(message)
 
-    if not check_interval(interval_min):
+    if not interval_check(interval_min):
         logging.warning("Interval is too short. Skipping.")
         return
 
@@ -146,14 +146,21 @@ def error_with_image(
 
 
 # NOTE: テスト用
-def clear_hist():
+def hist_clear():
     global notify_hist
 
     notify_hist = []
 
 
 # NOTE: テスト用
-def get_hist():
+def hist_add(message):
+    global notify_hist
+
+    notify_hist.append(message)
+
+
+# NOTE: テスト用
+def hist_get():
     global notify_hist
 
     return notify_hist
