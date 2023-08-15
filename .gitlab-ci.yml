@@ -224,7 +224,8 @@ test-webapp:
         - docker pull ${CI_REGISTRY_IMAGE}
         - docker run --rm --detach=true --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} ./app/webapp.py -c config-demo.yaml -D
 
-        - poetry config virtualenvs.in-project true
+        - poetry config --local virtualenvs.in-project true
+        - poetry config --local cache-dir $PWD/.poetry/cache
         - poetry install --no-interaction --with test
         - poetry run playwright install --with-deps chromium
 
@@ -236,6 +237,7 @@ test-webapp:
     cache:
         paths:
             - .venv
+            - .poetry
 
     artifacts:
         when: always
@@ -252,13 +254,15 @@ test-walk-through:
 
     image: registry.green-rabbit.net:5000/kimata/local_ubuntu:230812D
     script:
-        - poetry config virtualenvs.in-project true
+        - poetry config --local virtualenvs.in-project true
+        - poetry config --local cache-dir $PWD/.poetry/cache
         - poetry install --no-interaction --with test
         - poetry run pytest --numprocesses 8 tests/test_basic.py
 
     cache:
         paths:
             - .venv
+            - .poetry
 
     artifacts:
         when: always
