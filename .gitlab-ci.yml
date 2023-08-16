@@ -249,7 +249,7 @@ test-webapp:
 test-walk-through:
     stage: test
 
-    needs: ["build-react", "test-regular", "test-regular-small"]
+    needs: ["build-react"]
     dependencies:
         - build-react
 
