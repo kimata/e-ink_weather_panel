@@ -31,7 +31,7 @@ from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 from config import get_db_config
 from matplotlib.font_manager import FontProperties
-from panel_util import error_image
+from panel_util import create_error_image
 from sensor_data import fetch_data
 
 IMAGE_DPI = 100.0
@@ -191,7 +191,7 @@ def create(config):
     except:
         error_message = traceback.format_exc()
         return (
-            error_image(panel_config, font_config, error_message),
+            create_error_image(panel_config, font_config, error_message),
             time.perf_counter() - start,
             error_message,
         )
