@@ -13,13 +13,12 @@ Options:
 
 
 import logging
-import time
-import traceback
 
 import PIL.Image
 import PIL.ImageDraw
 import PIL.ImageEnhance
 import PIL.ImageFont
+from panel_util import draw_panel_patiently
 from pil_util import alpha_paste, draw_text, get_font, load_image
 from weather_data import get_wbgt
 
@@ -85,7 +84,7 @@ def draw_wbgt(img, wbgt, panel_config, icon_config, face_map):
     return img
 
 
-def create_wbgt_panel_impl(panel_config, font_config):
+def create_wbgt_panel_impl(panel_config, font_config, slack_config, is_side_by_side, trial, opt_config=None):
     face_map = get_face_map(font_config)
 
     img = PIL.Image.new(
@@ -103,28 +102,10 @@ def create_wbgt_panel_impl(panel_config, font_config):
 
 def create(config, is_side_by_side=True):
     logging.info("draw WBGT panel")
-    start = time.perf_counter()
 
-    panel_config = config["WBGT"]
-    font_config = config["FONT"]
-
-    try:
-        return (
-            create_wbgt_panel_impl(panel_config, font_config),
-            time.perf_counter() - start,
-        )
-    except:
-        error_message = traceback.format_exc()
-        return (
-            # NOTE: WBGT はアイコンだけオーバレイで表示しているので，エラーメッセージ画像は生成しない
-            PIL.Image.new(
-                "RGBA",
-                (panel_config["PANEL"]["WIDTH"], panel_config["PANEL"]["HEIGHT"]),
-                (255, 255, 255, 0),
-            ),
-            time.perf_counter() - start,
-            error_message,
-        )
+    return draw_panel_patiently(
+        create_wbgt_panel_impl, config["WBGT"], config["FONT"], None, is_side_by_side, error_image=False
+    )
 
 
 if __name__ == "__main__":

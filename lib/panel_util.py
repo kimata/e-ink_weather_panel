@@ -26,7 +26,7 @@ def notify_error(config, message):
     )
 
 
-def error_image(panel_config, font_config, message):
+def create_error_image(panel_config, font_config, message):
     img = PIL.Image.new(
         "RGBA",
         (panel_config["PANEL"]["WIDTH"], panel_config["PANEL"]["HEIGHT"]),
@@ -58,12 +58,7 @@ def error_image(panel_config, font_config, message):
 
 
 def draw_panel_patiently(
-    func,
-    panel_config,
-    font_config,
-    slack_config,
-    is_side_by_side,
-    opt_config=None,
+    func, panel_config, font_config, slack_config, is_side_by_side, opt_config=None, error_image=True
 ):
     RETRY_COUNT = 5
     start = time.perf_counter()
@@ -83,7 +78,13 @@ def draw_panel_patiently(
         time.sleep(2)
 
     return (
-        error_image(panel_config, font_config, error_message),
+        create_error_image(panel_config, font_config, error_message)
+        if error_image
+        else PIL.Image.new(
+            "RGBA",
+            (panel_config["PANEL"]["WIDTH"], panel_config["PANEL"]["HEIGHT"]),
+            (255, 255, 255, 100),
+        ),
         time.perf_counter() - start,
         error_message,
     )
