@@ -153,7 +153,10 @@ def change_window_size_impl(driver, url, width, height):
     window_size = driver.get_window_size()
     element_size = driver.find_element(By.XPATH, CLOUD_IMAGE_XPATH).size
     logging.info(
-        "[actual] window: {window_width} x {window_height}, element: {element_width} x {element_height}".format(
+        (
+            "[actual] window: {window_width} x {window_height}, "
+            + "element: {element_width} x {element_height}"
+        ).format(
             window_width=window_size["width"],
             window_height=window_size["height"],
             element_width=element_size["width"],
@@ -177,7 +180,10 @@ def change_window_size_impl(driver, url, width, height):
     window_size = driver.get_window_size()
     element_size = driver.find_element(By.XPATH, CLOUD_IMAGE_XPATH).size
     logging.info(
-        "[actual] window: {window_width} x {window_height}, element: {element_width} x {element_height}".format(
+        (
+            "[actual] window: {window_width} x {window_height}, "
+            + "element: {element_width} x {element_height}"
+        ).format(
             window_width=window_size["width"],
             window_height=window_size["height"],
             element_width=element_size["width"],
@@ -203,7 +209,10 @@ def change_window_size_impl(driver, url, width, height):
     window_size = driver.get_window_size()
     element_size = driver.find_element(By.XPATH, CLOUD_IMAGE_XPATH).size
     logging.info(
-        "[actual] window: {window_width} x {window_height}, element: {element_width} x {element_height}".format(
+        (
+            "[actual] window: {window_width} x {window_height}, "
+            + "element: {element_width} x {element_height}"
+        ).format(
             window_width=window_size["width"],
             window_height=window_size["height"],
             element_width=element_size["width"],
@@ -625,4 +634,4 @@ if __name__ == "__main__":
     logging.info("Save {out_file}.".format(out_file=out_file))
     convert_to_gray(img).save(out_file, "PNG")
 
-    print("Finish.")
+    logging.info("Finish.")

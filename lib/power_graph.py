@@ -215,4 +215,4 @@ if __name__ == "__main__":
     logging.info("Save {out_file}.".format(out_file=out_file))
     convert_to_gray(img).save(out_file, "PNG")
 
-    print("Finish.")
+    logging.info("Finish.")
