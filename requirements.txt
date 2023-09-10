@@ -2,4 +2,4 @@ selenium
 influxdb-client[ciso]
 pytest-freezegun
 slack_bolt
-pytest-html ==4.0.0
+pytest-html ==4.0.1
