@@ -10,7 +10,7 @@ stages:
 build-react:
     stage: build-webapp
 
-    image: node:20.6
+    image: node:20.7
     script:
         - cd react
         - npm ci --cache .npm --prefer-offline
