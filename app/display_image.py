@@ -70,6 +70,9 @@ def ssh_kill_and_close(ssh, cmd):
             # NOTE: fbi コマンドのプロセスが残るので強制終了させる
             ssh.exec_command("sudo killall -9 {cmd}".format(cmd=cmd))
             ssh.close()
+            return
+        except AttributeError:
+            return
         except:
             if i == (RETRY_COUNT - 1):
                 raise
