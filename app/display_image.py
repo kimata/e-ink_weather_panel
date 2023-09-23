@@ -61,15 +61,15 @@ def ssh_connect(hostname, key_filename):
     return ssh
 
 
-def ssh_killall(ssh, cmd):
-    if prev_ssh is None:
+def ssh_kill_and_close(ssh, cmd):
+    if ssh is None:
         return
 
     for i in range(RETRY_COUNT):
         try:
             # NOTE: fbi コマンドのプロセスが残るので強制終了させる
-            prev_ssh.exec_command("sudo killall -9 {cmd}".format(cmd=cmd))
-            prev_ssh.close()
+            ssh.exec_command("sudo killall -9 {cmd}".format(cmd=cmd))
+            ssh.close()
         except:
             if i == (RETRY_COUNT - 1):
                 raise
@@ -104,7 +104,7 @@ def display_image(
 ):
     start = time.perf_counter()
 
-    ssh_killall(prev_ssh, "fbi")
+    ssh_kill_and_close(prev_ssh, "fbi")
 
     ssh = ssh_connect(rasp_hostname, key_file_path)
 
