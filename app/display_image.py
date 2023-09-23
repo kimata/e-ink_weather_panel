@@ -34,6 +34,8 @@ import logger
 from config import load_config
 from panel_util import notify_error
 
+RETRY_COUNT = 3
+RETRY_WAIT = 2
 NOTIFY_THRESHOLD = 2
 CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
 
@@ -59,6 +61,37 @@ def ssh_connect(hostname, key_filename):
     return ssh
 
 
+def ssh_killall(ssh, cmd):
+    if prev_ssh is None:
+        return
+
+    for i in range(RETRY_COUNT):
+        try:
+            # NOTE: fbi コマンドのプロセスが残るので強制終了させる
+            prev_ssh.exec_command("sudo killall -9 {cmd}".format(cmd=cmd))
+            prev_ssh.close()
+        except:
+            if i == (RETRY_COUNT - 1):
+                raise
+            else:
+                logging.warning(traceback.format_exc())
+                time.sleep(RETRY_WAIT)
+                pass
+
+
+def ssh_exec(ssh, cmd):
+    for i in range(RETRY_COUNT):
+        try:
+            return ssh.exec_command(cmd)
+        except:
+            if i == (RETRY_COUNT - 1):
+                raise
+            else:
+                logging.warning(traceback.format_exc())
+                time.sleep(RETRY_WAIT)
+                pass
+
+
 def display_image(
     config,
     rasp_hostname,
@@ -71,16 +104,14 @@ def display_image(
 ):
     start = time.perf_counter()
 
-    if prev_ssh is not None:
-        # NOTE: fbi コマンドのプロセスが残るので強制終了させる
-        prev_ssh.exec_command("sudo killall -9 fbi")
-        prev_ssh.close()
+    ssh_killall(prev_ssh, "fbi")
 
     ssh = ssh_connect(rasp_hostname, key_file_path)
 
-    ssh_stdin = ssh.exec_command(
+    ssh_stdin = ssh_exec(
+        ssh,
         "cat - > /dev/shm/display.png && "
-        + "sudo fbi -1 -T 1 -d /dev/fb0 --noverbose /dev/shm/display.png; echo $?"
+        + "sudo fbi -1 -T 1 -d /dev/fb0 --noverbose /dev/shm/display.png; echo $?",
     )[0]
 
     logging.info("Start drawing.")
