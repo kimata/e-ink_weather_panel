@@ -108,7 +108,6 @@ def display_image(
     ssh_stdin = exec_patiently(
         ssh.exec_command,
         (
-            ssh,
             "cat - > /dev/shm/display.png && "
             + "sudo fbi -1 -T 1 -d /dev/fb0 --noverbose /dev/shm/display.png; echo $?",
         ),
