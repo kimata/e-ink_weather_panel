@@ -42,6 +42,19 @@ CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
 elapsed_list = []
 
 
+def exec_patiently(func, args):
+    for i in range(RETRY_COUNT):
+        try:
+            return func(*args)
+        except:
+            if i == (RETRY_COUNT - 1):
+                raise
+            else:
+                logging.warning(traceback.format_exc())
+                time.sleep(RETRY_WAIT)
+                pass
+
+
 def ssh_connect(hostname, key_filename):
     logging.info("Connect to {hostname}".format(hostname=hostname))
 
@@ -65,34 +78,15 @@ def ssh_kill_and_close(ssh, cmd):
     if ssh is None:
         return
 
-    for i in range(RETRY_COUNT):
-        try:
-            # NOTE: fbi コマンドのプロセスが残るので強制終了させる
-            ssh.exec_command("sudo killall -9 {cmd}".format(cmd=cmd))
-            ssh.close()
-            return
-        except AttributeError:
-            return
-        except:
-            if i == (RETRY_COUNT - 1):
-                raise
-            else:
-                logging.warning(traceback.format_exc())
-                time.sleep(RETRY_WAIT)
-                pass
-
-
-def ssh_exec(ssh, cmd):
-    for i in range(RETRY_COUNT):
-        try:
-            return ssh.exec_command(cmd)
-        except:
-            if i == (RETRY_COUNT - 1):
-                raise
-            else:
-                logging.warning(traceback.format_exc())
-                time.sleep(RETRY_WAIT)
-                pass
+    try:
+        # NOTE: fbi コマンドのプロセスが残るので強制終了させる
+        ssh.exec_command("sudo killall -9 {cmd}".format(cmd=cmd))
+        ssh.close()
+        return
+    except AttributeError:
+        return
+    except:
+        raise
 
 
 def display_image(
@@ -107,17 +101,21 @@ def display_image(
 ):
     start = time.perf_counter()
 
-    ssh_kill_and_close(prev_ssh, "fbi")
+    exec_patiently(ssh_kill_and_close, (prev_ssh, "fbi"))
 
-    ssh = ssh_connect(rasp_hostname, key_file_path)
+    ssh = exec_patiently(ssh_connect, (rasp_hostname, key_file_path))
 
-    ssh_stdin = ssh_exec(
-        ssh,
-        "cat - > /dev/shm/display.png && "
-        + "sudo fbi -1 -T 1 -d /dev/fb0 --noverbose /dev/shm/display.png; echo $?",
+    ssh_stdin = exec_patiently(
+        ssh.exec_command,
+        (
+            ssh,
+            "cat - > /dev/shm/display.png && "
+            + "sudo fbi -1 -T 1 -d /dev/fb0 --noverbose /dev/shm/display.png; echo $?",
+        ),
     )[0]
 
     logging.info("Start drawing.")
+
     cmd = ["python3", CREATE_IMAGE, "-c", config_file]
     if small_mode:
         cmd.append("-s")
