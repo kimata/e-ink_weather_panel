@@ -95,6 +95,9 @@ def create_wbgt_panel_impl(panel_config, font_config, slack_config, is_side_by_s
 
     wbgt = get_wbgt(panel_config)["current"]
 
+    if wbgt is None:
+        return img
+
     draw_wbgt(img, wbgt, panel_config, panel_config["ICON"], face_map)
 
     return img

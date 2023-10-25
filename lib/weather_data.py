@@ -190,6 +190,12 @@ def get_wbgt_measured_today(wbgt_config):
 
 
 def get_wbgt(wbgt_config):
+    # NOTE: 夏季にしか提供されないので冬は取りに行かない
+
+    mon = datetime.datetime.now().month
+    if (mon < 5) or (mon > 9):
+        return {"current": None, "daily": {"today": None, "tommorow": None}}
+
     # NOTE: 当日の過去時間のデータは表示されず，
     # 別ページに実測値があるので，それを取ってくる．
     wbgt_measured_today = get_wbgt_measured_today(wbgt_config)
