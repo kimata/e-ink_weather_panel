@@ -12,6 +12,7 @@ Options:
 
 
 import datetime
+import logging
 import re
 from urllib import request
 
@@ -202,8 +203,6 @@ def get_wbgt(wbgt_config):
 
 
 if __name__ == "__main__":
-    import logging
-
     import logger
     from config import load_config
     from docopt import docopt
