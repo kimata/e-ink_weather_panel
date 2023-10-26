@@ -364,8 +364,11 @@ def test_wbgt_panel_var(mocker, request):
     check_notify_slack(None)
 
 
-def test_wbgt_panel_error_1(mocker, request):
+def test_wbgt_panel_error_1(freezer, mocker, request):
     import wbgt_panel
+
+    # NOTE: 暑さ指数は夏のみ使うので，時期を変更
+    freezer.move_to(datetime.datetime.now().replace(month=8))
 
     mocker.patch("weather_data.fetch_page", side_effect=RuntimeError())
 
@@ -376,8 +379,11 @@ def test_wbgt_panel_error_1(mocker, request):
     assert "Traceback" in ret[2]
 
 
-def test_wbgt_panel_error_2(mocker, request):
+def test_wbgt_panel_error_2(freezer, mocker, request):
     import wbgt_panel
+
+    # NOTE: 暑さ指数は夏のみ使うので，時期を変更
+    freezer.move_to(datetime.datetime.now().replace(month=8))
 
     mocker.patch("lxml.html.HtmlElement.xpath", return_value=[])
 
@@ -388,8 +394,11 @@ def test_wbgt_panel_error_2(mocker, request):
     assert "Traceback" in ret[2]
 
 
-def test_wbgt_panel_error_3(mocker, request):
+def test_wbgt_panel_error_3(freezer, mocker, request):
     import wbgt_panel
+
+    # NOTE: 暑さ指数は夏のみ使うので，時期を変更
+    freezer.move_to(datetime.datetime.now().replace(month=8))
 
     mock = mocker.patch("weather_data.datetime")
     mock.date.day.return_value = 100
