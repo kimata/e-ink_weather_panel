@@ -13,7 +13,8 @@ import time
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
+
+# from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -34,21 +35,29 @@ def create_driver_impl(profile_name, data_path):
     os.makedirs(log_path, exist_ok=True)
 
     options = Options()
+
     options.add_argument("--headless")
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_argument("--no-sandbox")  # for Docker
     options.add_argument("--disable-dev-shm-usage")  # for Docker
 
+    options.add_argument("--disable-desktop-notifications")
+    options.add_argument("--disable-extensions")
+
     options.add_argument("--lang=ja-JP")
     options.add_argument("--window-size=1920,1080")
+
+    # options.add_argument(
+    #     '--user-agent=""'
+    # )
 
     options.add_argument("--user-data-dir=" + str(chrome_data_path / profile_name))
 
     driver = webdriver.Chrome(
-        service=Service(
-            log_path=str(log_path / "webdriver.log"),
-            service_args=["--verbose"],
-        ),
+        # service=Service(
+        #     log_path=str(log_path / "webdriver.log"),
+        #     service_args=["--verbose"],
+        # ),
         options=options,
     )
 
@@ -93,7 +102,9 @@ def is_display(driver, xpath):
 
 
 def random_sleep(sec):
-    time.sleep(sec + sec / 2.0 * random.random())
+    RATIO = 0.8
+
+    time.sleep((sec * RATIO) + (sec * (1 - RATIO) * 2) * random.random())
 
 
 def wait_patiently(driver, wait, target):
@@ -130,6 +141,10 @@ def dump_page(driver, index, dump_path=DUMP_PATH):
         f.write(driver.page_source)
 
     logging.info("page dump: {index:02d}.".format(index=index))
+
+
+def clear_cache(driver):
+    driver.execute_cdp_cmd("Network.clearBrowserCache", {})
 
 
 def clean_dump(dump_path=DUMP_PATH, keep_days=1):
