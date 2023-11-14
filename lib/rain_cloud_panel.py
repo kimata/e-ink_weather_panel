@@ -30,7 +30,7 @@ from pil_util import alpha_paste, draw_text, get_font, text_size
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium_util import click_xpath, create_driver
+from selenium_util import clear_cache, click_xpath, create_driver
 
 DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
 WINDOW_SIZE_CACHE = DATA_PATH / "window_size.cache"
@@ -416,6 +416,8 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
         time.sleep(2)
 
     driver = create_driver()
+
+    clear_cache(driver)
 
     img = None
     try:
