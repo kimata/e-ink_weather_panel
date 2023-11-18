@@ -364,9 +364,11 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, width, overlay, icon, face):
 def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
     face = face_map["hour"]
 
-    cur_hour = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9), "JST")).hour
+    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9), "JST"))
+    cur_hour = now.hour
+
     if is_today and (
-        (hour <= cur_hour and cur_hour < hour + 3)
+        ((now - now.replace(hour=hour)).total_seconds() < (60 * (60 + 30)))
         or (cur_hour < 6 and hour == 6)
         or (21 <= cur_hour and hour == 21)
     ):
