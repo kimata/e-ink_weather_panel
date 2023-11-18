@@ -368,7 +368,7 @@ def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):
     cur_hour = now.hour
 
     if is_today and (
-        ((now - now.replace(hour=hour)).total_seconds() < (60 * (60 + 30)))
+        (abs((now - now.replace(hour=hour)).total_seconds()) < (60 * (60 + 30)))
         or (cur_hour < 6 and hour == 6)
         or (21 <= cur_hour and hour == 21)
     ):
