@@ -43,7 +43,7 @@ WEATHER:
     ICON:
         SUNSET:
             PATH: ../img/sunset.png
-            SCALE: 0.2
+            SCALE: 0.25
         SUN:
             PATH: ../img/sun.png
             SCALE: 0.5
