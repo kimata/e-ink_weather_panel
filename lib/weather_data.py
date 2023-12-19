@@ -192,7 +192,7 @@ def get_wbgt_measured_today(wbgt_config):
 def get_wbgt(wbgt_config):
     # NOTE: 夏季にしか提供されないので冬は取りに行かない
 
-    mon = datetime.datetime.now().month
+    mon = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9), "JST")).month
     if (mon < 5) or (mon > 9):
         return {"current": None, "daily": {"today": None, "tomorrow": None}}
 
@@ -234,7 +234,7 @@ def get_sunset_date_nao(sunset_config, date):
 
 
 def get_sunset_nao(sunset_config):
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9), "JST"))
 
     return {
         "today": get_sunset_date_nao(sunset_config, now),
