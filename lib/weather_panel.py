@@ -709,13 +709,11 @@ def draw_panel_weather(
     )
 
 
-def create_weather_panel_impl(
-    panel_config, font_config, slack_config, is_side_by_side, trial, sunset_config, wbgt_config
-):
+def create_weather_panel_impl(panel_config, font_config, slack_config, is_side_by_side, trial, opt_config):
     weather_info = get_weather_yahoo(panel_config["DATA"]["YAHOO"])
     clothing_info = get_clothing_yahoo(panel_config["DATA"]["YAHOO"])
-    sunset_info = get_sunset_nao(sunset_config)
-    wbgt_info = get_wbgt(wbgt_config)
+    sunset_info = get_sunset_nao(opt_config["sunset"])
+    wbgt_info = get_wbgt(opt_config["wbgt"])
 
     img = PIL.Image.new(
         "RGBA",
@@ -746,8 +744,7 @@ def create(config, is_side_by_side=True):
         config["FONT"],
         None,
         is_side_by_side,
-        config["SUNSET"],
-        config["WBGT"],
+        {"sunset": config["SUNSET"], "wbgt": config["WBGT"]},
     )
 
 
@@ -765,7 +762,12 @@ if __name__ == "__main__":
     out_file = args["-o"]
 
     img = create_weather_panel_impl(
-        config["WEATHER"], config["FONT"], None, True, 1, config["SUNSET"], config["WBGT"]
+        config["WEATHER"],
+        config["FONT"],
+        None,
+        True,
+        1,
+        {"sunset": config["SUNSET"], "wbgt": config["WBGT"]},
     )
 
     logging.info("Save {out_file}.".format(out_file=out_file))
