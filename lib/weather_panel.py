@@ -29,7 +29,7 @@ import PIL.ImageFont
 from cv2 import dnn_superres
 from panel_util import draw_panel_patiently
 from pil_util import alpha_paste, draw_text, get_font, load_image, text_size
-from weather_data import get_clothing_yahoo, get_wbgt, get_weather_yahoo
+from weather_data import get_clothing_yahoo, get_sunset_nao, get_wbgt, get_weather_yahoo
 
 # NOTE: 天気アイコンの周りにアイコンサイズの何倍の空きを確保するか
 ICON_MARGIN = 0.48
@@ -65,6 +65,9 @@ def get_face_map(font_config):
             "day": get_font(font_config, "EN_BOLD", 160),
             "wday": get_font(font_config, "JP_BOLD", 80),
             "time": get_font(font_config, "EN_COND_BOLD", 40),
+        },
+        "sunset": {
+            "value": get_font(font_config, "EN_COND", 70),
         },
         "hour": {
             "value": get_font(font_config, "EN_MEDIUM", 60),
@@ -192,7 +195,7 @@ def draw_text_info(
             img,
             icon,
             (
-                int(pos_x - icon.size[0] / 2 - text_size(img, face["value"], "0")[0] * 0.5),
+                int(pos_x - icon.size[0] / 2 - text_size(img, face["value"], "0")[0] * 0.3),
                 int(pos_y + (text_size(img, face["value"], "0")[1] - icon.size[1]) / 2.0),
             ),
         )
@@ -523,7 +526,7 @@ def draw_date(img, pos_x, pos_y, date, face_map):
     next_pos_y = draw_text(
         img,
         str(date.day),
-        [text_pos_x, next_pos_y + 10],
+        [text_pos_x, next_pos_y + 14],
         face["day"],
         "center",
         "#666",
@@ -542,6 +545,31 @@ def draw_date(img, pos_x, pos_y, date, face_map):
     )[1]
 
     return (next_pos_x, next_pos_y, text_pos_x)
+
+
+def draw_sunset(img, pos_x, pos_y, sunset_info, icon, face_map):
+    face = face_map["sunset"]
+
+    icon_width, icon_height = icon["sunset"].size
+    text_width, text_height = text_size(img, face["value"], sunset_info)
+
+    icon_pos = (
+        int(pos_x - text_width / 2 - icon_width),
+        int(pos_y + text_height / 2 - icon_height / 2),
+    )
+
+    alpha_paste(img, icon["sunset"], icon_pos)
+
+    next_pos_y = draw_text(
+        img,
+        sunset_info,
+        [pos_x, pos_y],
+        face["value"],
+        "center",
+        "#000",
+    )[1]
+
+    return next_pos_y
 
 
 def draw_clothing(img, pos_x, pos_y, clothing_info, icon):
@@ -584,6 +612,7 @@ def draw_panel_weather_day(
     pos_y,
     weather_day_info,
     clothing_info,
+    sunset_info,
     wbgt_info,
     is_today,
     overlay,
@@ -595,7 +624,8 @@ def draw_panel_weather_day(
         date += datetime.timedelta(days=1)
 
     next_pos_x, next_pos_y, text_pos_x = draw_date(img, pos_x, pos_y, date, face_map)
-    draw_clothing(img, text_pos_x, next_pos_y + 50, clothing_info, icon)
+    next_pos_y = draw_sunset(img, text_pos_x, next_pos_y + 20, sunset_info, icon, face_map)
+    draw_clothing(img, text_pos_x, next_pos_y + 20, clothing_info, icon)
     draw_day_weather(
         img,
         weather_day_info,
@@ -615,11 +645,13 @@ def draw_panel_weather(
     font_config,
     weather_info,
     clothing_info,
+    sunset_info,
     wbgt_info,
     is_side_by_side,
 ):
     icon = {}
     for name in [
+        "sunset",
         "thermo",
         "clothes",
         "precip",
@@ -650,6 +682,7 @@ def draw_panel_weather(
         pos_y,
         weather_info["today"],
         clothing_info["today"],
+        sunset_info["today"],
         wbgt_info["daily"]["today"],
         True,
         img.copy(),
@@ -665,9 +698,10 @@ def draw_panel_weather(
         img,
         pos_x,
         pos_y,
-        weather_info["tommorow"],
-        clothing_info["tommorow"],
-        wbgt_info["daily"]["tommorow"],
+        weather_info["tomorrow"],
+        clothing_info["tomorrow"],
+        sunset_info["tomorrow"],
+        wbgt_info["daily"]["tomorrow"],
         False,
         img.copy(),
         icon,
@@ -675,9 +709,12 @@ def draw_panel_weather(
     )
 
 
-def create_weather_panel_impl(panel_config, font_config, slack_config, is_side_by_side, trial, wbgt_config):
+def create_weather_panel_impl(
+    panel_config, font_config, slack_config, is_side_by_side, trial, sunset_config, wbgt_config
+):
     weather_info = get_weather_yahoo(panel_config["DATA"]["YAHOO"])
     clothing_info = get_clothing_yahoo(panel_config["DATA"]["YAHOO"])
+    sunset_info = get_sunset_nao(sunset_config)
     wbgt_info = get_wbgt(wbgt_config)
 
     img = PIL.Image.new(
@@ -692,6 +729,7 @@ def create_weather_panel_impl(panel_config, font_config, slack_config, is_side_b
         font_config,
         weather_info,
         clothing_info,
+        sunset_info,
         wbgt_info,
         is_side_by_side,
     )
@@ -708,6 +746,7 @@ def create(config, is_side_by_side=True):
         config["FONT"],
         None,
         is_side_by_side,
+        config["SUNSET"],
         config["WBGT"],
     )
 
@@ -725,7 +764,9 @@ if __name__ == "__main__":
     config = load_config(args["-c"])
     out_file = args["-o"]
 
-    img = create_weather_panel_impl(config["WEATHER"], config["FONT"], None, True, 1, config["WBGT"])
+    img = create_weather_panel_impl(
+        config["WEATHER"], config["FONT"], None, True, 1, config["SUNSET"], config["WBGT"]
+    )
 
     logging.info("Save {out_file}.".format(out_file=out_file))
     convert_to_gray(img).save(out_file, "PNG")

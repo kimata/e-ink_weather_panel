@@ -14,9 +14,24 @@ Options:
 import datetime
 import logging
 import re
-from urllib import request
 
 from lxml import html
+
+
+def fetch_page(url, encoding="UTF-8"):
+    import ssl
+    import urllib.request
+
+    # NOTE: 環境省のページはこれをしないとエラーになる
+    ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+    ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
+
+    data = urllib.request.urlopen(url, context=ctx)
+
+    if encoding is not None:
+        return html.fromstring(data.read().decode(encoding))
+    else:
+        return html.fromstring(data.read())
 
 
 def parse_weather(content):
@@ -76,23 +91,21 @@ def parse_clothing(content, index):
     return index
 
 
-def get_weather_yahoo(config):
-    data = request.urlopen(config["URL"])
-    content = html.fromstring(data.read().decode("UTF-8"))
+def get_weather_yahoo(yahoo_config):
+    content = fetch_page(yahoo_config["URL"])
 
     return {
         "today": parse_table(content, 1),
-        "tommorow": parse_table(content, 2),
+        "tomorrow": parse_table(content, 2),
     }
 
 
 def get_clothing_yahoo(yahoo_config):
-    data = request.urlopen(yahoo_config["URL"])
-    content = html.fromstring(data.read().decode("UTF-8"))
+    content = fetch_page(yahoo_config["URL"])
 
     return {
         "today": parse_clothing(content, 1),
-        "tommorow": parse_clothing(content, 2),
+        "tomorrow": parse_clothing(content, 2),
     }
 
 
@@ -142,7 +155,7 @@ def parse_wbgt_daily(content, wbgt_measured_today):
 
         return {
             "today": wbgt_list[0:9],
-            "tommorow": wbgt_list[9:18],
+            "tomorrow": wbgt_list[9:18],
         }
     else:
         # NOTE: 昨日のデータが本日として表示されている
@@ -152,21 +165,8 @@ def parse_wbgt_daily(content, wbgt_measured_today):
         wbgt_list[18] = None
         return {
             "today": wbgt_list[9:18],
-            "tommorow": wbgt_list[18:27],
+            "tomorrow": wbgt_list[18:27],
         }
-
-
-def fetch_page(url):
-    import ssl
-    import urllib.request
-
-    # NOTE: 環境省のページはこれをしないとエラーになる
-    ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-    ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
-
-    data = urllib.request.urlopen(url, context=ctx)
-
-    return html.fromstring(data.read().decode("UTF-8"))
 
 
 def get_wbgt_measured_today(wbgt_config):
@@ -194,7 +194,7 @@ def get_wbgt(wbgt_config):
 
     mon = datetime.datetime.now().month
     if (mon < 5) or (mon > 9):
-        return {"current": None, "daily": {"today": None, "tommorow": None}}
+        return {"current": None, "daily": {"today": None, "tomorrow": None}}
 
     # NOTE: 当日の過去時間のデータは表示されず，
     # 別ページに実測値があるので，それを取ってくる．
@@ -205,6 +205,40 @@ def get_wbgt(wbgt_config):
     return {
         "current": parse_wbgt_current(content),
         "daily": parse_wbgt_daily(content, wbgt_measured_today),
+    }
+
+
+def get_sunset_url_nao(sunset_config, date):
+    return "https://eco.mtk.nao.ac.jp/koyomi/dni/{year}/s{pref:02d}{month}.html".format(
+        year=date.year, month=date.month, pref=sunset_config["DATA"]["NAO"]["PREF"]
+    )
+
+
+def get_sunset_date_nao(sunset_config, date):
+    # NOTE: XHTML で encoding が指定されているので，decode しないようにする
+    content = fetch_page(get_sunset_url_nao(sunset_config, date), None)
+
+    sun_data = content.xpath('//table[contains(@class, "result")]//td')
+
+    sun_info = []
+    for i in range(0, len(sun_data), 7):
+        sun_info.append(
+            {
+                "day": sun_data[i + 0].text_content().strip(),
+                "rise": sun_data[i + 1].text_content().strip(),
+                "set": sun_data[i + 5].text_content().strip(),
+            }
+        )
+
+    return sun_info[date.day - 1]["set"]
+
+
+def get_sunset_nao(sunset_config):
+    now = datetime.datetime.now()
+
+    return {
+        "today": get_sunset_date_nao(sunset_config, now),
+        "tomorrow": get_sunset_date_nao(sunset_config, now + datetime.timedelta(days=1)),
     }
 
 
@@ -222,6 +256,8 @@ if __name__ == "__main__":
     # logging.info(get_weather_yahoo(config["WEATHER"]["DATA"]["YAHOO"]))
     # logging.info(get_clothing_yahoo(config["WEATHER"]["DATA"]["YAHOO"]))
 
-    logging.info(get_wbgt(config["WBGT"]))
+    logging.info(get_sunset_nao(config["SUNSET"]))
 
-    logging.info("Fnish.")
+    # logging.info(get_wbgt(config["WBGT"]))
+
+    # logging.info("Fnish.")
