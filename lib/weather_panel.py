@@ -548,13 +548,14 @@ def draw_date(img, pos_x, pos_y, date, face_map):
 
 
 def draw_sunset(img, pos_x, pos_y, sunset_info, icon, face_map):
+    OFFSET = 10
     face = face_map["sunset"]
 
     icon_width, icon_height = icon["sunset"].size
     text_width, text_height = text_size(img, face["value"], sunset_info)
 
     icon_pos = (
-        int(pos_x - text_width / 2 - icon_width),
+        int(pos_x - text_width / 2 - icon_width + OFFSET),
         int(pos_y + text_height / 2 - icon_height / 2),
     )
 
@@ -563,7 +564,7 @@ def draw_sunset(img, pos_x, pos_y, sunset_info, icon, face_map):
     next_pos_y = draw_text(
         img,
         sunset_info,
-        [pos_x, pos_y],
+        [pos_x + OFFSET, pos_y],
         face["value"],
         "center",
         "#000",
