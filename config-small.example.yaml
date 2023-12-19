@@ -41,6 +41,9 @@ WEATHER:
             URL: https://weather.yahoo.co.jp/weather/jp/13/4410/13113.html
 
     ICON:
+        SUNSET:
+            PATH: ../img/sunset.png
+            SCALE: 0.3
         SUN:
             PATH: ../img/sun.png
             SCALE: 0.5
@@ -136,6 +139,11 @@ RAIN_CLOUD:
     DATA:
         JMA:
             URL: https://www.jma.go.jp/bosai/nowc/#zoom:12/lat:35.682677/lon:139.762230/colordepth:deep/elements:hrpns&slmcs
+
+SUNSET:
+    DATA:
+        NAO:
+            PREF: 13
 
 WBGT:
     PANEL:
