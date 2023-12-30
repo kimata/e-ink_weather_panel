@@ -209,7 +209,7 @@ def get_wbgt(wbgt_config):
 
 
 def get_sunset_url_nao(sunset_config, date):
-    return "https://eco.mtk.nao.ac.jp/koyomi/dni/{year}/s{pref:02d}{month}.html".format(
+    return "https://eco.mtk.nao.ac.jp/koyomi/dni/{year}/s{pref:02d}{month:02d}.html".format(
         year=date.year, month=date.month, pref=sunset_config["DATA"]["NAO"]["PREF"]
     )
 
