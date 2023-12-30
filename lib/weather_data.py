@@ -22,6 +22,8 @@ def fetch_page(url, encoding="UTF-8"):
     import ssl
     import urllib.request
 
+    logging.info("fetch {url}".format(url=url))
+
     # NOTE: 環境省のページはこれをしないとエラーになる
     ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
     ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
