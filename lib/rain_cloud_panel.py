@@ -442,7 +442,7 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
                 slack_config["BOT_TOKEN"],
                 slack_config["ERROR"]["CHANNEL"]["NAME"],
                 slack_config["ERROR"]["CHANNEL"]["ID"],
-                slack_config["NAME"],
+                slack_config["FROM"],
                 traceback.format_exc(),
                 {
                     "data": PIL.Image.open((io.BytesIO(driver.get_screenshot_as_png()))),
