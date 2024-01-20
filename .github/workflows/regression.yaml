@@ -48,7 +48,7 @@ jobs:
               working-directory: ./react
 
             - name: Upload built file
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
               with:
                   name: react-dist
                   path: react/dist
@@ -106,7 +106,7 @@ jobs:
               run: poetry run pytest --numprocesses 4 tests/test_basic.py
 
             - name: Upload coverage file
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
               if: always()
               with:
                   name: pytest
