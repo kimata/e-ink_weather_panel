@@ -436,7 +436,7 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
             sub_panel_config["is_future"],
         )
     except:
-        # NOTE: 3回目以降のみ通知する
+        # NOTE: 3回目のリトライ以降のみ通知する
         if (trial > 2) and (slack_config is not None):
             notify_slack.error_with_image(
                 slack_config["BOT_TOKEN"],

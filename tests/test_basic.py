@@ -644,10 +644,10 @@ def test_create_rain_cloud_panel_cache_and_error(mocker, request):
     import rain_cloud_panel
     from selenium_util import click_xpath as click_xpath_orig
 
-    # NOTE: 3回だけエラーにする
+    # NOTE: 4回だけエラーにする
     def click_xpath_mock(driver, xpath, wait=None, is_warn=True):
         click_xpath_mock.i += 1
-        if click_xpath_mock.i <= 3:
+        if click_xpath_mock.i <= 4:
             raise RuntimeError()
         else:
             return click_xpath_orig(driver, xpath, wait, is_warn)
