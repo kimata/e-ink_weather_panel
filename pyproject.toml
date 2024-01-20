@@ -19,6 +19,7 @@ python = "^3.10"
 selenium = "^4.10.0"
 slack-sdk = "^3.21.3"
 opencv-contrib-python-headless = "^4.8.0.76"
+pyarrow = "^14.0.2"
 
 [tool.poetry.group.test.dependencies]
 flaky = "^3.7.0"
