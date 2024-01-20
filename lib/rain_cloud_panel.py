@@ -450,6 +450,9 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
                 },
                 interval_min=slack_config["ERROR"]["INTERVAL_MIN"],
             )
+        # NOTE: リトライまでに時間を空けるようにする
+        time.sleep(10)
+
         raise
 
     driver.quit()
