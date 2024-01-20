@@ -658,8 +658,10 @@ def test_create_rain_cloud_panel_cache_and_error(mocker, request):
 
     month_ago = datetime.datetime.now() + datetime.timedelta(days=-1)
     month_ago_epoch = month_ago.timestamp()
-    rain_cloud_panel.WINDOW_SIZE_CACHE.touch()
-    os.utime(str(rain_cloud_panel.WINDOW_SIZE_CACHE), (month_ago_epoch, month_ago_epoch))
+
+    if rain_cloud_panel.WINDOW_SIZE_CACHE.exists():
+        rain_cloud_panel.WINDOW_SIZE_CACHE.touch()
+        os.utime(str(rain_cloud_panel.WINDOW_SIZE_CACHE), (month_ago_epoch, month_ago_epoch))
 
     check_image(
         request,
