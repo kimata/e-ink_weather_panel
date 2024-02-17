@@ -1,4 +1,4 @@
-image: docker:24.0.9
+image: docker:25.0.3
 
 stages:
     - build-webapp
