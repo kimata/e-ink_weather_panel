@@ -259,7 +259,7 @@ test-walk-through:
         - poetry config --local cache-dir $PWD/.poetry/cache
         - poetry install --no-interaction --with test
         - cat /etc/resolv.conf
-        - ping googlechromelabs.github.io
+        - dig googlechromelabs.github.io
         - poetry run pytest --numprocesses 8 tests/test_basic.py
 
     cache:
