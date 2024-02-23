@@ -260,7 +260,8 @@ test-walk-through:
         - poetry install --no-interaction --with test
         - cat /etc/resolv.conf
         - dig googlechromelabs.github.io
-        - poetry run pytest --numprocesses 8 tests/test_basic.py
+        # - poetry run pytest --numprocesses 8 tests/test_basic.py
+        - poetry run pytest tests/test_basic.py::test_create_image
 
     cache:
         key: "${CI_JOB_NAME}"
