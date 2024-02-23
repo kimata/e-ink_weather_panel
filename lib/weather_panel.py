@@ -248,7 +248,7 @@ def draw_temp(img, temp, is_first, pos_x, pos_y, icon, face):
         pos_y,
         icon,
         face,
-        underline=temp >= 30 or temp <= 0,
+        underline=temp > 30 or temp < 0,
         margin_top_ratio=0.1,
     )
 

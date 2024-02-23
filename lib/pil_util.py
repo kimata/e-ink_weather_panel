@@ -5,6 +5,7 @@ import os
 import pathlib
 
 import PIL.ImageDraw
+import PIL.ImageEnhance
 import PIL.ImageFont
 
 
