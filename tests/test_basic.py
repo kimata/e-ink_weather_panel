@@ -13,6 +13,12 @@ import pytest
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "app"))
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
 
+import logging
+
+logging.getLogger("selenium.webdriver.remote").setLevel(logging.WARN)
+logging.getLogger("selenium.webdriver.common").setLevel(logging.DEBUG)
+
+
 from config import load_config
 from webapp import create_app
 
