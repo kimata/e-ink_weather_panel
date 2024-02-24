@@ -217,6 +217,8 @@ if __name__ == "__main__":
             if is_one_time or (fail_count >= NOTIFY_THRESHOLD):
                 notify_error(config, traceback.format_exc())
                 logging.error("エラーが続いたので終了します．")
+                sys.stderr.flush()
+                time.sleep(1)
                 raise
             else:
                 time.sleep(10)
