@@ -260,8 +260,10 @@ test-walk-through:
         - poetry install --no-interaction --with test
         - cat /etc/resolv.conf
         - dig googlechromelabs.github.io +qr
+        - env
         - wget https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
         - /builds/kimata/e-ink_weather_panel/.venv/lib/python3.10/site-packages/selenium/webdriver/common/linux/selenium-manager --browser chrome --debug --language-binding python --output json
+
         - poetry run pytest --numprocesses 8 tests/test_basic.py
 
     variables:
