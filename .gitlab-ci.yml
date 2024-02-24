@@ -264,6 +264,11 @@ test-walk-through:
         # - poetry run pytest --numprocesses 8 tests/test_basic.py
         - poetry run pytest tests/test_basic.py::test_create_image
 
+    variables:
+        RUST_BACKTRACE: 1
+        CARGO_HTTP_DEBUG: true
+        CARGO_LOG: cargo::ops::registry=debug
+
     cache:
         key: "${CI_JOB_NAME}"
         paths:
