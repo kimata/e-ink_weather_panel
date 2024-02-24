@@ -632,7 +632,7 @@ def draw_panel_weather_day(
         weather_day_info,
         wbgt_info,
         is_today,
-        next_pos_x + 30,
+        next_pos_x + 50,
         pos_y + 5,
         overlay,
         icon,
