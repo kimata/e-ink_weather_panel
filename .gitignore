@@ -8,3 +8,6 @@ tests/evidence
 */__pycache__/*
 .coverage
 poetry.lock
+config-demo.yaml
+config-small.yaml
+config.yaml
