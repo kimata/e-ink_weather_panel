@@ -266,7 +266,7 @@ test-walk-through:
 
     variables:
         RUST_BACKTRACE: 1
-        CARGO_HTTP_DEBUG: true
+        CARGO_HTTP_DEBUG: "true"
         CARGO_LOG: "cargo::ops::registry=debug"
 
     cache:
