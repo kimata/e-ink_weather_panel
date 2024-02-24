@@ -259,16 +259,13 @@ test-walk-through:
         - poetry config --local cache-dir $PWD/.poetry/cache
         - poetry install --no-interaction --with test
         - cat /etc/resolv.conf
-        - dig googlechromelabs.github.io
+        - dig googlechromelabs.github.io +qr
         - wget https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
         - /builds/kimata/e-ink_weather_panel/.venv/lib/python3.10/site-packages/selenium/webdriver/common/linux/selenium-manager --browser chrome --debug --language-binding python --output json
-        # - poetry run pytest --numprocesses 8 tests/test_basic.py
-        - poetry run pytest tests/test_basic.py::test_create_image
+        - poetry run pytest --numprocesses 8 tests/test_basic.py
 
     variables:
-        RUST_BACKTRACE: 1
-        CARGO_HTTP_DEBUG: "true"
-        CARGO_LOG: "cargo::ops::registry=debug"
+        RUST_LOG: trace
 
     cache:
         key: "${CI_JOB_NAME}"
