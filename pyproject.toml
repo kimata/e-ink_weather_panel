@@ -5,7 +5,7 @@ description = "電子ペーパディスプレイに，Raspberry Pi を通じて�
 authors = ["KIMATA Tetsuya <kimata@green-rabbit.net>"]
 
 [tool.poetry.dependencies]
-Flask = "^2.3.2"
+Flask = "^3.0.0"
 Flask-Cors = "^4.0.0"
 PyYAML = "^6.0"
 coloredlogs = "^15.0.1"
