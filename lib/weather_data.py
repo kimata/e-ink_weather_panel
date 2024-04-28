@@ -193,9 +193,9 @@ def get_wbgt_measured_today(wbgt_config):
 
 def get_wbgt(wbgt_config):
     # NOTE: 夏季にしか提供されないので冬は取りに行かない
+    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9), "JST"))
 
-    mon = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9), "JST")).month
-    if (mon < 5) or (mon > 9):
+    if (now.month < 3) or ((now.month == 4) and (now.day < 20)) or (now.month > 9):
         return {"current": None, "daily": {"today": None, "tomorrow": None}}
 
     # NOTE: 当日の過去時間のデータは表示されず，
