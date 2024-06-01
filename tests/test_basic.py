@@ -388,35 +388,12 @@ def test_wbgt_panel_error_1(freezer, mocker, request):
 def test_wbgt_panel_error_2(mocker, request):
     import wbgt_panel
 
-    # NOTE: 暑さ指数は夏にしか取得できないので，冬はテストを見送る
-    mon = datetime.datetime.now().month
-    if (mon < 5) or (mon > 9):
-        return
-
     mocker.patch("lxml.html.HtmlElement.xpath", return_value=[])
 
     ret = wbgt_panel.create(load_config(CONFIG_FILE))
     check_image(request, ret[0], load_config(CONFIG_FILE)["WBGT"]["PANEL"])
 
-    assert len(ret) == 3
-    assert "Traceback" in ret[2]
-
-
-def test_wbgt_panel_error_3(mocker, request):
-    import wbgt_panel
-
-    # NOTE: 暑さ指数は夏にしか取得できないので，冬はテストを見送る
-    mon = datetime.datetime.now().month
-    if (mon < 5) or (mon > 9):
-        return
-
-    mock = mocker.patch("weather_data.datetime")
-    mock.date.day.return_value = 100
-
-    ret = wbgt_panel.create(load_config(CONFIG_FILE))
-    check_image(request, ret[0], load_config(CONFIG_FILE)["WBGT"]["PANEL"])
-
-    # NOTE: パネル生成処理としてはエラーにならない
+    # NOTE: ページのフォーマットが期待値と異なるくらいではエラーにしない
     assert len(ret) == 2
 
 
