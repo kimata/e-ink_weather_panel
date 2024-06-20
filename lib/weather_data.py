@@ -68,7 +68,9 @@ def parse_table(content, index):
             case 1:
                 day_info_by_type[label] = list(map(lambda c: parse_weather(c), td_content_list))
             case 2 | 3 | 4:
-                day_info_by_type[label] = list(map(lambda c: int(c.text_content().strip()), td_content_list))
+                day_info_by_type[label] = list(
+                    map(lambda c: float(c.text_content().strip()), td_content_list)
+                )
             case 5:
                 day_info_by_type[label] = list(map(lambda c: parse_wind(c), td_content_list))
             case _:  # pragma: no cover
