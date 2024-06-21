@@ -289,13 +289,13 @@ def draw_temp(img, temp, is_first, pos_x, pos_y, icon, face):
 
 
 def draw_precip(img, precip, is_first, pos_x, pos_y, precip_icon, face):
-    if precip == 0:
+    if precip < 0.1:
         color = "#eee"
         underline = False
-    elif precip == 1:
+    elif precip <= 1:
         color = "#ddd"
         underline = False
-    elif precip == 2:
+    elif precip <= 2:
         color = "#bbb"
         underline = False
     elif precip < 10:
