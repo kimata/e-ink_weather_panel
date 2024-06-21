@@ -204,9 +204,14 @@ def draw_text_info(
     unit_pos_y = pos_y + text_size(img, face["value"], "0")[1] - text_size(img, face["unit"], "℃")[1]
     unit_pos_x = value_pos_x + 5
 
+    if value < 1:
+        value_text = "{value:.1f}".format(value=value)
+    else:
+        value_text = "{value:.0f}".format(value=value)
+
     draw_text(
         img,
-        str(value),
+        value_text,
         [value_pos_x, pos_y],
         face["value"],
         "right",
