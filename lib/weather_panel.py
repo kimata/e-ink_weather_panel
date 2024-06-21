@@ -222,7 +222,7 @@ def draw_text_info(
             img,
             "0.",
             [int_pos_x, pos_y],
-            face["value"],
+            face["zero"],
             "right",
             color,
         )
