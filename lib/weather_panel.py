@@ -218,10 +218,13 @@ def draw_text_info(
             color,
         )
         int_pos_x = value_pos_x - text_size(img, face["value"], tenth_text)[0]
+        int_pos_y = pos_y + (
+            text_size(img, face["value"], tenth_text)[1] - text_size(img, face["zero"], "0.")[1]
+        )
         draw_text(
             img,
             "0.",
-            [int_pos_x, pos_y],
+            [int_pos_x, int_pos_y],
             face["zero"],
             "right",
             color,
