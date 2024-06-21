@@ -74,6 +74,7 @@ def get_face_map(font_config):
         },
         "temp": {
             "value": get_font(font_config, "EN_BOLD", 120),
+            "zero": get_font(font_config, "EN_BOLD", 80),
             "unit": get_font(font_config, "JP_REGULAR", 30),
         },
         "temp_sens": {
@@ -82,6 +83,7 @@ def get_face_map(font_config):
         },
         "precip": {
             "value": get_font(font_config, "EN_BOLD", 120),
+            "zero": get_font(font_config, "EN_BOLD", 80),
             "unit": get_font(font_config, "JP_REGULAR", 30),
         },
         "wind": {
@@ -204,21 +206,44 @@ def draw_text_info(
     unit_pos_y = pos_y + text_size(img, face["value"], "0")[1] - text_size(img, face["unit"], "℃")[1]
     unit_pos_x = value_pos_x + 5
 
-    if value < 0.01:
-        value_text = "0"
-    elif value < 1:
-        value_text = "{value:.1f}".format(value=value)
+    if (value > 0.01) and (value < 1) and ("zero" in face):
+        tenth_text = str(int(value * 10))
+        # NOTE: 小数点第一位
+        draw_text(
+            img,
+            tenth_text,
+            [value_pos_x, pos_y],
+            face["value"],
+            "right",
+            color,
+        )
+        int_pos_x = value_pos_x - text_size(img, face["value"], tenth_text)[0]
+        draw_text(
+            img,
+            "0.",
+            [int_pos_x, pos_y],
+            face["value"],
+            "right",
+            color,
+        )
+        value_start_x = int_pos_x - text_size(img, face["zero"], "0.")[0]
     else:
-        value_text = "{value:.0f}".format(value=value)
+        if value < 0.01:
+            value_text = "0"
+        elif value < 1:
+            value_text = "{value:.1f}".format(value=value)
+        else:
+            value_text = "{value:.0f}".format(value=value)
 
-    draw_text(
-        img,
-        value_text,
-        [value_pos_x, pos_y],
-        face["value"],
-        "right",
-        color,
-    )
+        draw_text(
+            img,
+            value_text,
+            [value_pos_x, pos_y],
+            face["value"],
+            "right",
+            color,
+        )
+        value_start_x = value_pos_x - text_size(img, face["value"], value_text)[0]
 
     next_pos_y = pos_y + text_size(img, face["value"], "0")[1]
 
@@ -226,7 +251,7 @@ def draw_text_info(
         draw = PIL.ImageDraw.Draw(img)
         draw.rectangle(
             (
-                value_pos_x - text_size(img, face["value"], str(value))[0],
+                value_start_x,
                 next_pos_y + 4,
                 value_pos_x,
                 next_pos_y + 11,
