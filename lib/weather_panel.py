@@ -197,7 +197,7 @@ def draw_text_info(
             img,
             icon,
             (
-                int(pos_x - icon.size[0] / 2 - text_size(img, face["value"], "0")[0] * 0.3),
+                int(pos_x - icon.size[0] / 2 - text_size(img, face["value"], "0")[0] * 0.35),
                 int(pos_y + (text_size(img, face["value"], "0")[1] - icon.size[1]) / 2.0),
             ),
         )
