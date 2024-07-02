@@ -167,7 +167,7 @@ def display_image(
         while sleep_time < 0:
             sleep_time += 60
 
-        logging.info("sleep {sleep_time} sec...".format(sleep_time=sleep_time))
+        logging.info("sleep {sleep_time:.1f} sec...".format(sleep_time=sleep_time))
 
     time.sleep(sleep_time)
 
