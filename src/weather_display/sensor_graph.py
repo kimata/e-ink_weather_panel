@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 センサーグラフを生成します．
 
@@ -19,21 +18,19 @@ import pathlib
 import time
 import traceback
 
-import matplotlib
-import PIL.Image
-
-matplotlib.use("Agg")
-
+import matplotlib as mpl
 import matplotlib.dates as mdates
+import matplotlib.font_manager
 import matplotlib.pyplot as plt
+import my_lib.panel_util
+import PIL.Image
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
+from my_lib.sensor_data import fetch_data
 from pandas.plotting import register_matplotlib_converters
 
+mpl.use("Agg")
+
 register_matplotlib_converters()
-from config import get_db_config
-from matplotlib.font_manager import FontProperties
-from panel_util import create_error_image
-from sensor_data import fetch_data
 
 IMAGE_DPI = 100.0
 EMPTY_VALUE = -100.0
@@ -42,26 +39,26 @@ AIRCON_WORK_THRESHOLD = 30
 
 
 def get_plot_font(config, font_type, size):
-    font_path = str(pathlib.Path(os.path.dirname(__file__), config["PATH"], config["MAP"][font_type]))
+    font_path = str(pathlib.path(config["path"]) / config["map"][font_type])
 
-    logging.info("Load font: {path}".format(path=font_path))
+    logging.info("Load font: %s", font_path)
 
-    return FontProperties(fname=font_path, size=size)
+    return matplotlib.font_manager.FontProperties(fname=font_path, size=size)
 
 
 def get_face_map(font_config):
     return {
-        "title": get_plot_font(font_config, "JP_BOLD", 34),
-        "value": get_plot_font(font_config, "EN_COND", 65),
-        "value_small": get_plot_font(font_config, "EN_COND", 55),
-        "value_unit": get_plot_font(font_config, "JP_REGULAR", 18),
-        "yaxis": get_plot_font(font_config, "JP_REGULAR", 20),
-        "xaxis": get_plot_font(font_config, "EN_MEDIUM", 20),
+        "title": get_plot_font(font_config, "jp_bold", 34),
+        "value": get_plot_font(font_config, "en_cond", 65),
+        "value_small": get_plot_font(font_config, "en_cond", 55),
+        "value_unit": get_plot_font(font_config, "jp_regular", 18),
+        "yaxis": get_plot_font(font_config, "jp_regular", 20),
+        "xaxis": get_plot_font(font_config, "en_medium", 20),
     }
 
 
-def plot_item(ax, title, unit, data, xbegin, ylabel, ylim, fmt, scale, small, face_map):
-    logging.info("Plot {title}".format(title=title))
+def plot_item(ax, title, unit, data, xbegin, ylim, fmt, scale, small, face_map):  # noqa: PLR0913
+    logging.info("Plot %s", title)
 
     x = data["time"]
     y = data["value"]
@@ -98,10 +95,7 @@ def plot_item(ax, title, unit, data, xbegin, ylabel, ylim, fmt, scale, small, fa
 
     ax.fill_between(x, y, 0, facecolor="#DDDDDD", alpha=0.5)
 
-    if small:
-        font = face_map["value_small"]
-    else:
-        font = face_map["value"]
+    font = face_map["value_small"] if small else face_map["value"]
 
     ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%-d"))
@@ -167,7 +161,7 @@ def draw_aircon_icon(ax, power, icon_config):
 
     icon_file = icon_config["AIRCON"]["PATH"]
 
-    img = plt.imread(str(pathlib.Path(os.path.dirname(__file__), icon_file)))
+    img = plt.imread(str(pathlib.Path(icon_file)))
 
     imagebox = OffsetImage(img, zoom=0.3)
     imagebox.image.axes = ax
@@ -198,7 +192,7 @@ def draw_light_icon(ax, lux_list, icon_config):
     else:
         icon_file = icon_config["LIGHT"]["ON"]["PATH"]
 
-    img = plt.imread(str(pathlib.Path(os.path.dirname(__file__), icon_file)))
+    img = plt.imread(str(pathlib.Path(icon_file)))
 
     imagebox = OffsetImage(img, zoom=0.25)
     imagebox.image.axes = ax
@@ -235,7 +229,7 @@ def sensor_data(db_config, host_specify_list, param):
     return data
 
 
-def create_sensor_graph_impl(panel_config, font_config, db_config):
+def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C901
     face_map = get_face_map(font_config)
 
     room_list = panel_config["ROOM_LIST"]
@@ -251,13 +245,13 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):
     cache = None
     range_map = {}
     time_begin = datetime.datetime.now(datetime.timezone.utc)
-    for row, param in enumerate(panel_config["PARAM_LIST"]):
-        logging.info("fetch {name} data".format(name=param["NAME"]))
+    for param in panel_config["PARAM_LIST"]:
+        logging.info("fetch %s data", param["NAME"])
 
         param_min = float("inf")
         param_max = -float("inf")
 
-        for col in range(0, len(room_list)):
+        for col in range(len(room_list)):
             data = sensor_data(
                 db_config,
                 room_list[col]["HOST"],
@@ -288,9 +282,9 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):
         ]
 
     for row, param in enumerate(panel_config["PARAM_LIST"]):
-        logging.info("draw {name} graph".format(name=param["NAME"]))
+        logging.info("draw %d graph", param["NAME"])
 
-        for col in range(0, len(room_list)):
+        for col in range(len(room_list)):
             data = sensor_data(
                 db_config,
                 room_list[col]["HOST"],
@@ -305,15 +299,8 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):
                 1 + len(room_list) * row + col,
             )
 
-            if row == 0:
-                title = room_list[col]["LABEL"]
-            else:
-                title = None
-
-            if param["RANGE"] == "auto":
-                graph_range = range_map[param["NAME"]]
-            else:
-                graph_range = param["RANGE"]
+            title = room_list[col]["LABEL"] if row == 0 else None
+            graph_range = range_map[param["NAME"]] if param["RANGE"] == "auto" else param["RANGE"]
 
             plot_item(
                 ax,
@@ -321,7 +308,6 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):
                 param["UNIT"],
                 data,
                 time_begin,
-                param["UNIT"],
                 graph_range,
                 param["FORMAT"],
                 param["SCALE"],
@@ -329,17 +315,15 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):
                 face_map,
             )
 
-            if param["NAME"] == "temp":
-                if "AIRCON" in room_list[col]:
-                    draw_aircon_icon(
-                        ax,
-                        get_aircon_power(db_config, room_list[col]["AIRCON"]),
-                        panel_config["ICON"],
-                    )
+            if (param["NAME"] == "temp") and ("AIRCON" in room_list[col]):
+                draw_aircon_icon(
+                    ax,
+                    get_aircon_power(db_config, room_list[col]["AIRCON"]),
+                    panel_config["ICON"],
+                )
 
-            if param["NAME"] == "lux":
-                if room_list[col]["LIGHT_ICON"]:
-                    draw_light_icon(ax, data["value"], panel_config["ICON"])
+            if (param["NAME"] == "lux") and room_list[col]["LIGHT_ICON"]:
+                draw_light_icon(ax, data["value"], panel_config["ICON"])
 
     fig.tight_layout()
     plt.subplots_adjust(hspace=0.1, wspace=0)
@@ -354,40 +338,39 @@ def create(config):
     logging.info("draw sensor graph")
     start = time.perf_counter()
 
-    panel_config = config["SENSOR"]
-    font_config = config["FONT"]
-    db_config = get_db_config(config)
+    panel_config = config["sensor"]
+    font_config = config["font"]
+    db_config = config["influxdb"]
 
     try:
         return (
             create_sensor_graph_impl(panel_config, font_config, db_config),
             time.perf_counter() - start,
         )
-    except:
+    except Exception:
         error_message = traceback.format_exc()
         return (
-            create_error_image(panel_config, font_config, error_message),
+            my_lib.panel_util.create_error_image(panel_config, font_config, error_message),
             time.perf_counter() - start,
             error_message,
         )
 
 
 if __name__ == "__main__":
-    import logger
-    from config import load_config
-    from docopt import docopt
-    from pil_util import convert_to_gray
+    import docopt
+    import my_lib.config
+    import my_lib.logger
 
-    args = docopt(__doc__)
+    args = docopt.docopt(__doc__)
 
-    logger.init("test", level=logging.INFO)
+    my_lib.logger.init("test", level=logging.INFO)
 
-    config = load_config(args["-c"])
+    config = my_lib.config.load(args["-c"])
     out_file = args["-o"]
 
     img = create(config)[0]
 
-    logging.info("Save {out_file}.".format(out_file=out_file))
-    convert_to_gray(img).save(out_file, "PNG")
+    logging.info("Save %s.", out_file)
+    my_lib.pil_util.convert_to_gray(img).save(out_file, "PNG")
 
     logging.info("Finish.")
