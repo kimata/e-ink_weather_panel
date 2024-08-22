@@ -46,32 +46,32 @@ ERROR_CODE_MAJOR = 222
 
 
 def draw_wall(config, img):
-    if "WALL" not in config:
+    if "wall" not in config:
         return
-    for wall_config in config["WALL"]["IMAGE"]:
+    for wall_config in config["wall"]["image"]:
         my_lib.pil_util.alpha_paste(
             img,
             my_lib.pil_util.load_image(wall_config),
-            (wall_config["OFFSET_X"], wall_config["OFFSET_Y"]),
+            (wall_config["offset_x"], wall_config["offset_y"]),
         )
 
 
 def draw_panel(config, img, is_small_mode=False):
     if is_small_mode:
         panel_list = [
-            {"name": "RAIN_CLOUD", "func": weather_display.rain_cloud_panel.create, "arg": (False,)},
-            {"name": "WEATHER", "func": weather_display.weather_panel.create, "arg": (False,)},
-            {"name": "WBGT", "func": weather_display.wbgt_panel.create},
-            {"name": "TIME", "func": weather_display.time_panel.create},
+            {"name": "rain_cloud", "func": weather_display.rain_cloud_panel.create, "arg": (False,)},
+            {"name": "weather", "func": weather_display.weather_panel.create, "arg": (False,)},
+            {"name": "wbgt", "func": weather_display.wbgt_panel.create},
+            {"name": "time", "func": weather_display.time_panel.create},
         ]
     else:
         panel_list = [
-            {"name": "RAIN_CLOUD", "func": weather_display.rain_cloud_panel.create},
-            {"name": "SENSOR", "func": weather_display.sensor_graph.create},
-            {"name": "POWER", "func": weather_display.power_graph.create},
-            {"name": "WEATHER", "func": weather_display.weather_panel.create},
-            {"name": "WBGT", "func": weather_display.wbgt_panel.create},
-            {"name": "TIME", "func": weather_display.time_panel.create},
+            {"name": "rain_cloud", "func": weather_display.rain_cloud_panel.create},
+            {"name": "sensor", "func": weather_display.sensor_graph.create},
+            {"name": "power", "func": weather_display.power_graph.create},
+            {"name": "weather", "func": weather_display.weather_panel.create},
+            {"name": "wbgt", "func": weather_display.wbgt_panel.create},
+            {"name": "time", "func": weather_display.time_panel.create},
         ]
 
     panel_map = {}
@@ -98,11 +98,11 @@ def draw_panel(config, img, is_small_mode=False):
             my_lib.panel_util.notify_error(config, result[2])
             ret = ERROR_CODE_MINOR
 
-        if "SCALE" in config[panel["name"]]["PANEL"]:
+        if "SCALE" in config[panel["name"]]["panel"]:
             panel_img = panel_img.resize(
                 (
-                    int(panel_img.size[0] * config[panel["name"]]["PANEL"]["SCALE"]),
-                    int(panel_img.size[1] * config[panel["name"]]["PANEL"]["SCALE"]),
+                    int(panel_img.size[0] * config[panel["name"]]["panel"]["scale"]),
+                    int(panel_img.size[1] * config[panel["name"]]["panel"]["scale"]),
                 ),
                 PIL.Image.LANCZOS,
             )
@@ -114,7 +114,7 @@ def draw_panel(config, img, is_small_mode=False):
 
     draw_wall(config, img)
 
-    for name in ["POWER", "WEATHER", "SENSOR", "RAIN_CLOUD", "WBGT", "TIME"]:
+    for name in ["power", "weather", "sensor", "rain_cloud", "wbgt", "time"]:
         if name not in panel_map:
             continue
 
@@ -122,8 +122,8 @@ def draw_panel(config, img, is_small_mode=False):
             img,
             panel_map[name],
             (
-                config[name]["PANEL"]["OFFSET_X"],
-                config[name]["PANEL"]["OFFSET_Y"],
+                config[name]["panel"]["offset_x"],
+                config[name]["panel"]["offset_y"],
             ),
         )
 
@@ -143,7 +143,7 @@ def create_image(config, small_mode=False, dummy_mode=False, test_mode=False):
 
     img = PIL.Image.new(
         "RGBA",
-        (config["PANEL"]["DEVICE"]["WIDTH"], config["PANEL"]["DEVICE"]["HEIGHT"]),
+        (config["panel"]["device"]["width"], config["panel"]["device"]["height"]),
         (255, 255, 255, 255),
     )
     if test_mode:
@@ -159,8 +159,8 @@ def create_image(config, small_mode=False, dummy_mode=False, test_mode=False):
             (
                 0,
                 0,
-                config["PANEL"]["DEVICE"]["WIDTH"],
-                config["PANEL"]["DEVICE"]["HEIGHT"],
+                config["panel"]["device"]["width"],
+                config["panel"]["device"]["height"],
             ),
             fill=(255, 255, 255, 255),
         )
@@ -169,7 +169,7 @@ def create_image(config, small_mode=False, dummy_mode=False, test_mode=False):
             img,
             "ERROR",
             (10, 10),
-            my_lib.pil_util.get_font(config["FONT"], "EN_BOLD", 160),
+            my_lib.pil_util.get_font(config["font"], "en_bold", 160),
             "left",
             "#666",
         )
@@ -178,7 +178,7 @@ def create_image(config, small_mode=False, dummy_mode=False, test_mode=False):
             img,
             "\n".join(textwrap.wrap(traceback.format_exc(), 100)),
             (20, 200),
-            my_lib.pil_util.get_font(config["FONT"], "EN_MEDIUM", 40),
+            my_lib.pil_util.get_font(config["font"], "en_medium", 40),
             "left",
             "#333",
         )
