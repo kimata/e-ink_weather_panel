@@ -11,7 +11,7 @@ stages:
 build-react:
     stage: build-webapp
 
-    image: node:20.16
+    image: node:20.14
     script:
         - cd react
         - npm ci --cache .npm --prefer-offline
@@ -41,9 +41,11 @@ build-image:
         - mv panel_config/panel.id_rsa key
         - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
         - mv private_font/* font
-        - docker pull ${CI_REGISTRY_IMAGE} || true
-        - docker buildx build . -t ${CI_REGISTRY_IMAGE}
-        - docker push ${CI_REGISTRY_IMAGE}
+        - docker buildx build
+          --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:cache
+          --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}:cache
+          --build-arg IMAGE_BUILD_DATE=$(date --iso-8601=seconds)
+          --push --tag ${CI_REGISTRY_IMAGE} .
 
 test-prepare:
     stage: pre-test
