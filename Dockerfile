@@ -7,9 +7,10 @@ FROM ubuntu:22.04
 RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
     --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update && apt-get install --no-install-recommends --assume-yes \
-    curl
+    curl \
+    ca-certificates
 
-RUN curl -O  https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+RUN curl -O https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 
 RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
     --mount=type=cache,target=/var/cache/apt,sharing=locked \
