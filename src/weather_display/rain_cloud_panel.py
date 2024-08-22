@@ -185,12 +185,11 @@ def change_window_size_impl(driver, wait, url, width, height):
     window_size = driver.get_window_size()
     element_size = driver.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).size
     logging.info(
-        ("[actual] window: %d x %d, " + "element: %d x %d").format(
-            window_width=window_size["width"],
-            window_height=window_size["height"],
-            element_width=element_size["width"],
-            element_height=element_size["height"],
-        )
+        "[actual] window: %d x %d, element: %d x %d",
+        window_size["width"],
+        window_size["height"],
+        element_size["width"],
+        element_size["height"],
     )
     if element_size["height"] != height:
         target_window_height = window_size["height"] + (height - element_size["height"])
@@ -409,7 +408,7 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
     if sub_panel_config["is_future"]:
         time.sleep(2)
 
-    driver = my_lib.selenium_util.create_driver("rain_cloud", DATA_PATH)
+    driver = my_lib.selenium_util.create_driver("Default", DATA_PATH)
     wait = selenium.webdriver.support.wait.WebDriverWait(driver, 5)
 
     my_lib.selenium_util.clear_cache(driver)
