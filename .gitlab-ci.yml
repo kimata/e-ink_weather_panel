@@ -44,6 +44,7 @@ build-image:
         - mv panel_config/panel.id_rsa key
         - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
         - mv private_font/* font
+
         - docker buildx create --name ${BUILDER} --config script/buildkitd.toml --use
         - docker buildx use ${BUILDER}
         - docker buildx build --platform linux/amd64,linux/arm64/v8
