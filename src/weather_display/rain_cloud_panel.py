@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 雨雲レーダー画像を生成します．
 
@@ -13,7 +12,6 @@ Options:
 
 import io
 import logging
-import os
 import pathlib
 import pickle
 import time
@@ -21,18 +19,18 @@ import traceback
 from concurrent import futures
 
 import cv2
-import notify_slack
+import my_lib.notify_slack
+import my_lib.panel_util
+import my_lib.pil_util
+import my_lib.selenium_util
 import numpy as np
 import PIL.Image
 import PIL.ImageDraw
-from panel_util import draw_panel_patiently
-from pil_util import alpha_paste, draw_text, get_font, text_size
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium_util import clear_cache, click_xpath, create_driver
+import selenium.webdriver.common.by
+import selenium.webdriver.support
+import selenium.webdriver.support.wait
 
-DATA_PATH = pathlib.Path(os.path.dirname(__file__)).parent / "data"
+DATA_PATH = pathlib.Path("data")
 WINDOW_SIZE_CACHE = DATA_PATH / "window_size.cache"
 CACHE_EXPIRE_HOUR = 1
 
@@ -40,33 +38,33 @@ CLOUD_IMAGE_XPATH = '//div[contains(@id, "jmatile_map_")]'
 
 RAINFALL_INTENSITY_LEVEL = [
     # NOTE: 白
-    {"func": lambda h, s: (160 < h) & (h < 180) & (s < 20), "value": 1},
+    {"func": lambda h, s: (160 < h) & (h < 180) & (s < 20), "value": 1},  # noqa: SIM300
     # NOTE: 薄水色
-    {"func": lambda h, s: (140 < h) & (h < 150) & (90 < s) & (s < 100), "value": 5},
+    {"func": lambda h, s: (140 < h) & (h < 150) & (90 < s) & (s < 100), "value": 5},  # noqa: SIM300
     # NOTE: 水色
-    {"func": lambda h, s: (145 < h) & (h < 155) & (210 < s) & (s < 230), "value": 10},
+    {"func": lambda h, s: (145 < h) & (h < 155) & (210 < s) & (s < 230), "value": 10},  # noqa: SIM300
     # NOTE: 青色
-    {"func": lambda h, s: (155 < h) & (h < 165) & (230 < s), "value": 20},
+    {"func": lambda h, s: (155 < h) & (h < 165) & (230 < s), "value": 20},  # noqa: SIM300
     # NOTE: 黄色
-    {"func": lambda h, s: (35 < h) & (h < 45), "value": 30},
+    {"func": lambda h, s: (35 < h) & (h < 45), "value": 30},  # noqa: SIM300, ARG005
     # NOTE: 橙色
-    {"func": lambda h, s: (20 < h) & (h < 30), "value": 50},
+    {"func": lambda h, s: (20 < h) & (h < 30), "value": 50},  # noqa: SIM300, ARG005
     # NOTE: 赤色
-    {"func": lambda h, s: (0 < h) & (h < 8), "value": 80},
+    {"func": lambda h, s: (0 < h) & (h < 8), "value": 80},  # noqa: SIM300, ARG005
     # NOTE: 紫色
-    {"func": lambda h, s: (225 < h) & (h < 235) & (240 < s)},
+    {"func": lambda h, s: (225 < h) & (h < 235) & (240 < s)},  # noqa: SIM300
 ]
 
 
 def get_face_map(font_config):
     return {
-        "title": get_font(font_config, "JP_MEDIUM", 50),
-        "legend": get_font(font_config, "EN_MEDIUM", 30),
-        "legend_unit": get_font(font_config, "EN_MEDIUM", 18),
+        "title": my_lib.pil_util.get_font(font_config, "jp_medium", 50),
+        "legend": my_lib.pil_util.get_font(font_config, "en_medium", 30),
+        "legend_unit": my_lib.pil_util.get_font(font_config, "en_medium", 18),
     }
 
 
-def hide_label_and_icon(driver):
+def hide_label_and_icon(driver, wait):
     PARTS_LIST = [
         {"class": "jmatile-map-title", "mode": "none"},
         {"class": "leaflet-bar", "mode": "none"},
@@ -80,9 +78,12 @@ var elements = document.getElementsByClassName("{class_name}")
     }}
 """
 
-    wait = WebDriverWait(driver, 5)
     for parts in PARTS_LIST:
-        wait.until(EC.presence_of_element_located((By.CLASS_NAME, parts["class"])))
+        wait.until(
+            selenium.webdriver.support.expected_conditions.presence_of_element_located(
+                (selenium.webdriver.common.by.By.CLASS_NAME, parts["class"])
+            )
+        )
 
     for parts in PARTS_LIST:
         driver.execute_script(
@@ -94,27 +95,29 @@ var elements = document.getElementsByClassName("{class_name}")
 
 
 def change_setting(driver, wait):
-    # driver.find_element(By.XPATH, '//a[contains(@aria-label, "地形を表示")]').click()
+    # driver.find_element(
+    #     selenium.webdriver.common.by.By.XPATH, '//a[contains(@aria-label, "地形を表示")]'
+    # ).click()
 
-    click_xpath(
+    my_lib.selenium_util.click_xpath(
         driver,
         '//a[contains(@aria-label, "色の濃さ")]',
         wait,
         True,
     )
-    click_xpath(
+    my_lib.selenium_util.click_xpath(
         driver,
         '//span[contains(text(), "濃い")]',
         wait,
         True,
     )
-    click_xpath(
+    my_lib.selenium_util.click_xpath(
         driver,
         '//a[contains(@aria-label, "地図を切り替え")]',
         wait,
         True,
     )
-    click_xpath(
+    my_lib.selenium_util.click_xpath(
         driver,
         '//span[contains(text(), "地名なし")]',
         wait,
@@ -122,9 +125,9 @@ def change_setting(driver, wait):
     )
 
 
-def shape_cloud_display(driver, wait, width, height, is_future):
+def shape_cloud_display(driver, wait, width, height, is_future):  # noqa: ARG001
     if is_future:
-        click_xpath(
+        my_lib.selenium_util.click_xpath(
             driver,
             '//div[@class="jmatile-control"]//div[contains(text(), " +1時間 ")]',
             wait,
@@ -132,58 +135,56 @@ def shape_cloud_display(driver, wait, width, height, is_future):
         )
 
     change_setting(driver, wait)
-    hide_label_and_icon(driver)
+    hide_label_and_icon(driver, wait)
 
 
-def change_window_size_impl(driver, url, width, height):
-    wait = WebDriverWait(driver, 5)
-
+def change_window_size_impl(driver, wait, url, width, height):
     # NOTE: 雨雲画像がこのサイズになるように，ウィンドウサイズを調整する
-    logging.info("target: {width} x {height}".format(width=width, height=height))
+    logging.info("target: %d x %d", width, height)
 
     driver.get(url)
-    wait.until(EC.presence_of_element_located((By.XPATH, CLOUD_IMAGE_XPATH)))
+    wait.until(
+        selenium.webdriver.support.expected_conditions.presence_of_element_located(
+            (selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH)
+        )
+    )
 
     # NOTE: まずはサイズを大きめにしておく
     driver.set_window_size(int(height * 2), int(height * 1.5))
     driver.refresh()
-    wait.until(EC.presence_of_element_located((By.XPATH, CLOUD_IMAGE_XPATH)))
+    wait.until(
+        selenium.webdriver.support.expected_conditions.presence_of_element_located(
+            (selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH)
+        )
+    )
 
     # NOTE: 最初に横サイズを調整
     window_size = driver.get_window_size()
-    element_size = driver.find_element(By.XPATH, CLOUD_IMAGE_XPATH).size
+    element_size = driver.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).size
     logging.info(
-        (
-            "[actual] window: {window_width} x {window_height}, "
-            + "element: {element_width} x {element_height}"
-        ).format(
-            window_width=window_size["width"],
-            window_height=window_size["height"],
-            element_width=element_size["width"],
-            element_height=element_size["height"],
-        )
+        "[actual] window: %d x %d, element: %d x %d",
+        window_size["width"],
+        window_size["height"],
+        element_size["width"],
+        element_size["height"],
     )
     if element_size["width"] != width:
         target_window_width = window_size["width"] + (width - element_size["width"])
-        logging.info(
-            "[change] window: {window_width} x {window_height}".format(
-                window_width=target_window_width,
-                window_height=window_size["height"],
-            )
-        )
+        logging.info("[change] window: %d x %d", target_window_width, window_size["height"])
         driver.set_window_size(target_window_width, height)
     driver.refresh()
-    wait.until(EC.presence_of_element_located((By.XPATH, CLOUD_IMAGE_XPATH)))
+    wait.until(
+        selenium.webdriver.support.expected_conditions.presence_of_element_located(
+            (selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH)
+        )
+    )
     time.sleep(1)
 
     # NOTE: 次に縦サイズを調整
     window_size = driver.get_window_size()
-    element_size = driver.find_element(By.XPATH, CLOUD_IMAGE_XPATH).size
+    element_size = driver.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).size
     logging.info(
-        (
-            "[actual] window: {window_width} x {window_height}, "
-            + "element: {element_width} x {element_height}"
-        ).format(
+        ("[actual] window: %d x %d, " + "element: %d x %d").format(
             window_width=window_size["width"],
             window_height=window_size["height"],
             element_width=element_size["width"],
@@ -192,90 +193,86 @@ def change_window_size_impl(driver, url, width, height):
     )
     if element_size["height"] != height:
         target_window_height = window_size["height"] + (height - element_size["height"])
-        logging.info(
-            "[change] window: {window_width} x {window_height}".format(
-                window_width=window_size["width"],
-                window_height=target_window_height,
-            )
-        )
+        logging.info("[change] window: %d x %d", window_size["width"], target_window_height)
         driver.set_window_size(
             window_size["width"],
             target_window_height,
         )
     driver.refresh()
-    wait.until(EC.presence_of_element_located((By.XPATH, CLOUD_IMAGE_XPATH)))
+    wait.until(
+        selenium.webdriver.support.expected_conditions.presence_of_element_located(
+            (selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH)
+        )
+    )
     time.sleep(1)
 
     window_size = driver.get_window_size()
-    element_size = driver.find_element(By.XPATH, CLOUD_IMAGE_XPATH).size
+    element_size = driver.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).size
     logging.info(
-        (
-            "[actual] window: {window_width} x {window_height}, "
-            + "element: {element_width} x {element_height}"
-        ).format(
-            window_width=window_size["width"],
-            window_height=window_size["height"],
-            element_width=element_size["width"],
-            element_height=element_size["height"],
-        )
+        "[actual] window: %d x %d, element: %d x %d",
+        window_size["width"],
+        window_size["height"],
+        element_size["width"],
+        element_size["height"],
     )
     logging.info(
-        "size is {status}".format(
-            status="OK" if (element_size["width"], element_size["height"]) == (width, height) else "unmatch"
-        )
+        "size is %s",
+        "OK" if (element_size["width"], element_size["height"]) == (width, height) else "unmatch",
     )
 
     return driver.get_window_size()
 
 
-def change_window_size(driver, url, width, height):
+def change_window_size(driver, wait, url, width, height):
     # NOTE: 雨雲画像のサイズ調整には時間がかかるので，結果をキャッシュして使う
     window_size_map = {}
     try:
         if pathlib.Path(WINDOW_SIZE_CACHE).exists():
             if (time.time() - WINDOW_SIZE_CACHE.stat().st_mtime) < CACHE_EXPIRE_HOUR * 60 * 60:
-                with open(WINDOW_SIZE_CACHE, "rb") as f:
-                    window_size_map = pickle.load(f)
+                with pathlib.Path(WINDOW_SIZE_CACHE).open("rb") as f:
+                    window_size_map = pickle.load(f)  # noqa: S301
             else:
                 # NOTE: キャッシュの有効期限切れ
                 WINDOW_SIZE_CACHE.unlink(missing_ok=True)
-    except:
-        pass
+    except Exception:
+        logging.exception("Failed to load window size cache")
 
     if width in window_size_map and height in window_size_map[width]:
-        logging.info("change {width} x {height} based on a cache".format(width=width, height=height))
+        logging.info("change %d x %d based on a cache", width, height)
         driver.set_window_size(
             window_size_map[width][height]["width"],
             window_size_map[width][height]["height"],
         )
         return
 
-    window_size = change_window_size_impl(driver, url, width, height)
+    window_size = change_window_size_impl(driver, wait, url, width, height)
 
     if width in window_size_map:
         window_size_map[width][height] = window_size
     else:
         window_size_map[width] = {height: window_size}
 
-    with open(WINDOW_SIZE_CACHE, "wb") as f:
+    with pathlib.Path(WINDOW_SIZE_CACHE).open("wb") as f:
         pickle.dump(window_size_map, f)
 
 
-def fetch_cloud_image(driver, url, width, height, is_future=False):
+def fetch_cloud_image(driver, wait, url, width, height, is_future=False):  # noqa: PLR0913
     logging.info("fetch cloud image")
-
-    wait = WebDriverWait(driver, 5)
 
     driver.get(url)
 
-    wait.until(EC.presence_of_element_located((By.XPATH, CLOUD_IMAGE_XPATH)))
+    wait.until(
+        selenium.webdriver.support.expected_conditions.presence_of_element_located(
+            (selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH)
+        )
+    )
 
     shape_cloud_display(driver, wait, width, height, is_future)
 
     wait.until(lambda driver: driver.execute_script("return document.readyState") == "complete")
     time.sleep(0.5)
 
-    png_data = driver.find_element(By.XPATH, CLOUD_IMAGE_XPATH).screenshot_as_png
+    png_data = driver.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).screenshot_as_png
 
     driver.refresh()
 
@@ -299,7 +296,7 @@ def retouch_cloud_image(png_data, panel_config):
             255
             * (
                 (float(len(RAINFALL_INTENSITY_LEVEL) - i) / len(RAINFALL_INTENSITY_LEVEL))
-                ** panel_config["LEGEND"]["GAMMA"]
+                ** panel_config["legend"]["gamma"]
             ),
         )
 
@@ -357,7 +354,7 @@ def draw_equidistant_circle(img):
 
 def draw_caption(img, title, face_map):
     logging.info("draw caption")
-    caption_size = text_size(img, face_map["title"], title)
+    caption_size = my_lib.pil_util.text_size(img, face_map["title"], title)
     caption_size = (caption_size[0] + 5, caption_size[1])  # NOTE: 横方向を少し広げる
 
     x = 12
@@ -393,7 +390,7 @@ def draw_caption(img, title, face_map):
         radius=radius,
     )
     img = PIL.Image.alpha_composite(img, overlay)
-    draw_text(
+    my_lib.pil_util.draw_text(
         img,
         title,
         (10, 10),
@@ -406,31 +403,30 @@ def draw_caption(img, title, face_map):
 
 
 def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config, trial):
-    logging.info(
-        "create rain cloud image ({type})".format(
-            type="future" if sub_panel_config["is_future"] else "current"
-        )
-    )
+    logging.info("create rain cloud image (%s)", "future" if sub_panel_config["is_future"] else "current")
     # NOTE: 同時アクセスを避ける
     if sub_panel_config["is_future"]:
         time.sleep(2)
 
-    driver = create_driver()
+    driver = my_lib.selenium_util.create_driver("rain_cloud", DATA_PATH)
+    wait = selenium.webdriver.support.wait.WebDriverWait(driver, 5)
 
-    clear_cache(driver)
+    my_lib.selenium_util.clear_cache(driver)
 
     img = None
     try:
         change_window_size(
             driver,
-            panel_config["DATA"]["JMA"]["URL"],
+            wait,
+            panel_config["data"]["jma"]["url"],
             sub_panel_config["width"],
             sub_panel_config["height"],
         )
 
         img = fetch_cloud_image(
             driver,
-            panel_config["DATA"]["JMA"]["URL"],
+            wait,
+            panel_config["data"]["jma"]["url"],
             sub_panel_config["width"],
             sub_panel_config["height"],
             sub_panel_config["is_future"],
@@ -438,17 +434,17 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
     except:
         # NOTE: 3回目のリトライ以降のみ通知する
         if (trial >= 3) and (slack_config is not None):
-            notify_slack.error_with_image(
-                slack_config["BOT_TOKEN"],
-                slack_config["ERROR"]["CHANNEL"]["NAME"],
-                slack_config["ERROR"]["CHANNEL"]["ID"],
-                slack_config["FROM"],
+            my_lib.notify_slack.error_with_image(
+                slack_config["bot_token"],
+                slack_config["error"]["channel"]["name"],
+                slack_config["error"]["channel"]["id"],
+                slack_config["from"],
                 traceback.format_exc(),
                 {
-                    "data": PIL.Image.open((io.BytesIO(driver.get_screenshot_as_png()))),
+                    "data": PIL.Image.open(io.BytesIO(driver.get_screenshot_as_png())),
                     "text": "エラー時のスクリーンショット",
                 },
-                interval_min=slack_config["ERROR"]["INTERVAL_MIN"],
+                interval_min=slack_config["error"]["interval_min"],
             )
         # NOTE: リトライまでに時間を空けるようにする
         time.sleep(10)
@@ -467,7 +463,7 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
 def draw_legend(img, bar, panel_config, face_map):
     PADDING = 20
 
-    bar_size = panel_config["LEGEND"]["BAR_SIZE"]
+    bar_size = panel_config["legend"]["bar_size"]
     bar = bar.resize(
         (
             bar.size[0] * bar_size,
@@ -487,10 +483,10 @@ def draw_legend(img, bar, panel_config, face_map):
             outline=(20, 20, 20),
         )
 
-    text_height = int(text_size(img, face_map["legend"], "0")[1])
+    text_height = int(my_lib.pil_util.text_size(img, face_map["legend"], "0")[1])
     unit = "mm/h"
-    unit_width, unit_height = text_size(img, face_map["legend_unit"], unit)
-    unit_overlap = text_size(img, face_map["legend_unit"], unit[0])[0]
+    unit_width, unit_height = my_lib.pil_util.text_size(img, face_map["legend_unit"], unit)
+    unit_overlap = my_lib.pil_util.text_size(img, face_map["legend_unit"], unit[0])[0]
     legend = PIL.Image.new(
         "RGBA",
         (
@@ -517,11 +513,11 @@ def draw_legend(img, bar, panel_config, face_map):
         else:
             text = "mm/h"
             pos_x = PADDING + bar_size * (i + 1) - unit_overlap
-            pos_y = PADDING - 5 + text_size(img, face_map["legend"], "0")[1] - unit_height
+            pos_y = PADDING - 5 + my_lib.pil_util.text_size(img, face_map["legend"], "0")[1] - unit_height
             align = "left"
             font = face_map["legend_unit"]
 
-        draw_text(
+        my_lib.pil_util.draw_text(
             legend,
             text,
             (
@@ -533,28 +529,33 @@ def draw_legend(img, bar, panel_config, face_map):
             "#666",
         )
 
-    alpha_paste(
+    my_lib.pil_util.alpha_paste(
         img,
         legend,
-        (panel_config["LEGEND"]["OFFSET_X"], panel_config["LEGEND"]["OFFSET_Y"] - 80),
+        (panel_config["legend"]["offset_x"], panel_config["legend"]["offset_y"] - 80),
     )
 
     return img
 
 
-def create_rain_cloud_panel_impl(
-    panel_config, font_config, slack_config, is_side_by_side, trial, unused=None
+def create_rain_cloud_panel_impl(  # noqa: PLR0913
+    panel_config,
+    font_config,
+    slack_config,
+    is_side_by_side,
+    trial,
+    unused=None,  # noqa: ARG001
 ):
     if is_side_by_side:
-        sub_width = int(panel_config["PANEL"]["WIDTH"] / 2)
-        sub_height = panel_config["PANEL"]["HEIGHT"]
-        offset_x = int(panel_config["PANEL"]["WIDTH"] / 2)
+        sub_width = int(panel_config["panel"]["width"] / 2)
+        sub_height = panel_config["panel"]["height"]
+        offset_x = int(panel_config["panel"]["width"] / 2)
         offset_y = 0
     else:
-        sub_width = panel_config["PANEL"]["WIDTH"]
-        sub_height = int(panel_config["PANEL"]["HEIGHT"] / 2)
+        sub_width = panel_config["panel"]["width"]
+        sub_height = int(panel_config["panel"]["height"] / 2)
         offset_x = 0
-        offset_y = int(panel_config["PANEL"]["HEIGHT"] / 2)
+        offset_y = int(panel_config["panel"]["height"] / 2)
 
     SUB_PANEL_CONFIG_LIST = [
         {
@@ -577,7 +578,7 @@ def create_rain_cloud_panel_impl(
 
     img = PIL.Image.new(
         "RGBA",
-        (panel_config["PANEL"]["WIDTH"], panel_config["PANEL"]["HEIGHT"]),
+        (panel_config["panel"]["width"], panel_config["panel"]["height"]),
         (255, 255, 255, 255),
     )
     face_map = get_face_map(font_config)
@@ -604,39 +605,36 @@ def create_rain_cloud_panel_impl(
         sub_img, bar = task_list[i].result()
         img.paste(sub_img, (sub_panel_config["offset_x"], sub_panel_config["offset_y"]))
 
-    img = draw_legend(img, bar, panel_config, face_map)
-
-    return img
+    return draw_legend(img, bar, panel_config, face_map)
 
 
 def create(config, is_side_by_side=True):
     logging.info("draw rain cloud panel")
 
-    return draw_panel_patiently(
+    return my_lib.panel_util.draw_panel_patiently(
         create_rain_cloud_panel_impl,
-        config["RAIN_CLOUD"],
-        config["FONT"],
-        config["SLACK"] if "SLACK" in config else None,
+        config["rain_cloud"],
+        config["font"],
+        config.get("slack", None),
         is_side_by_side,
     )
 
 
 if __name__ == "__main__":
-    import logger
-    from config import load_config
-    from docopt import docopt
-    from pil_util import convert_to_gray
+    import docopt
+    import my_lib.config
+    import my_lib.logger
 
-    args = docopt(__doc__)
+    args = docopt.docopt(__doc__)
 
-    logger.init("test", level=logging.INFO)
+    my_lib.logger.init("test", level=logging.INFO)
 
-    config = load_config(args["-c"])
+    config = my_lib.config.load(args["-c"])
     out_file = args["-o"]
 
-    img = create_rain_cloud_panel_impl(config["RAIN_CLOUD"], config["FONT"], None, True, 1)
+    img = create_rain_cloud_panel_impl(config["rain_cloud"], config["font"], None, True, 1)
 
-    logging.info("Save {out_file}.".format(out_file=out_file))
-    convert_to_gray(img).save(out_file, "PNG")
+    logging.info("Save %s.", out_file)
+    my_lib.pil_util.convert_to_gray(img).save(out_file, "PNG")
 
     logging.info("Finish.")
