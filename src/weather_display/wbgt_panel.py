@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 暑さ指数(WBGP)の画像を生成します．
 
@@ -13,26 +12,26 @@ Options:
 
 import logging
 
+import my_lib.panel_util
+import my_lib.pil_util
+import my_lib.weather
 import PIL.Image
 import PIL.ImageDraw
 import PIL.ImageEnhance
 import PIL.ImageFont
-from panel_util import draw_panel_patiently
-from pil_util import alpha_paste, draw_text, get_font, load_image
-from weather_data import get_wbgt
 
 
 def get_face_map(font_config):
     return {
-        "wbgt": get_font(font_config, "EN_BOLD", 80),
-        "wbgt_symbol": get_font(font_config, "JP_BOLD", 120),
-        "wbgt_title": get_font(font_config, "JP_MEDIUM", 30),
+        "wbgt": my_lib.pil_util.get_font(font_config, "en_bold", 80),
+        "wbgt_symbol": my_lib.pil_util.get_font(font_config, "jp_bold", 120),
+        "wbgt_title": my_lib.pil_util.get_font(font_config, "jp_medium", 30),
     }
 
 
 def draw_wbgt(img, wbgt, panel_config, icon_config, face_map):
     title = "暑さ指数:"
-    wbgt_str = "{wbgt:.1f}".format(wbgt=wbgt)
+    wbgt_str = f"{wbgt:.1f}"
 
     if wbgt >= 31:
         index = 4
@@ -45,12 +44,12 @@ def draw_wbgt(img, wbgt, panel_config, icon_config, face_map):
     else:
         index = 0
 
-    icon = load_image(icon_config["FACE"][index])
+    icon = my_lib.pil_util.load_image(icon_config["face"][index])
 
-    pos_x = panel_config["PANEL"]["WIDTH"] - 10
+    pos_x = panel_config["panel"]["width"] - 10
     pos_y = 10
 
-    alpha_paste(
+    my_lib.pil_util.alpha_paste(
         img,
         icon,
         (int(pos_x - icon.size[0]), pos_y),
@@ -58,7 +57,7 @@ def draw_wbgt(img, wbgt, panel_config, icon_config, face_map):
 
     pos_y += icon.size[1] + 10
 
-    next_pos_y = draw_text(
+    next_pos_y = my_lib.pil_util.draw_text(
         img,
         title,
         (pos_x, pos_y),
@@ -69,7 +68,7 @@ def draw_wbgt(img, wbgt, panel_config, icon_config, face_map):
         stroke_fill=(255, 255, 255, 200),
     )[1]
     next_pos_y += 12
-    draw_text(
+    my_lib.pil_util.draw_text(
         img,
         wbgt_str,
         (pos_x, next_pos_y),
@@ -83,21 +82,21 @@ def draw_wbgt(img, wbgt, panel_config, icon_config, face_map):
     return img
 
 
-def create_wbgt_panel_impl(panel_config, font_config, slack_config, is_side_by_side, trial, opt_config=None):
+def create_wbgt_panel_impl(panel_config, font_config, slack_config, is_side_by_side, trial, opt_config=None):  # noqa: PLR0913, ARG001
     face_map = get_face_map(font_config)
 
     img = PIL.Image.new(
         "RGBA",
-        (panel_config["PANEL"]["WIDTH"], panel_config["PANEL"]["HEIGHT"]),
+        (panel_config["panel"]["width"], panel_config["panel"]["height"]),
         (255, 255, 255, 0),
     )
 
-    wbgt = get_wbgt(panel_config)["current"]
+    wbgt = my_lib.weather.get_wbgt(panel_config)["current"]
 
     if wbgt is None:
         return img
 
-    draw_wbgt(img, wbgt, panel_config, panel_config["ICON"], face_map)
+    draw_wbgt(img, wbgt, panel_config, panel_config["icon"], face_map)
 
     return img
 
@@ -105,27 +104,26 @@ def create_wbgt_panel_impl(panel_config, font_config, slack_config, is_side_by_s
 def create(config, is_side_by_side=True):
     logging.info("draw WBGT panel")
 
-    return draw_panel_patiently(
-        create_wbgt_panel_impl, config["WBGT"], config["FONT"], None, is_side_by_side, error_image=False
+    return my_lib.panel_util.draw_panel_patiently(
+        create_wbgt_panel_impl, config["wbgt"], config["font"], None, is_side_by_side, error_image=False
     )
 
 
 if __name__ == "__main__":
-    import logger
-    from config import load_config
-    from docopt import docopt
-    from pil_util import convert_to_gray
+    import docopt
+    import my_lib.config
+    import my_lib.logger
 
-    args = docopt(__doc__)
+    args = docopt.docopt(__doc__)
 
-    logger.init("test", level=logging.INFO)
+    my_lib.logger.init("test", level=logging.INFO)
 
-    config = load_config(args["-c"])
+    config = my_lib.config.load(args["-c"])
     out_file = args["-o"]
 
     img = create(config)[0]
 
-    logging.info("Save {out_file}.".format(out_file=out_file))
-    convert_to_gray(img).save(out_file, "PNG")
+    logging.info("Save %s.", out_file)
+    my_lib.pil_util.convert_to_gray(img).save(out_file, "PNG")
 
     logging.info("Finish.")
