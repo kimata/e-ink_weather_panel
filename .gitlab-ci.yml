@@ -79,10 +79,7 @@ test-walk-through:
         - build-react
 
     script:
-        - poetry config --local virtualenvs.in-project true
-        - poetry config --local cache-dir $PWD/.poetry/cache
-        - poetry install --no-interaction --with test
-        - poetry run pytest --numprocesses 8 tests/test_basic.py
+        - rye run pytest --cov-report=html tests/test_basic.py
 
     variables:
         RUST_LOG: trace
@@ -91,7 +88,6 @@ test-walk-through:
         key: "${CI_JOB_NAME}"
         paths:
             - .venv
-            - .poetry
 
     artifacts:
         when: always
@@ -331,12 +327,9 @@ test-webapp:
         - docker pull ${CI_REGISTRY_IMAGE}
         - docker run --rm --detach=true --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} ./src/webapp.py -c config-demo.yaml -D
 
-        - poetry config --local virtualenvs.in-project true
-        - poetry config --local cache-dir $PWD/.poetry/cache
-        - poetry install --no-interaction --with test
-        - poetry run playwright install --with-deps chromium
+        - python3 -m playwright install
 
-        - poetry run pytest tests/test_playwright.py --host $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
+        - rye run pytest tests/test_playwright.py --host $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
 
         - docker logs ${CI_JOB_NAME}-${CI_JOB_ID} > flask_log.txt
         - docker stop ${CI_JOB_NAME}-${CI_JOB_ID}
@@ -345,7 +338,6 @@ test-webapp:
         key: "${CI_JOB_NAME}"
         paths:
             - .venv
-            - .poetry
 
     artifacts:
         when: always
