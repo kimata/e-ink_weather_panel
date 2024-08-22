@@ -29,6 +29,7 @@ import PIL.ImageDraw
 import selenium.webdriver.common.by
 import selenium.webdriver.support
 import selenium.webdriver.support.wait
+from my_lib.selenium_util import click_xpath
 
 DATA_PATH = pathlib.Path("data")
 WINDOW_SIZE_CACHE = DATA_PATH / "window_size.cache"
@@ -99,25 +100,25 @@ def change_setting(driver, wait):
     #     selenium.webdriver.common.by.By.XPATH, '//a[contains(@aria-label, "地形を表示")]'
     # ).click()
 
-    my_lib.selenium_util.click_xpath(
+    click_xpath(
         driver,
         '//a[contains(@aria-label, "色の濃さ")]',
         wait,
         True,
     )
-    my_lib.selenium_util.click_xpath(
+    click_xpath(
         driver,
         '//span[contains(text(), "濃い")]',
         wait,
         True,
     )
-    my_lib.selenium_util.click_xpath(
+    click_xpath(
         driver,
         '//a[contains(@aria-label, "地図を切り替え")]',
         wait,
         True,
     )
-    my_lib.selenium_util.click_xpath(
+    click_xpath(
         driver,
         '//span[contains(text(), "地名なし")]',
         wait,
@@ -127,7 +128,7 @@ def change_setting(driver, wait):
 
 def shape_cloud_display(driver, wait, width, height, is_future):  # noqa: ARG001
     if is_future:
-        my_lib.selenium_util.click_xpath(
+        click_xpath(
             driver,
             '//div[@class="jmatile-control"]//div[contains(text(), " +1時間 ")]',
             wait,

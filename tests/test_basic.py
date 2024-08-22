@@ -328,7 +328,7 @@ def test_weather_panel_dummy(mocker, request):
     check_image(
         request,
         weather_display.weather_panel.create(my_lib.config.load(CONFIG_FILE))[0],
-        my_lib.config.load(CONFIG_FILE)["WEATHER"]["PANEL"],
+        my_lib.config.load(CONFIG_FILE)["weather"]["panel"],
     )
 
     check_notify_slack(None)
@@ -364,11 +364,11 @@ def test_wbgt_panel_var(mocker, request):
     check_notify_slack(None)
 
 
-def test_wbgt_panel_error_1(freezer, mocker, request):
+def test_wbgt_panel_error_1(time_machine, mocker, request):
     import weather_display.wbgt_panel
 
     # NOTE: 暑さ指数は夏のみ使うので，時期を変更
-    freezer.move_to(datetime.datetime.now(TIMEZONE).replace(month=8))
+    time_machine.move_to(datetime.datetime.now(TIMEZONE).replace(month=8))
 
     mocker.patch("my_lib.weather.fetch_page", side_effect=RuntimeError())
 
@@ -460,12 +460,12 @@ def test_create_power_graph_error(mocker, request):
 
 
 ######################################################################
-def test_create_sensor_graph_1(freezer, mocker, request):
+def test_create_sensor_graph_1(time_machine, mocker, request):
     import weather_display.sensor_graph
 
     mock_sensor_fetch_data(mocker)
 
-    freezer.move_to(datetime.datetime.now(TIMEZONE).replace(hour=12))
+    time_machine.move_to(datetime.datetime.now(TIMEZONE).replace(hour=12))
 
     check_image(
         request,
@@ -474,7 +474,7 @@ def test_create_sensor_graph_1(freezer, mocker, request):
         0,
     )
 
-    freezer.move_to(datetime.datetime.now(TIMEZONE).replace(hour=20))
+    time_machine.move_to(datetime.datetime.now(TIMEZONE).replace(hour=20))
 
     check_image(
         request,
@@ -486,7 +486,7 @@ def test_create_sensor_graph_1(freezer, mocker, request):
     check_notify_slack(None)
 
 
-def test_create_sensor_graph_2(freezer, mocker, request):
+def test_create_sensor_graph_2(time_machine, mocker, request):
     import weather_display.sensor_graph
 
     def value_mock():
@@ -519,7 +519,7 @@ def test_create_sensor_graph_2(freezer, mocker, request):
         return_value=query_api_mock,
     )
 
-    freezer.move_to(datetime.datetime.now(TIMEZONE).replace(hour=12))
+    time_machine.move_to(datetime.datetime.now(TIMEZONE).replace(hour=12))
 
     check_image(
         request,
@@ -530,14 +530,14 @@ def test_create_sensor_graph_2(freezer, mocker, request):
     check_notify_slack(None)
 
 
-def test_create_sensor_graph_dummy(freezer, mocker, request):
+def test_create_sensor_graph_dummy(time_machine, mocker, request):
     import weather_display.sensor_graph
 
     mocker.patch.dict("os.environ", {"DUMMY_MODE": "true"})
 
     mock_sensor_fetch_data(mocker)
 
-    freezer.move_to(datetime.datetime.now(TIMEZONE).replace(hour=12))
+    time_machine.move_to(datetime.datetime.now(TIMEZONE).replace(hour=12))
 
     check_image(
         request,
@@ -546,7 +546,7 @@ def test_create_sensor_graph_dummy(freezer, mocker, request):
         0,
     )
 
-    freezer.move_to(datetime.datetime.now(TIMEZONE).replace(hour=20))
+    time_machine.move_to(datetime.datetime.now(TIMEZONE).replace(hour=20))
 
     check_image(
         request,
@@ -677,7 +677,7 @@ def test_create_rain_cloud_panel_xpath_fail(mocker, request):
 
     xpath_exists_mock.i = 0
 
-    mocker.patch("selenium_util.xpath_exists", side_effect=xpath_exists_mock)
+    mocker.patch("my_lib.selenium_util.xpath_exists", side_effect=xpath_exists_mock)
 
     check_image(
         request,

@@ -190,6 +190,14 @@ font:
 
         # en_medium: FrutigerNeueLTW1G-Medium.otf
         # en_bold: FrutigerNeueLTW1G-Bold.otf
+
+webapp:
+    timezone:
+        offset: "+9"
+        name: JST
+        zone: Asia/Tokyo
+
+    static_dir_path: react/dist
 # slack:
 #   from: E-Ink Weather Panel
 

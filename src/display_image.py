@@ -53,7 +53,7 @@ def ssh_connect(hostname, key_filename):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # noqa: S507
 
-    with pathlib.Path(key_filename).open() as f:
+    with open(key_filename) as f:  # noqa: PTH123
         ssh.connect(
             hostname,
             username="ubuntu",
@@ -129,7 +129,7 @@ def display_image(  # noqa: PLR0913, C901
         logging.warning("Something is wrong. (code: %d)", proc.returncode)
     elif proc.returncode == create_image.ERROR_CODE_MINOR:
         logging.warning("Something is wrong. (code: %d)", proc.returncode)
-        pathlib.path(config["liveness"]["file"]).touch()
+        pathlib.Path(config["liveness"]["file"]).touch()
     else:
         logging.error("Failed to create image. (code: %d)", proc.returncode)
         sys.exit(proc.returncode)

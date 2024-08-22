@@ -16,16 +16,14 @@ import logging
 import os
 import pathlib
 
+import my_lib.config
 import my_lib.logger
-import my_lib.webapp.base
 import weather_display.generator
 from flask import Flask
 from flask_cors import CORS
 
 
 def create_app(config_file_normal, config_file_small, dummy_mode=False):
-    my_lib.logger.init("panel.e-ink.weather", level=logging.INFO)
-
     # NOTE: アクセスログは無効にする
     logging.getLogger("werkzeug").setLevel(logging.ERROR)
 
@@ -46,6 +44,13 @@ def create_app(config_file_normal, config_file_small, dummy_mode=False):
     else:  # pragma: no cover
         pass
 
+    import my_lib.webapp.config
+
+    my_lib.webapp.config.URL_PREFIX = "/weather_panel"
+    my_lib.webapp.config.init(my_lib.config.load(config_file_normal))
+
+    import my_lib.webapp.base
+
     app = Flask("unit_cooler")
 
     CORS(app)
@@ -65,7 +70,6 @@ def create_app(config_file_normal, config_file_small, dummy_mode=False):
 
 if __name__ == "__main__":
     import docopt
-    import my_lib.config
 
     args = docopt.docopt(__doc__)
 

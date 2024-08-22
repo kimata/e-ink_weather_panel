@@ -14,11 +14,11 @@ import logging
 
 import my_lib.panel_util
 import my_lib.pil_util
-import my_lib.weather
 import PIL.Image
 import PIL.ImageDraw
 import PIL.ImageEnhance
 import PIL.ImageFont
+from my_lib.weather import get_wbgt
 
 
 def get_face_map(font_config):
@@ -91,7 +91,7 @@ def create_wbgt_panel_impl(panel_config, font_config, slack_config, is_side_by_s
         (255, 255, 255, 0),
     )
 
-    wbgt = my_lib.weather.get_wbgt(panel_config)["current"]
+    wbgt = get_wbgt(panel_config)["current"]
 
     if wbgt is None:
         return img
