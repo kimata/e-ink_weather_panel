@@ -1,8 +1,9 @@
-image: docker:24.0.9
+image: registry.green-rabbit.net:5000/kimata/local_ubuntu:240730E
 
 stages:
     - build-webapp
     - build-image
+    - pre-test
     - test
     - deploy
     - renovate
@@ -43,13 +44,62 @@ build-image:
         - docker pull ${CI_REGISTRY_IMAGE} || true
         - docker build . -t ${CI_REGISTRY_IMAGE}
         - docker push ${CI_REGISTRY_IMAGE}
+
+test-prepare:
+    stage: pre-test
+
+    script:
+        - rye sync
+
+    artifacts:
+        paths:
+            - .venv
+            - /root/.cache
+
+    cache:
+        key: "${CI_JOB_NAME}"
+        paths:
+            - .venv
+            - /root/.cache
+
+test-walk-through:
+    stage: test
+
+    needs:
+        - build-react
+        - test-prepare
+
     dependencies:
         - build-react
+
+    image: registry.green-rabbit.net:5000/kimata/local_ubuntu:240224B
+    script:
+        - poetry config --local virtualenvs.in-project true
+        - poetry config --local cache-dir $PWD/.poetry/cache
+        - poetry install --no-interaction --with test
+        - poetry run pytest --numprocesses 8 tests/test_basic.py
+
+    variables:
+        RUST_LOG: trace
+
+    cache:
+        key: "${CI_JOB_NAME}"
+        paths:
+            - .venv
+            - .poetry
+
+    artifacts:
+        when: always
+        paths:
+            - tests/evidence/**
 
 # センサーグラフ画像のテスト
 test-sensor-graph:
     stage: test
-    needs: ["build-image"]
+
+    needs:
+        - build-image
+        - test-prepare
 
     script:
         # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
@@ -59,6 +109,7 @@ test-sensor-graph:
         - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
         - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
         - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
+
     artifacts:
         paths:
             - ${CI_JOB_NAME}.png
@@ -66,7 +117,10 @@ test-sensor-graph:
 # 電力グラフ画像のテスト
 test-power-graph:
     stage: test
-    needs: ["build-image"]
+
+    needs:
+        - build-image
+        - test-prepare
 
     script:
         # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
@@ -83,7 +137,10 @@ test-power-graph:
 # 天気予報画像のテスト
 test-weather-panel:
     stage: test
-    needs: ["build-image"]
+
+    needs:
+        - build-image
+        - test-prepare
 
     script:
         # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
@@ -102,7 +159,10 @@ test-weather-panel:
 # 正常終了するので，別建ててテストを実施する．
 test-rain-cloud-panel:
     stage: test
-    needs: ["build-image"]
+
+    needs:
+        - build-image
+        - test-prepare
 
     script:
         # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
@@ -120,7 +180,14 @@ test-rain-cloud-panel:
 # サンプル設定ファイルで，問題なく動くかチェック
 test-sample:
     stage: test
-    needs: ["test-weather-panel", "test-power-graph", "test-sensor-graph", "test-rain-cloud-panel"]
+
+    needs:
+        - build-image
+        - test-prepare
+        - test-weather-panel
+        - test-power-graph
+        - test-sensor-graph
+        - test-rain-cloud-panel
 
     script:
         - docker pull ${CI_REGISTRY_IMAGE}
@@ -134,7 +201,12 @@ test-sample:
 
 test-sample-small:
     stage: test
-    needs: ["test-weather-panel", "test-rain-cloud-panel"]
+
+    needs:
+        - build-image
+        - test-prepare
+        - test-weather-panel
+        - test-rain-cloud-panel
 
     script:
         - docker pull ${CI_REGISTRY_IMAGE}
@@ -148,7 +220,14 @@ test-sample-small:
 
 test-demo:
     stage: test
-    needs: ["test-weather-panel", "test-power-graph", "test-sensor-graph", "test-rain-cloud-panel"]
+
+    needs:
+        - build-image
+        - test-prepare
+        - test-weather-panel
+        - test-power-graph
+        - test-sensor-graph
+        - test-rain-cloud-panel
 
     script:
         - docker pull ${CI_REGISTRY_IMAGE}
@@ -163,7 +242,14 @@ test-demo:
 # 本番設定ファイルで，問題なく動くかチェック
 test-regular:
     stage: test
-    needs: ["test-weather-panel", "test-power-graph", "test-sensor-graph", "test-rain-cloud-panel"]
+
+    needs:
+        - build-image
+        - test-prepare
+        - test-weather-panel
+        - test-power-graph
+        - test-sensor-graph
+        - test-rain-cloud-panel
 
     script:
         - docker pull ${CI_REGISTRY_IMAGE}
@@ -177,7 +263,12 @@ test-regular:
 
 test-regular-small:
     stage: test
-    needs: ["test-weather-panel", "test-rain-cloud-panel"]
+
+    needs:
+        - build-image
+        - test-prepare
+        - test-weather-panel
+        - test-rain-cloud-panel
 
     script:
         - docker pull ${CI_REGISTRY_IMAGE}
@@ -193,7 +284,11 @@ test-regular-small:
 # 本番設定ファイルで，問題なく動くかチェック
 test-display:
     stage: test
-    needs: ["test-regular"]
+
+    needs:
+        - build-image
+        - test-prepare
+        - test-regular
 
     variables:
         RASP_HOSTNAME: rasp-meter-1
@@ -204,7 +299,11 @@ test-display:
 
 test-display-small:
     stage: test
-    needs: ["test-regular-small"]
+
+    needs:
+        - build-image
+        - test-prepare
+        - test-regular-small
 
     variables:
         RASP_HOSTNAME: rasp-display-2
@@ -215,7 +314,11 @@ test-display-small:
 
 test-webapp:
     stage: test
-    needs: ["test-demo"]
+
+    needs:
+        - build-image
+        - test-prepare
+        - test-demo
 
     image: registry.green-rabbit.net:5000/kimata/local_ubuntu:240224B
     script:
@@ -246,34 +349,6 @@ test-webapp:
             - flask_log.txt
             - tests/evidence/**
 
-test-walk-through:
-    stage: test
-
-    needs: ["build-react"]
-    dependencies:
-        - build-react
-
-    image: registry.green-rabbit.net:5000/kimata/local_ubuntu:240224B
-    script:
-        - poetry config --local virtualenvs.in-project true
-        - poetry config --local cache-dir $PWD/.poetry/cache
-        - poetry install --no-interaction --with test
-        - poetry run pytest --numprocesses 8 tests/test_basic.py
-
-    variables:
-        RUST_LOG: trace
-
-    cache:
-        key: "${CI_JOB_NAME}"
-        paths:
-            - .venv
-            - .poetry
-
-    artifacts:
-        when: always
-        paths:
-            - tests/evidence/**
-
 pages:
     stage: test
     needs: ["test-walk-through"]
@@ -294,11 +369,17 @@ pages:
 
 deploy:
     stage: deploy
-    needs: ["test-display", "test-display-small", "test-webapp", "test-walk-through"]
+
+    needs:
+        - test-walk-through
+        - test-display
+        - test-display-small
+        - test-webapp
 
     image:
         name: bitnami/kubectl:latest
         entrypoint: [""]
+
     script:
         - kubectl config get-contexts
         - kubectl config use-context kimata/e-ink_weather_panel:pod-rollout
@@ -306,16 +387,26 @@ deploy:
         - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-small-panel-deployment
         - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-webapp-deployment
 
+    rules:
+        # NOTE: 自動実行ではデプロイしない
+        - if: '$CI_PIPELINE_SOURCE == "schedule"'
+          when: never
+        - changes:
+              - react/package.json
+              - react/package-lock.json
+              - pyoroject.json
+              - src/**/*
+          when: on_success
+        - when: never
+
 renovate:
     stage: renovate
     image:
-        name: registry.green-rabbit.net:5000/kimata/local_renovate:36
+        name: registry.green-rabbit.net:5000/kimata/local_renovate:38
 
         entrypoint: [""]
     script:
         - renovate --platform gitlab --token ${RENOVATE_TOKEN} --endpoint ${CI_SERVER_URL}/api/v4 ${CI_PROJECT_PATH}
-        # # NOTE: ついでにお掃除
-        #  - docker rm $(docker ps -a --filter "status=exited" -q) || true
     rules:
         - if: '$CI_COMMIT_BRANCH != "master"'
           when: never

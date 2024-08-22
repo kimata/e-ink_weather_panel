@@ -17,33 +17,39 @@ import sys
 import my_lib.healthz
 from docopt import docopt
 
-sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
+
+def check_liveness(target_list):
+    for target in target_list:
+        if not my_lib.healthz.check_liveness(target["name"], target["liveness_file"], target["interval"]):
+            return False
+
+    return True
+
 
 ######################################################################
 if __name__ == "__main__":
-    import docopt
     import my_lib.config
     import my_lib.logger
 
-    args = docopt.docopt(__doc__)
+    args = docopt(__doc__)
 
     config_file = args["-c"]
+    debug_mode = args["-d"]
 
-    my_lib.logger.init("panel.e-ink.weather", level=logging.INFO)
+    my_lib.logger.init("panel.e-ink.weather", level=logging.DEBUG if debug_mode else logging.INFO)
 
-    logging.info("Using config config: %s", config_file)
     config = my_lib.config.load(config_file)
 
-    # liveness_file = pathlib.Path(config["LIVENESS"]["FILE"])
+    target_list = [
+        {
+            "name": "display",
+            "liveness_file": pathlib.Path(config["liveness"]["file"]),
+            "interval": config["panel"]["update"]["interval"],
+        }
+    ]
 
-    # if not liveness_file.exists():
-    #     logging.warning("Not executed.")
-    #     sys.exit(-1)
-
-    # elapsed = datetime.datetime.now() - datetime.datetime.fromtimestamp(liveness_file.stat().st_mtime)
-    # if elapsed.total_seconds() > config["PANEL"]["UPDATE"]["INTERVAL"]:
-    #     logging.warning("Execution interval is too long. ({elapsed:,} sec)".format(elapsed=elapsed.seconds))
-    #     sys.exit(-1)
-
-    # logging.info("OK.")
-    # sys.exit(0)
+    if check_liveness(target_list):
+        logging.info("OK.")
+        sys.exit(0)
+    else:
+        sys.exit(-1)
