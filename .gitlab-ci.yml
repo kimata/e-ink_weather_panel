@@ -75,9 +75,6 @@ test-walk-through:
         - build-react
         - test-prepare
 
-    dependencies:
-        - build-react
-
     script:
         - rye run pytest --cov-report=html tests/test_basic.py
 
@@ -347,7 +344,8 @@ test-webapp:
 
 pages:
     stage: test
-    needs: ["test-walk-through"]
+    needs:
+        - test-walk-through
 
     script:
         - mkdir -p public/
@@ -356,9 +354,6 @@ pages:
     artifacts:
         paths:
             - public
-
-    dependencies:
-        - test-walk-through
 
     only:
         - master
