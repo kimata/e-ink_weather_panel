@@ -29,7 +29,7 @@ build-image:
     needs: ["build-react"]
 
     variables:
-        BUILDER: arm_builder
+        BUILDER: builder
 
     script:
         # - docker rm $(docker ps -a --filter 'status=exited' -q) || true
@@ -45,7 +45,7 @@ build-image:
 
         - docker buildx create --name ${BUILDER} --config script/buildkitd.toml --use
         - docker buildx use ${BUILDER}
-        - docker buildx build --platform linux/amd64,linux/arm64/v8
+        - docker buildx build --platform linux/amd64
           --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:cache
           --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}:cache
           --build-arg IMAGE_BUILD_DATE=$(date --iso-8601=seconds)
