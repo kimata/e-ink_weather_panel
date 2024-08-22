@@ -1,7 +1,7 @@
 [project]
-name = "rasp-aqua"
+name = "e-ink_weather_panel"
 version = "0.1.0"
-description = "水槽を Raspberry Pi でモニターしつつ管理するスクリプトです．"
+description = "電子ペーパディスプレイに，Raspberry Pi を通じて下記の情報を表示するためのスクリプトです．"
 authors = [
     { name = "KIMATA Tetsuya", email = "kimata@green-rabbit.net" }
 ]
