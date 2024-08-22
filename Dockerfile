@@ -15,10 +15,9 @@ RUN curl -O https://dl.google.com/linux/direct/google-chrome-stable_current_amd6
 RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
     --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update && apt-get install --no-install-recommends --assume-yes \
-    python3 \
-    python3-dev \
-    git \
     language-pack-ja \
+    python3-pip \
+    git \
     ./google-chrome-stable_current_amd64.deb
 
 ENV PYTHONDONTWRITEBYTECODE=1
