@@ -15,21 +15,16 @@ import atexit
 import logging
 import os
 import pathlib
-import sys
 
-from docopt import docopt
+import my_lib.logger
+import my_lib.webapp.base
+import weather_display.generator
 from flask import Flask
 from flask_cors import CORS
 
-sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
-
-import generator
-import logger
-import webapp_base
-
 
 def create_app(config_file_normal, config_file_small, dummy_mode=False):
-    logger.init("panel.e-ink.weather", level=logging.INFO)
+    my_lib.logger.init("panel.e-ink.weather", level=logging.INFO)
 
     # NOTE: アクセスログは無効にする
     logging.getLogger("werkzeug").setLevel(logging.ERROR)
@@ -42,10 +37,10 @@ def create_app(config_file_normal, config_file_small, dummy_mode=False):
         else:  # pragma: no cover
             pass
 
-        generator.init()
+        weather_display.generator.init(pathlib.Path(__file__).parent / "create_image.py")
 
         def notify_terminate():  # pragma: no cover
-            generator.term()
+            weather_display.generator.term()
 
         atexit.register(notify_terminate)
     else:  # pragma: no cover
@@ -59,9 +54,9 @@ def create_app(config_file_normal, config_file_small, dummy_mode=False):
     app.config["CONFIG_FILE_SMALL"] = config_file_small
     app.config["DUMMY_MODE"] = dummy_mode
 
-    app.register_blueprint(webapp_base.blueprint_default)
-    app.register_blueprint(webapp_base.blueprint)
-    app.register_blueprint(generator.blueprint)
+    app.register_blueprint(my_lib.webapp.base.blueprint_default)
+    app.register_blueprint(my_lib.webapp.base.blueprint)
+    app.register_blueprint(weather_display.generator.blueprint)
 
     # app.debug = True
 
@@ -69,11 +64,16 @@ def create_app(config_file_normal, config_file_small, dummy_mode=False):
 
 
 if __name__ == "__main__":
-    args = docopt(__doc__)
+    import docopt
+    import my_lib.config
+
+    args = docopt.docopt(__doc__)
 
     config_file_normal = args["-c"]
     config_file_small = args["-s"]
     dummy_mode = args["-D"]
+
+    my_lib.logger.init("panel.e-ink.weather", level=logging.INFO)
 
     app = create_app(config_file_normal, config_file_small, dummy_mode)
 

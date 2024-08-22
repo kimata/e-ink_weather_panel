@@ -22,6 +22,7 @@ dependencies = [
     "matplotlib>=3.9.2",
     "pandas>=2.2.2",
     "selenium>=4.23.1",
+    "paramiko>=3.4.1",
 ]
 
 [build-system]
@@ -29,7 +30,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/rasp_aqua"]
+packages = ["src/weather_display"]
 
 [tool.hatch.metadata]
 allow-direct-references = true

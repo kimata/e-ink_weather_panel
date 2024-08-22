@@ -27,6 +27,7 @@ import PIL.Image
 import PIL.ImageDraw
 import PIL.ImageEnhance
 import PIL.ImageFont
+from my_lib.weather import get_weather_yahoo
 
 # NOTE: 天気アイコンの周りにアイコンサイズの何倍の空きを確保するか
 ICON_MARGIN = 0.48
@@ -748,7 +749,7 @@ def draw_panel_weather(  # noqa: PLR0913
 
 
 def create_weather_panel_impl(panel_config, font_config, slack_config, is_side_by_side, trial, opt_config):  # noqa: ARG001, PLR0913
-    weather_info = my_lib.weather.get_weather_yahoo(panel_config["data"]["yahoo"])
+    weather_info = get_weather_yahoo(panel_config["data"]["yahoo"])
     clothing_info = my_lib.weather.get_clothing_yahoo(panel_config["data"]["yahoo"])
     sunset_info = my_lib.weather.get_sunset_nao(opt_config["sunset"])
     wbgt_info = my_lib.weather.get_wbgt(opt_config["wbgt"])

@@ -44,11 +44,11 @@ def get_plot_font(config, font_type, size):
 
 def get_face_map(font_config):
     return {
-        "title": get_plot_font(font_config, "JP_BOLD", 60),
-        "value": get_plot_font(font_config, "EN_COND_BOLD", 80),
-        "value_unit": get_plot_font(font_config, "JP_REGULAR", 18),
-        "axis_minor": get_plot_font(font_config, "JP_REGULAR", 26),
-        "axis_major": get_plot_font(font_config, "JP_REGULAR", 32),
+        "title": get_plot_font(font_config, "jp_bold", 60),
+        "value": get_plot_font(font_config, "en_cond_bold", 80),
+        "value_unit": get_plot_font(font_config, "jp_regular", 18),
+        "axis_minor": get_plot_font(font_config, "jp_regular", 26),
+        "axis_major": get_plot_font(font_config, "jp_regular", 32),
     }
 
 
@@ -124,8 +124,8 @@ def plot_item(ax, unit, data, ylim, fmt, face_map):  # noqa: PLR0913
 def create_power_graph_impl(panel_config, font_config, db_config):
     face_map = get_face_map(font_config)
 
-    width = panel_config["PANEL"]["WIDTH"]
-    height = panel_config["PANEL"]["HEIGHT"]
+    width = panel_config["panel"]["width"]
+    height = panel_config["panel"]["height"]
 
     plt.style.use("grayscale")
 
@@ -142,9 +142,9 @@ def create_power_graph_impl(panel_config, font_config, db_config):
 
     data = fetch_data(
         db_config,
-        panel_config["DATA"]["HOST"]["TYPE"],
-        panel_config["DATA"]["HOST"]["NAME"],
-        panel_config["DATA"]["PARAM"]["NAME"],
+        panel_config["data"]["host"]["type"],
+        panel_config["data"]["host"]["name"],
+        panel_config["data"]["param"]["name"],
         period_start,
         period_stop,
     )
@@ -152,10 +152,10 @@ def create_power_graph_impl(panel_config, font_config, db_config):
     ax = fig.add_subplot()
     plot_item(
         ax,
-        panel_config["DATA"]["PARAM"]["UNIT"],
+        panel_config["data"]["param"]["unit"],
         data,
-        panel_config["DATA"]["PARAM"]["RANGE"],
-        panel_config["DATA"]["PARAM"]["FORMAT"],
+        panel_config["data"]["param"]["range"],
+        panel_config["data"]["param"]["format"],
         face_map,
     )
 

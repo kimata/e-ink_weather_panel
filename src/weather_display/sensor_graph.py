@@ -39,7 +39,7 @@ AIRCON_WORK_THRESHOLD = 30
 
 
 def get_plot_font(config, font_type, size):
-    font_path = str(pathlib.path(config["path"]) / config["map"][font_type])
+    font_path = str(pathlib.Path(config["path"]) / config["map"][font_type])
 
     logging.info("Load font: %s", font_path)
 
@@ -141,8 +141,8 @@ def get_aircon_power(db_config, aircon):
 
     data = fetch_data(
         db_config,
-        aircon["MEASURE"],
-        aircon["HOST"],
+        aircon["measure"],
+        aircon["host"],
         "power",
         start,
         stop,
@@ -159,7 +159,7 @@ def draw_aircon_icon(ax, power, icon_config):
     if (power is None) or (power < AIRCON_WORK_THRESHOLD):
         return
 
-    icon_file = icon_config["AIRCON"]["PATH"]
+    icon_file = icon_config["aircon"]["path"]
 
     img = plt.imread(str(pathlib.Path(icon_file)))
 
@@ -188,9 +188,9 @@ def draw_light_icon(ax, lux_list, icon_config):
     if lux == EMPTY_VALUE:
         return
     elif lux < 10:
-        icon_file = icon_config["LIGHT"]["OFF"]["PATH"]
+        icon_file = icon_config["light"]["off"]["path"]
     else:
-        icon_file = icon_config["LIGHT"]["ON"]["PATH"]
+        icon_file = icon_config["light"]["on"]["path"]
 
     img = plt.imread(str(pathlib.Path(icon_file)))
 
@@ -218,8 +218,8 @@ def sensor_data(db_config, host_specify_list, param):
     for host_specify in host_specify_list:
         data = fetch_data(
             db_config,
-            host_specify["TYPE"],
-            host_specify["NAME"],
+            host_specify["type"],
+            host_specify["name"],
             param,
             period_start,
             period_stop,
@@ -232,9 +232,9 @@ def sensor_data(db_config, host_specify_list, param):
 def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C901
     face_map = get_face_map(font_config)
 
-    room_list = panel_config["ROOM_LIST"]
-    width = panel_config["PANEL"]["WIDTH"]
-    height = panel_config["PANEL"]["HEIGHT"]
+    room_list = panel_config["room_list"]
+    width = panel_config["panel"]["width"]
+    height = panel_config["panel"]["height"]
 
     plt.style.use("grayscale")
 
@@ -245,8 +245,8 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
     cache = None
     range_map = {}
     time_begin = datetime.datetime.now(datetime.timezone.utc)
-    for param in panel_config["PARAM_LIST"]:
-        logging.info("fetch %s data", param["NAME"])
+    for param in panel_config["param_list"]:
+        logging.info("fetch %s data", param["name"])
 
         param_min = float("inf")
         param_max = -float("inf")
@@ -254,8 +254,8 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
         for col in range(len(room_list)):
             data = sensor_data(
                 db_config,
-                room_list[col]["HOST"],
-                param["NAME"],
+                room_list[col]["host"],
+                param["name"],
             )
             if not data["valid"]:
                 continue
@@ -276,54 +276,54 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
                 param_max = max_val
 
         # NOTE: 見やすくなるように，ちょっと広げる
-        range_map[param["NAME"]] = [
+        range_map[param["name"]] = [
             max(0, param_min - (param_max - param_min) * 0.3),
             param_max + (param_max - param_min) * 0.05,
         ]
 
-    for row, param in enumerate(panel_config["PARAM_LIST"]):
-        logging.info("draw %d graph", param["NAME"])
+    for row, param in enumerate(panel_config["param_list"]):
+        logging.info("draw %s graph", param["name"])
 
         for col in range(len(room_list)):
             data = sensor_data(
                 db_config,
-                room_list[col]["HOST"],
-                param["NAME"],
+                room_list[col]["host"],
+                param["name"],
             )
             if not data["valid"]:
                 data = cache
 
             ax = fig.add_subplot(
-                len(panel_config["PARAM_LIST"]),
+                len(panel_config["param_list"]),
                 len(room_list),
                 1 + len(room_list) * row + col,
             )
 
-            title = room_list[col]["LABEL"] if row == 0 else None
-            graph_range = range_map[param["NAME"]] if param["RANGE"] == "auto" else param["RANGE"]
+            title = room_list[col]["label"] if row == 0 else None
+            graph_range = range_map[param["name"]] if param["range"] == "auto" else param["range"]
 
             plot_item(
                 ax,
                 title,
-                param["UNIT"],
+                param["unit"],
                 data,
                 time_begin,
                 graph_range,
-                param["FORMAT"],
-                param["SCALE"],
-                param["SIZE_SMALL"],
+                param["format"],
+                param["scale"],
+                param["size_small"],
                 face_map,
             )
 
-            if (param["NAME"] == "temp") and ("AIRCON" in room_list[col]):
+            if (param["name"] == "temp") and ("aircon" in room_list[col]):
                 draw_aircon_icon(
                     ax,
-                    get_aircon_power(db_config, room_list[col]["AIRCON"]),
-                    panel_config["ICON"],
+                    get_aircon_power(db_config, room_list[col]["aircon"]),
+                    panel_config["icon"],
                 )
 
-            if (param["NAME"] == "lux") and room_list[col]["LIGHT_ICON"]:
-                draw_light_icon(ax, data["value"], panel_config["ICON"])
+            if (param["name"] == "lux") and room_list[col]["light_icon"]:
+                draw_light_icon(ax, data["value"], panel_config["icon"])
 
     fig.tight_layout()
     plt.subplots_adjust(hspace=0.1, wspace=0)

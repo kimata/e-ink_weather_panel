@@ -15,19 +15,21 @@ from flask import Blueprint, Response, current_app, g, jsonify, request, stream_
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
 
-from flask_util import gzipped, support_jsonp
-from webapp_config import CREATE_IMAGE_PATH
+import my_lib.flask_util
 
 blueprint = Blueprint("webapp", __name__, url_prefix="/")
 
 thread_pool = None
 panel_data_map = {}
+create_image_path = None
 
 
-def init():
+def init(create_image_path_):
     global thread_pool  # noqa: PLW0603
+    global create_image_path  # noqa: PLW0603
 
     thread_pool = ThreadPool(processes=3)
+    create_image_path = create_image_path_
 
 
 def term():
@@ -55,7 +57,7 @@ def generate_image_impl(config_file, is_small_mode, is_dummy_mode, is_test_mode,
     global panel_data_map
 
     panel_data = panel_data_map[token]
-    cmd = ["python3", CREATE_IMAGE_PATH, "-c", config_file]
+    cmd = ["python3", create_image_path, "-c", config_file]
     if is_small_mode:
         cmd.append("-s")
     if is_dummy_mode:
@@ -124,7 +126,7 @@ def generate_image(config_file, is_small_mode, is_dummy_mode, is_test_mode):
 
 
 @blueprint.route("/weather_panel/api/image", methods=["POST"])
-@gzipped
+@my_lib.flask_util.gzipped
 def api_image():
     global panel_data_map
 
@@ -175,7 +177,7 @@ def api_log():
 
 
 @blueprint.route("/weather_panel/api/run", methods=["GET"])
-@support_jsonp
+@my_lib.flask_util.support_jsonp
 def api_run():
     mode = request.args.get("mode", "")
     is_small_mode = mode == "small"

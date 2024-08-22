@@ -1,301 +1,301 @@
-LIVENESS:
-    FILE: /dev/shm/healthz
+liveness:
+    file: /dev/shm/healthz
 
-PANEL:
-    DEVICE:
-        WIDTH: 3200
-        HEIGHT: 1800
-    UPDATE:
-        INTERVAL: 120
+panel:
+    device:
+        width: 3200
+        height: 1800
+    update:
+        interval: 120
 
-INFLUXDB:
-    URL: http://proxy.green-rabbit.net:8086
-    ORG: home
-    TOKEN: strBCB9segqccgxsR5Xe_9RnCqkBFYX9aOKvxVR4lr3iLEb7HXuGqsN40YU6DIb6TZm9bvKLW5OWQS7sB8AQbQ==
-    BUCKET: sensor
+influxdb:
+    url: http://proxy.green-rabbit.net:8086
+    org: home
+    token: strBCB9segqccgxsR5Xe_9RnCqkBFYX9aOKvxVR4lr3iLEb7HXuGqsN40YU6DIb6TZm9bvKLW5OWQS7sB8AQbQ==
+    bucket: sensor
 
-WALL:
-    IMAGE:
-        - PATH: ../img/mascot.png
-          BRIGHTNESS: 2
-          OFFSET_X: 1540
-          OFFSET_Y: 565
+wall:
+    image:
+        - path: img/mascot.png
+          brightness: 2
+          offset_x: 1540
+          offset_y: 565
 
-TIME:
-    PANEL:
-        WIDTH: 400
-        HEIGHT: 160
-        OFFSET_X: 2782
-        OFFSET_Y: 1630
+time:
+    panel:
+        width: 400
+        height: 160
+        offset_x: 2782
+        offset_y: 1630
 
-WEATHER:
-    PANEL:
-        WIDTH: 3200
-        HEIGHT: 1000
-        OFFSET_X: 0
-        OFFSET_Y: 0
-    DATA:
-        YAHOO:
-            URL: https://weather.yahoo.co.jp/weather/jp/13/4410/13113.html
+weather:
+    panel:
+        width: 3200
+        height: 1000
+        offset_x: 0
+        offset_y: 0
+    data:
+        yahoo:
+            url: https://weather.yahoo.co.jp/weather/jp/13/4410/13113.html
 
-    ICON:
-        SUNSET:
-            PATH: ../img/sunset.png
-            SCALE: 0.25
-        SUN:
-            PATH: ../img/sun.png
-            SCALE: 0.5
-            BRIGHTNESS: 1.5
-        ARROW:
-            PATH: ../img/arrow.png
-            SCALE: 0.7
-        THERMO:
-            PATH: ../img/thermo.png
-            BRIGHTNESS: 1.2
-            SCALE: 0.7
-        CLOTHES:
-            PATH: ../img/clothes.png
-            BRIGHTNESS: 1.2
-            SCALE: 0.7
-        CLOTHING-FULL-1:
-            PATH: ../img/cloching_icon_1_full.png
-            SCALE: 0.5
-            BRIGHTNESS: 2
-        CLOTHING-FULL-2:
-            PATH: ../img/cloching_icon_2_full.png
-            SCALE: 0.5
-            BRIGHTNESS: 2
-        CLOTHING-FULL-3:
-            PATH: ../img/cloching_icon_3_full.png
-            SCALE: 0.45
-            BRIGHTNESS: 2
-        CLOTHING-FULL-4:
-            PATH: ../img/cloching_icon_4_full.png
-            SCALE: 0.45
-            BRIGHTNESS: 2
-        CLOTHING-FULL-5:
-            PATH: ../img/cloching_icon_5_full.png
-            SCALE: 0.5
-            BRIGHTNESS: 2
-        CLOTHING-HALF-1:
-            PATH: ../img/cloching_icon_1_half.png
-            SCALE: 0.5
-            BRIGHTNESS: 2
-        CLOTHING-HALF-2:
-            PATH: ../img/cloching_icon_2_half.png
-            SCALE: 0.5
-            BRIGHTNESS: 2
-        CLOTHING-HALF-3:
-            PATH: ../img/cloching_icon_3_half.png
-            SCALE: 0.45
-            BRIGHTNESS: 2
-        CLOTHING-HALF-4:
-            PATH: ../img/cloching_icon_4_half.png
-            SCALE: 0.45
-            BRIGHTNESS: 2
-        CLOTHING-HALF-5:
-            PATH: ../img/cloching_icon_5_half.png
-            SCALE: 0.5
-            BRIGHTNESS: 2
-        PRECIP:
-            PATH: ../img/precip.png
-            BRIGHTNESS: 1.3
-            SCALE: 0.7
-        WIND:
-            PATH: ../img/wind.png
-            BRIGHTNESS: 1.3
-            SCALE: 0.7
+    icon:
+        sunset:
+            path: img/sunset.png
+            scale: 0.25
+        sun:
+            path: img/sun.png
+            scale: 0.5
+            brightness: 1.5
+        arrow:
+            path: img/arrow.png
+            scale: 0.7
+        thermo:
+            path: img/thermo.png
+            brightness: 1.2
+            scale: 0.7
+        clothes:
+            path: img/clothes.png
+            brightness: 1.2
+            scale: 0.7
+        clothing-full-1:
+            path: img/cloching_icon_1_full.png
+            scale: 0.5
+            brightness: 2
+        clothing-full-2:
+            path: img/cloching_icon_2_full.png
+            scale: 0.5
+            brightness: 2
+        clothing-full-3:
+            path: img/cloching_icon_3_full.png
+            scale: 0.45
+            brightness: 2
+        clothing-full-4:
+            path: img/cloching_icon_4_full.png
+            scale: 0.45
+            brightness: 2
+        clothing-full-5:
+            path: img/cloching_icon_5_full.png
+            scale: 0.5
+            brightness: 2
+        clothing-half-1:
+            path: img/cloching_icon_1_half.png
+            scale: 0.5
+            brightness: 2
+        clothing-half-2:
+            path: img/cloching_icon_2_half.png
+            scale: 0.5
+            brightness: 2
+        clothing-half-3:
+            path: img/cloching_icon_3_half.png
+            scale: 0.45
+            brightness: 2
+        clothing-half-4:
+            path: img/cloching_icon_4_half.png
+            scale: 0.45
+            brightness: 2
+        clothing-half-5:
+            path: img/cloching_icon_5_half.png
+            scale: 0.5
+            brightness: 2
+        precip:
+            path: img/precip.png
+            brightness: 1.3
+            scale: 0.7
+        wind:
+            path: img/wind.png
+            brightness: 1.3
+            scale: 0.7
 
-POWER:
-    PANEL:
-        WIDTH: 1600
-        HEIGHT: 510
-        OFFSET_X: 0
-        OFFSET_Y: 620
+power:
+    panel:
+        width: 1600
+        height: 510
+        offset_x: 0
+        offset_y: 620
 
-    DATA:
-        HOST:
-            NAME: rasp-meter-5
-            TYPE: sensor.rasp
-        PARAM:
-            NAME: power
-            FORMAT: "{:,.0f}"
-            UNIT: W
-            RANGE:
+    data:
+        host:
+            name: rasp-meter-5
+            type: sensor.rasp
+        param:
+            name: power
+            format: "{:,.0f}"
+            unit: W
+            range:
                 - 0
                 - 5000
 
-SENSOR:
-    PANEL:
-        WIDTH: 1600
-        HEIGHT: 690
-        OFFSET_X: 0
-        OFFSET_Y: 1120
+sensor:
+    panel:
+        width: 1600
+        height: 690
+        offset_x: 0
+        offset_y: 1120
 
-    ROOM_LIST:
-        - LABEL: 屋外
-          HOST:
-              - NAME: ESP32-outdoor-1
-                TYPE: sensor.esp32
-              - NAME: rasp-meter-8
-                TYPE: sensor.rasp
-          LIGHT_ICON: off
-        - LABEL: リビング
-          HOST:
-              - NAME: rpi-cm4-sensor-6
-                TYPE: sensor.rasp
-          LIGHT_ICON: on
-          AIRCON:
-              MEASURE: hems.sharp
-              HOST: リビングエアコン
-        - LABEL: 和室
-          TYPE: rasp
-          HOST:
-              - NAME: rasp-meter-2
-                TYPE: sensor.rasp
-          LIGHT_ICON: on
-          AIRCON:
-              MEASURE: hems.sharp
-              HOST: 和室エアコン
-        - LABEL: 洋室A
-          HOST:
-              - NAME: rpi-cm4-sensor-1
-                TYPE: sensor.rasp
-          LIGHT_ICON: on
-        - LABEL: 洋室B
-          HOST:
-              - NAME: rpi-cm4-sensor-2
-                TYPE: sensor.rasp
-          LIGHT_ICON: on
-        - LABEL: 洋室C
-          HOST:
-              - NAME: rpi-cm4-sensor-3
-                TYPE: sensor.rasp
-          LIGHT_ICON: on
-        - LABEL: 家事室
-          HOST:
-              - NAME: rpi-cm4-sensor-4
-                TYPE: sensor.rasp
-          LIGHT_ICON: on
-        - LABEL: 書斎
-          HOST:
-              - NAME: rasp-meter-3
-                TYPE: sensor.rasp
-          LIGHT_ICON: on
-          AIRCON:
-              MEASURE: hems.sharp
-              HOST: 書斎エアコン
+    room_list:
+        - label: 屋外
+          host:
+              - name: ESP32-outdoor-1
+                type: sensor.esp32
+              - name: rasp-meter-8
+                type: sensor.rasp
+          light_icon: off
+        - label: リビング
+          host:
+              - name: rpi-cm4-sensor-6
+                type: sensor.rasp
+          light_icon: on
+          aircon:
+              measure: hems.sharp
+              host: リビングエアコン
+        - label: 和室
+          type: rasp
+          host:
+              - name: rasp-meter-2
+                type: sensor.rasp
+          light_icon: on
+          aircon:
+              measure: hems.sharp
+              host: 和室エアコン
+        - label: 洋室A
+          host:
+              - name: rpi-cm4-sensor-1
+                type: sensor.rasp
+          light_icon: on
+        - label: 洋室B
+          host:
+              - name: rpi-cm4-sensor-2
+                type: sensor.rasp
+          light_icon: on
+        - label: 洋室C
+          host:
+              - name: rpi-cm4-sensor-3
+                type: sensor.rasp
+          light_icon: on
+        - label: 家事室
+          host:
+              - name: rpi-cm4-sensor-4
+                type: sensor.rasp
+          light_icon: on
+        - label: 書斎
+          host:
+              - name: rasp-meter-3
+                type: sensor.rasp
+          light_icon: on
+          aircon:
+              measure: hems.sharp
+              host: 書斎エアコン
 
-    PARAM_LIST:
-        - NAME: temp
-          FORMAT: "{:.1f}"
-          UNIT: "℃"
-          RANGE: auto
-          SCALE: linear
-          SIZE_SMALL: False
-        - NAME: humi
-          FORMAT: "{:.1f}"
-          UNIT: "%"
-          RANGE: auto
-          SCALE: linear
-          SIZE_SMALL: False
-        - NAME: co2
-          FORMAT: "{:,.0f}"
-          UNIT: ppm
-          RANGE: auto
-          SCALE: linear
-          SIZE_SMALL: True
-        - NAME: lux
-          FORMAT: "{:,.0f}"
-          UNIT: LUX
-          RANGE:
+    param_list:
+        - name: temp
+          format: "{:.1f}"
+          unit: "℃"
+          range: auto
+          scale: linear
+          size_small: false
+        - name: humi
+          format: "{:.1f}"
+          unit: "%"
+          range: auto
+          scale: linear
+          size_small: false
+        - name: co2
+          format: "{:,.0f}"
+          unit: ppm
+          range: auto
+          scale: linear
+          size_small: true
+        - name: lux
+          format: "{:,.0f}"
+          unit: LUX
+          range:
               - 1
               - 40000
-          SCALE: log
-          SIZE_SMALL: True
-    ICON:
-        LIGHT:
-            # NOTE: ON/OFF は「'」で囲わないと文字列以外に変換されてしまうので注意
-            "ON":
-                PATH: ../img/light-on.png
-            "OFF":
-                PATH: ../img/light-off.png
-        AIRCON:
-            PATH: ../img/aircon.png
+          scale: log
+          size_small: True
+    icon:
+        light:
+            # NOTE: on/off は「'」で囲わないと文字列以外に変換されてしまうので注意
+            "on":
+                path: img/light-on.png
+            "off":
+                path: img/light-off.png
+        aircon:
+            path: img/aircon.png
 
-RAIN_CLOUD:
-    PANEL:
-        OFFSET_X: 1604
-        OFFSET_Y: 960
-        WIDTH: 1596
-        HEIGHT: 860
-    LEGEND:
-        BAR_SIZE: 50
-        OFFSET_X: 296
-        OFFSET_Y: 800
-        GAMMA: 0.6
-    DATA:
-        JMA:
-            URL: https://www.jma.go.jp/bosai/nowc/#zoom:12/lat:35.682677/lon:139.762230/colordepth:deep/elements:hrpns&slmcs
+rain_cloud:
+    panel:
+        offset_x: 1604
+        offset_y: 960
+        width: 1596
+        height: 860
+    legend:
+        bar_size: 50
+        offset_x: 296
+        offset_y: 800
+        gamma: 0.6
+    data:
+        jma:
+            url: https://www.jma.go.jp/bosai/nowc/#zoom:12/lat:35.682677/lon:139.762230/colordepth:deep/elements:hrpns&slmcs
 
-SUNSET:
-    DATA:
-        NAO:
-            PREF: 13
+sunset:
+    data:
+        nao:
+            pref: 13
 
-WBGT:
-    PANEL:
-        OFFSET_X: 1604
-        OFFSET_Y: 960
-        WIDTH: 798
-        HEIGHT: 300
+wbgt:
+    panel:
+        offset_x: 1604
+        offset_y: 960
+        width: 798
+        height: 300
 
-    DATA:
-        ENV_GO:
-            URL: https://www.wbgt.env.go.jp/graph_ref_td.php?region=03&prefecture=44&point=44132
-    ICON:
-        FACE:
-            - PATH: ../img/face_1.png
-              BRIGHTNESS: 1.5
-            - PATH: ../img/face_2.png
-              BRIGHTNESS: 1.5
-            - PATH: ../img/face_3.png
-              BRIGHTNESS: 1.5
-            - PATH: ../img/face_4.png
-              BRIGHTNESS: 1.5
-            - PATH: ../img/face_5.png
-              BRIGHTNESS: 1.5
+    data:
+        env_go:
+            url: https://www.wbgt.env.go.jp/graph_ref_td.php?region=03&prefecture=44&point=44132
+    icon:
+        face:
+            - path: img/face_1.png
+              brightness: 1.5
+            - path: img/face_2.png
+              brightness: 1.5
+            - path: img/face_3.png
+              brightness: 1.5
+            - path: img/face_4.png
+              brightness: 1.5
+            - path: img/face_5.png
+              brightness: 1.5
 
-FONT:
-    PATH: ../font/ # スクリプトのフォルダからの相対パス
-    MAP:
-        JP_REGULAR: migmix-1p-regular.ttf
-        JP_MEDIUM: migmix-1p-regular.ttf
-        JP_BOLD: migmix-1p-bold.ttf
+font:
+    path: font/
+    map:
+        jp_regular: migmix-1p-regular.ttf
+        jp_medium: migmix-1p-regular.ttf
+        jp_bold: migmix-1p-bold.ttf
 
-        EN_COND_BOLD: Antonio-Bold.ttf
-        EN_COND: Antonio-Regular.ttf
+        en_cond_bold: Antonio-Bold.ttf
+        en_cond: Antonio-Regular.ttf
 
-        EN_MEDIUM: migmix-1p-regular.ttf
-        EN_BOLD: migmix-1p-bold.ttf
+        en_medium: migmix-1p-regular.ttf
+        en_bold: migmix-1p-bold.ttf
 
-        # JP_REGULAR: A-OTF-UDShinGoPr6N-Regular.otf
-        # JP_MEDIUM: A-OTF-UDShinGoPr6N-Medium.otf
-        # JP_BOLD: A-OTF-UDShinGoPr6N-Bold.otf
+        # jp_regular: A-OTF-UDShinGoPr6N-Regular.otf
+        # jp_medium: A-OTF-UDShinGoPr6N-Medium.otf
+        # jp_bold: A-OTF-UDShinGoPr6N-Bold.otf
 
-        # EN_COND_BOLD: FuturaStd-CondensedBold.otf
-        # EN_COND: FuturaStd-Condensed.otf
+        # en_cond_bold: FuturaStd-CondensedBold.otf
+        # en_cond: FuturaStd-Condensed.otf
 
-        # EN_MEDIUM: FrutigerNeueLTW1G-Medium.otf
-        # EN_BOLD: FrutigerNeueLTW1G-Bold.otf
+        # en_medium: FrutigerNeueLTW1G-Medium.otf
+        # en_bold: FrutigerNeueLTW1G-Bold.otf
 
-SLACK:
-    FROM: E-Ink Weather Panel
+slack:
+    from: E-Ink Weather Panel
 
-    BOT_TOKEN: xoxb-XXXXXXXXXXXX-XXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXX
+    bot_token: xoxb-XXXXXXXXXXXX-XXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXX
 
-    ERROR:
-        CHANNEL:
-            NAME: "#error"
-            ID: XXXXXXXXXXX
-        INTERVAL_MIN: 180
+    error:
+        channel:
+            name: "#error"
+            id: XXXXXXXXXXX
+        interval_min: 180
