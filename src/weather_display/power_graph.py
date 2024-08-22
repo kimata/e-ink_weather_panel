@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 消費電力グラフを生成します．
 
@@ -19,27 +18,26 @@ import pathlib
 import time
 import traceback
 
-import matplotlib
+import matplotlib as mpl
 import PIL.Image
 
-matplotlib.use("Agg")
+mpl.use("Agg")
 
 import matplotlib.dates as mdates
+import matplotlib.font_manager
 import matplotlib.pyplot as plt
+import my_lib.panel_util
+from my_lib.sensor_data import fetch_data
 from pandas.plotting import register_matplotlib_converters
 
 register_matplotlib_converters()
-from config import get_db_config
-from matplotlib.font_manager import FontProperties
-from panel_util import create_error_image
-from sensor_data import fetch_data
 
 IMAGE_DPI = 100.0
 
 
 def get_plot_font(config, font_type, size):
-    return FontProperties(
-        fname=str(pathlib.Path(os.path.dirname(__file__), config["PATH"], config["MAP"][font_type])),
+    return matplotlib.font_manager.FontProperties(
+        fname=str(pathlib.Path(config["path"]) / config["map"][font_type]),
         size=size,
     )
 
@@ -54,7 +52,7 @@ def get_face_map(font_config):
     }
 
 
-def plot_item(ax, unit, data, ylabel, ylim, fmt, face_map):
+def plot_item(ax, unit, data, ylim, fmt, face_map):  # noqa: PLR0913
     x = data["time"]
     y = data["value"]
 
@@ -77,10 +75,7 @@ def plot_item(ax, unit, data, ylabel, ylim, fmt, face_map):
 
     ax.fill_between(x, y, 0, facecolor="#D0D0D0", alpha=0.5)
 
-    if not data["valid"]:
-        text = "?"
-    else:
-        text = fmt.format(next((item for item in reversed(y) if item), None))
+    text = "?" if not data["valid"] else fmt.format(next((item for item in reversed(y) if item), None))
 
     ax.xaxis.set_minor_locator(mdates.HourLocator(byhour=range(0, 24, 6)))
     ax.xaxis.set_minor_formatter(mdates.DateFormatter("%-H"))
@@ -159,7 +154,6 @@ def create_power_graph_impl(panel_config, font_config, db_config):
         ax,
         panel_config["DATA"]["PARAM"]["UNIT"],
         data,
-        panel_config["DATA"]["PARAM"]["UNIT"],
         panel_config["DATA"]["PARAM"]["RANGE"],
         panel_config["DATA"]["PARAM"]["FORMAT"],
         face_map,
@@ -179,40 +173,40 @@ def create(config):
 
     start = time.perf_counter()
 
-    panel_config = config["POWER"]
-    font_config = config["FONT"]
-    db_config = get_db_config(config)
+    panel_config = config["power"]
+    font_config = config["font"]
+    db_config = config["influxdb"]
 
     try:
         return (
             create_power_graph_impl(panel_config, font_config, db_config),
             time.perf_counter() - start,
         )
-    except:
+    except Exception:
         error_message = traceback.format_exc()
         return (
-            create_error_image(panel_config, font_config, error_message),
+            my_lib.panel_util.create_error_image(panel_config, font_config, error_message),
             time.perf_counter() - start,
             error_message,
         )
 
 
 if __name__ == "__main__":
-    import logger
-    from config import load_config
-    from docopt import docopt
-    from pil_util import convert_to_gray
+    import docopt
+    import my_lib.config
+    import my_lib.logger
+    import my_lib.pil_util
 
-    args = docopt(__doc__)
+    args = docopt.docopt(__doc__)
 
-    logger.init("test", level=logging.INFO)
+    my_lib.logger.init("test", level=logging.INFO)
 
-    config = load_config(args["-c"])
+    config = my_lib.config.load(args["-c"])
     out_file = args["-o"]
 
     img = create(config)[0]
 
-    logging.info("Save {out_file}.".format(out_file=out_file))
-    convert_to_gray(img).save(out_file, "PNG")
+    logging.info("Save %s.", out_file)
+    my_lib.pil_util.convert_to_gray(img).save(out_file, "PNG")
 
     logging.info("Finish.")
