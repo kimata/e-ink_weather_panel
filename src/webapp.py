@@ -78,4 +78,4 @@ if __name__ == "__main__":
     app = create_app(config_file_normal, config_file_small, dummy_mode)
 
     # NOTE: スクリプトの自動リロード停止したい場合は use_reloader=False にする
-    app.run(host="0.0.0.0", threaded=True, use_reloader=True)
+    app.run(host="0.0.0.0", threaded=True, use_reloader=True)  # noqa: S104

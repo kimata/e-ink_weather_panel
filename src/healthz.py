@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Liveness のチェックを行います
 
@@ -11,50 +10,40 @@ Options:
   -d                : デバッグモードで動作します．
 """
 
-import datetime
 import logging
 import pathlib
 import sys
 
+import my_lib.healthz
 from docopt import docopt
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
 
-import logger
-from config import load_config
-
-config = load_config()
-
 ######################################################################
 if __name__ == "__main__":
-    args = docopt(__doc__)
+    import docopt
+    import my_lib.config
+    import my_lib.logger
+
+    args = docopt.docopt(__doc__)
 
     config_file = args["-c"]
-    debug_mode = args["-d"]
 
-    if debug_mode:
-        log_level = logging.DEBUG
-    else:
-        log_level = logging.INFO
+    my_lib.logger.init("panel.e-ink.weather", level=logging.INFO)
 
-    logger.init(
-        "hems.rasp-water",
-        level=log_level,
-    )
+    logging.info("Using config config: %s", config_file)
+    config = my_lib.config.load(config_file)
 
-    logging.info("Using config config: {config_file}".format(config_file=config_file))
-    config = load_config(config_file)
+    # liveness_file = pathlib.Path(config["LIVENESS"]["FILE"])
 
-    liveness_file = pathlib.Path(config["LIVENESS"]["FILE"])
+    # if not liveness_file.exists():
+    #     logging.warning("Not executed.")
+    #     sys.exit(-1)
 
-    if not liveness_file.exists():
-        logging.warning("Not executed.")
-        sys.exit(-1)
+    # elapsed = datetime.datetime.now() - datetime.datetime.fromtimestamp(liveness_file.stat().st_mtime)
+    # if elapsed.total_seconds() > config["PANEL"]["UPDATE"]["INTERVAL"]:
+    #     logging.warning("Execution interval is too long. ({elapsed:,} sec)".format(elapsed=elapsed.seconds))
+    #     sys.exit(-1)
 
-    elapsed = datetime.datetime.now() - datetime.datetime.fromtimestamp(liveness_file.stat().st_mtime)
-    if elapsed.total_seconds() > config["PANEL"]["UPDATE"]["INTERVAL"]:
-        logging.warning("Execution interval is too long. ({elapsed:,} sec)".format(elapsed=elapsed.seconds))
-        sys.exit(-1)
-
-    logging.info("OK.")
-    sys.exit(0)
+    # logging.info("OK.")
+    # sys.exit(0)

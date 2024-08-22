@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 電子ペーパ表示用の画像を表示します．
 
@@ -24,52 +23,46 @@ import sys
 import time
 import traceback
 
+import create_image
+import my_lib.panel_util
 import paramiko
 from docopt import docopt
-
-sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
-
-import logger
-from config import load_config
-from panel_util import notify_error
-
-import create_image
 
 RETRY_COUNT = 3
 RETRY_WAIT = 2
 NOTIFY_THRESHOLD = 2
-CREATE_IMAGE = os.path.dirname(os.path.abspath(__file__)) + "/create_image.py"
+CREATE_IMAGE = pathlib.Path(__file__).parent / "create_image.py"
 
 elapsed_list = []
 
 
 def exec_patiently(func, args):
-    for i in range(RETRY_COUNT):
+    for i in range(RETRY_COUNT):  # noqa: RET503
         try:
             return func(*args)
-        except Exception:
+        except Exception:  # noqa: PERF203
             if i == (RETRY_COUNT - 1):
                 raise
-            else:
-                logging.warning(traceback.format_exc())
-                time.sleep(RETRY_WAIT)
+            logging.warning(traceback.format_exc())
+            time.sleep(RETRY_WAIT)
 
 
 def ssh_connect(hostname, key_filename):
-    logging.info("Connect to {hostname}".format(hostname=hostname))
+    logging.info("Connect to %s", hostname)
 
     ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # noqa: S507
 
-    ssh.connect(
-        hostname,
-        username="ubuntu",
-        pkey=paramiko.RSAKey.from_private_key(open(key_filename)),
-        allow_agent=False,
-        look_for_keys=False,
-        timeout=2,
-        auth_timeout=2,
-    )
+    with pathlib.Path(key_filename).open() as f:
+        ssh.connect(
+            hostname,
+            username="ubuntu",
+            pkey=paramiko.RSAKey.from_private_key(f),
+            allow_agent=False,
+            look_for_keys=False,
+            timeout=2,
+            auth_timeout=2,
+        )
 
     return ssh
 
@@ -80,7 +73,7 @@ def ssh_kill_and_close(ssh, cmd):
 
     try:
         # NOTE: fbi コマンドのプロセスが残るので強制終了させる
-        ssh.exec_command("sudo killall -9 {cmd}".format(cmd=cmd))
+        ssh.exec_command(f"sudo killall -9 {cmd}")
         ssh.close()
         return
     except AttributeError:
@@ -89,7 +82,7 @@ def ssh_kill_and_close(ssh, cmd):
         raise
 
 
-def display_image(
+def display_image(  # noqa: PLR0913, C901
     config,
     rasp_hostname,
     key_file_path,
@@ -109,7 +102,7 @@ def display_image(
         ssh.exec_command,
         (
             "cat - > /dev/shm/display.png && "
-            + "sudo fbi -1 -T 1 -d /dev/fb0 --noverbose /dev/shm/display.png; echo $?",
+            "sudo fbi -1 -T 1 -d /dev/fb0 --noverbose /dev/shm/display.png; echo $?",
         ),
     )[0]
 
@@ -121,24 +114,24 @@ def display_image(
     if test_mode:
         cmd.append("-t")
 
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # noqa: S603
     ssh_stdin.write(proc.communicate()[0])
     proc.wait()
 
     ssh_stdin.close()
-    print(proc.communicate()[1].decode("utf-8"), file=sys.stderr)
+    print(proc.communicate()[1].decode("utf-8"), file=sys.stderr)  # noqa: T201
 
     # NOTE: -24 は create_image.py の異常時の終了コードに合わせる．
     if proc.returncode == 0:
         logging.info("Succeeded.")
-        pathlib.Path(config["LIVENESS"]["FILE"]).touch()
+        pathlib.Path(config["liveness"]["file"]).touch()
     elif proc.returncode == create_image.ERROR_CODE_MAJOR:
-        logging.warning("Something is wrong. (code: {code})".format(code=proc.returncode))
+        logging.warning("Something is wrong. (code: %d)", proc.returncode)
     elif proc.returncode == create_image.ERROR_CODE_MINOR:
-        logging.warning("Something is wrong. (code: {code})".format(code=proc.returncode))
-        pathlib.Path(config["LIVENESS"]["FILE"]).touch()
+        logging.warning("Something is wrong. (code: %d)", proc.returncode)
+        pathlib.path(config["liveness"]["file"]).touch()
     else:
-        logging.error("Failed to create image. (code: {code})".format(code=proc.returncode))
+        logging.error("Failed to create image. (code: %d)", proc.returncode)
         sys.exit(proc.returncode)
 
     if is_one_time:
@@ -149,7 +142,7 @@ def display_image(
         if diff_sec > 30:
             diff_sec = 60 - diff_sec
         if diff_sec > 3:
-            logging.warning("Update timing gap is large: {diff_sec}".format(diff_sec=diff_sec))
+            logging.warning("Update timing gap is large: %d", diff_sec)
 
         # NOTE: 更新されていることが直感的に理解しやすくなるように，
         # 更新完了タイミングを各分の 0 秒に合わせる
@@ -160,14 +153,14 @@ def display_image(
         elapsed_list.append(elapsed)
 
         sleep_time = (
-            config["PANEL"]["UPDATE"]["INTERVAL"]
+            config["panel"]["update"]["interval"]
             - statistics.median(elapsed_list)
             - datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9), "JST")).second
         )
         while sleep_time < 0:
             sleep_time += 60
 
-        logging.info("sleep {sleep_time:.1f} sec...".format(sleep_time=sleep_time))
+        logging.info("sleep %.1f sec...", sleep_time)
 
     time.sleep(sleep_time)
 
@@ -176,9 +169,11 @@ def display_image(
 
 ######################################################################
 if __name__ == "__main__":
-    args = docopt(__doc__)
+    import docopt
+    import my_lib.config
+    import my_lib.logger
 
-    logger.init("panel.e-ink.weather", level=logging.INFO)
+    args = docopt.docopt(__doc__)
 
     config_file = args["-c"]
     is_one_time = args["-O"]
@@ -187,12 +182,15 @@ if __name__ == "__main__":
     test_mode = args["-t"]
     key_file_path = os.environ.get(
         "SSH_KEY",
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/key/panel.id_rsa",
+        pathlib.Path("key/panel.id_rsa"),
     )
 
-    logging.info("Raspberry Pi hostname: %s" % (rasp_hostname))
+    my_lib.logger.init("panel.e-ink.weather", level=logging.INFO)
 
-    config = load_config(config_file)
+    logging.info("Using config config: %s", config_file)
+    config = my_lib.config.load(config_file)
+
+    logging.info("Raspberry Pi hostname: %s", rasp_hostname)
 
     fail_count = 0
     prev_ssh = None
@@ -212,14 +210,14 @@ if __name__ == "__main__":
 
             if is_one_time:
                 break
-        except:
+        except Exception:
+            logging.exception("Failed to display image")
             fail_count += 1
             if is_one_time or (fail_count >= NOTIFY_THRESHOLD):
-                notify_error(config, traceback.format_exc())
-                logging.error("エラーが続いたので終了します．")
+                my_lib.panel_util.notify_error(config, traceback.format_exc())
+                logging.error("エラーが続いたので終了します．")  # noqa: TRY400
                 sys.stderr.flush()
                 time.sleep(1)
                 raise
             else:
                 time.sleep(10)
-                pass

@@ -30,16 +30,14 @@ from docopt import docopt
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
 
-import logger
-import power_graph
-import rain_cloud_panel
-import sensor_graph
-import time_panel
-import wbgt_panel
-import weather_panel
-from config import load_config
-from panel_util import notify_error
-from pil_util import alpha_paste, convert_to_gray, draw_text, get_font, load_image
+import my_lib.panel_util
+import my_lib.pil_util
+import weather_display.power_graph
+import weather_display.rain_cloud_panel
+import weather_display.sensor_graph
+import weather_display.time_panel
+import weather_display.wbgt_panel
+import weather_display.weather_panel
 
 # 一部の描画でエラー
 ERROR_CODE_MINOR = 220
@@ -51,9 +49,9 @@ def draw_wall(config, img):
     if "WALL" not in config:
         return
     for wall_config in config["WALL"]["IMAGE"]:
-        alpha_paste(
+        my_lib.pil_util.alpha_paste(
             img,
-            load_image(wall_config),
+            my_lib.pil_util.load_image(wall_config),
             (wall_config["OFFSET_X"], wall_config["OFFSET_Y"]),
         )
 
@@ -61,19 +59,19 @@ def draw_wall(config, img):
 def draw_panel(config, img, is_small_mode=False):
     if is_small_mode:
         panel_list = [
-            {"name": "RAIN_CLOUD", "func": rain_cloud_panel.create, "arg": (False,)},
-            {"name": "WEATHER", "func": weather_panel.create, "arg": (False,)},
-            {"name": "WBGT", "func": wbgt_panel.create},
-            {"name": "TIME", "func": time_panel.create},
+            {"name": "RAIN_CLOUD", "func": weather_display.rain_cloud_panel.create, "arg": (False,)},
+            {"name": "WEATHER", "func": weather_display.weather_panel.create, "arg": (False,)},
+            {"name": "WBGT", "func": weather_display.wbgt_panel.create},
+            {"name": "TIME", "func": weather_display.time_panel.create},
         ]
     else:
         panel_list = [
-            {"name": "RAIN_CLOUD", "func": rain_cloud_panel.create},
-            {"name": "SENSOR", "func": sensor_graph.create},
-            {"name": "POWER", "func": power_graph.create},
-            {"name": "WEATHER", "func": weather_panel.create},
-            {"name": "WBGT", "func": wbgt_panel.create},
-            {"name": "TIME", "func": time_panel.create},
+            {"name": "RAIN_CLOUD", "func": weather_display.rain_cloud_panel.create},
+            {"name": "SENSOR", "func": weather_display.sensor_graph.create},
+            {"name": "POWER", "func": weather_display.power_graph.create},
+            {"name": "WEATHER", "func": weather_display.weather_panel.create},
+            {"name": "WBGT", "func": weather_display.wbgt_panel.create},
+            {"name": "TIME", "func": weather_display.time_panel.create},
         ]
 
     panel_map = {}
@@ -97,7 +95,7 @@ def draw_panel(config, img, is_small_mode=False):
         elapsed = result[1]
 
         if len(result) > 2:
-            notify_error(config, result[2])
+            my_lib.panel_util.notify_error(config, result[2])
             ret = ERROR_CODE_MINOR
 
         if "SCALE" in config[panel["name"]]["PANEL"]:
@@ -120,7 +118,7 @@ def draw_panel(config, img, is_small_mode=False):
         if name not in panel_map:
             continue
 
-        alpha_paste(
+        my_lib.pil_util.alpha_paste(
             img,
             panel_map[name],
             (
@@ -132,11 +130,7 @@ def draw_panel(config, img, is_small_mode=False):
     return ret
 
 
-def create_image(config_file, small_mode=False, dummy_mode=False, test_mode=False, debug_mode=False):
-    log_level = logging.DEBUG if debug_mode else logging.INFO
-
-    logger.init("panel.e-ink.weather", level=log_level)
-
+def create_image(config, small_mode=False, dummy_mode=False, test_mode=False):
     # NOTE: オプションでダミーモードが指定された場合，環境変数もそれに揃えておく
     if dummy_mode:
         logging.warning("Set dummy mode")
@@ -145,11 +139,7 @@ def create_image(config_file, small_mode=False, dummy_mode=False, test_mode=Fals
         pass
 
     logging.info("Start to create image")
-
-    logging.info("Using config config: {config_file}".format(config_file=config_file))
-    config = load_config(config_file)
-
-    logging.info("Mode : {mode}".format(mode="small" if small_mode else "normal"))
+    logging.info("Mode : %s", "small" if small_mode else "normal")
 
     img = PIL.Image.new(
         "RGBA",
@@ -163,7 +153,7 @@ def create_image(config_file, small_mode=False, dummy_mode=False, test_mode=Fals
         ret = draw_panel(config, img, small_mode)
 
         return (img, ret)
-    except:
+    except Exception:
         draw = PIL.ImageDraw.Draw(img)
         draw.rectangle(
             (
@@ -175,30 +165,35 @@ def create_image(config_file, small_mode=False, dummy_mode=False, test_mode=Fals
             fill=(255, 255, 255, 255),
         )
 
-        draw_text(
+        my_lib.pil_util.draw_text(
             img,
             "ERROR",
             (10, 10),
-            get_font(config["FONT"], "EN_BOLD", 160),
+            my_lib.pil_util.get_font(config["FONT"], "EN_BOLD", 160),
             "left",
             "#666",
         )
 
-        draw_text(
+        my_lib.pil_util.draw_text(
             img,
             "\n".join(textwrap.wrap(traceback.format_exc(), 100)),
             (20, 200),
-            get_font(config["FONT"], "EN_MEDIUM", 40),
-            "left" "#333",
+            my_lib.pil_util.get_font(config["FONT"], "EN_MEDIUM", 40),
+            "left",
+            "#333",
         )
-        notify_error(config, traceback.format_exc())
+        my_lib.panel_util.notify_error(config, traceback.format_exc())
 
         return (img, ERROR_CODE_MAJOR)
 
 
 ######################################################################
 if __name__ == "__main__":
-    args = docopt(__doc__)
+    import docopt
+    import my_lib.config
+    import my_lib.logger
+
+    args = docopt.docopt(__doc__)
 
     config_file = args["-c"]
     small_mode = args["-s"]
@@ -206,19 +201,24 @@ if __name__ == "__main__":
     test_mode = args["-t"]
     debug_mode = args["-d"]
 
-    img, status = create_image(config_file, small_mode, dummy_mode, test_mode, debug_mode)
+    log_level = logging.DEBUG if debug_mode else logging.INFO
+    out_file = args["-o"] if args["-o"] is not None else sys.stdout.buffer
 
-    if args["-o"] is not None:
-        out_file = args["-o"]
-    else:
-        out_file = sys.stdout.buffer
+    my_lib.logger.init("panel.e-ink.weather", level=log_level)
 
-    logging.info("Save {out_file}.".format(out_file=str(out_file)))
-    convert_to_gray(img).save(out_file, "PNG")
+    logging.info("Using config config: %s", config_file)
+    config = my_lib.config.load(config_file)
+
+    img, status = create_image(config, small_mode, dummy_mode, test_mode)
+
+    logging.info("Save %s.", out_file)
+    my_lib.pil_util.convert_to_gray(img).save(out_file, "PNG")
 
     if status == 0:
         logging.info("create_image: Succeeded.")
     else:
         logging.warning("create_image: Something wrong..")
 
-    exit(status)
+    logging.info("Finish.")
+
+    sys.exit(status)

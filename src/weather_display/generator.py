@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 import io
 import pathlib
@@ -26,7 +25,7 @@ panel_data_map = {}
 
 
 def init():
-    global thread_pool
+    global thread_pool  # noqa: PLW0603
 
     thread_pool = ThreadPool(processes=3)
 
@@ -64,7 +63,7 @@ def generate_image_impl(config_file, is_small_mode, is_dummy_mode, is_test_mode,
     if is_test_mode:
         cmd.append("-t")
 
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)  # noqa: S603
 
     # NOTE: stdout も同時に読まないと，proc.poll の結果が None から
     # 変化してくれないので注意．
@@ -77,9 +76,9 @@ def generate_image_impl(config_file, is_small_mode, is_dummy_mode, is_test_mode,
         if line == b"":
             if state is not None:
                 break
-            else:
-                time.sleep(0.5)
-                continue
+            time.sleep(0.5)
+            continue
+
         panel_data["log"].put(line)
         time.sleep(0.1)
 
@@ -136,11 +135,11 @@ def api_image():
     token = request.form.get("token", "")
 
     if token not in panel_data_map:
-        return "Invalid token: {token}".format(token=token)
+        return f"Invalid token: {token}"
 
     image_data = panel_data_map[token]["image"]
-    res = Response(image_data, mimetype="image/png")
-    return res
+
+    return Response(image_data, mimetype="image/png")
 
 
 @blueprint.route("/weather_panel/api/log", methods=["POST"])
@@ -150,7 +149,7 @@ def api_log():
     token = request.form.get("token", "")
 
     if token not in panel_data_map:
-        return "Invalid token: {token}".format(token=token)
+        return f"Invalid token: {token}"
 
     log_queue = panel_data_map[token]["log"]
 
@@ -191,5 +190,5 @@ def api_run():
         token = generate_image(config_file, is_small_mode, is_dummy_mode, is_test_mode)
 
         return jsonify({"token": token})
-    except:
+    except Exception:
         return jsonify({"token": "", "error": traceback.format_exc()})
