@@ -15,8 +15,8 @@ import locale
 import logging
 import math
 import pathlib
-from urllib import request
-from urllib.parse import urlparse
+import urllib
+import urllib.parse
 
 import cv2
 import my_lib.panel_util
@@ -27,7 +27,6 @@ import PIL.Image
 import PIL.ImageDraw
 import PIL.ImageEnhance
 import PIL.ImageFont
-from cv2 import dnn_superres
 
 # NOTE: 天気アイコンの周りにアイコンサイズの何倍の空きを確保するか
 ICON_MARGIN = 0.48
@@ -99,7 +98,10 @@ def get_image(weather_info):
     tone = 32
     gamma = 0.24
 
-    file_bytes = np.asarray(bytearray(request.urlopen(weather_info["icon_url"]).read()), dtype=np.uint8)  # noqa: S310
+    file_bytes = np.asarray(
+        bytearray(urllib.request.urlopen(weather_info["icon_url"]).read()),  # noqa: S310
+        dtype=np.uint8,
+    )
     img = cv2.imdecode(file_bytes, cv2.IMREAD_UNCHANGED)
 
     # NOTE: 透過部分を白で塗りつぶす
@@ -109,7 +111,11 @@ def get_image(weather_info):
     dump_path = str(
         pathlib.Path(__file__).parent
         / "img"
-        / (weather_info["text"] + "_" + pathlib.Path(urlparse(weather_info["icon_url"]).path).name)
+        / (
+            weather_info["text"]
+            + "_"
+            + pathlib.Path(urllib.parse.urlparse(weather_info["icon_url"]).path).name
+        )
     )
 
     PIL.Image.fromarray(img).save(dump_path)
@@ -117,7 +123,7 @@ def get_image(weather_info):
     h, w = img.shape[:2]
 
     # NOTE: 一旦4倍の解像度に増やす
-    sr = dnn_superres.DnnSuperResImpl_create()
+    sr = cv2.dnn_superres.DnnSuperResImpl_create()
 
     model_path = str(pathlib.Path(__file__).parent / "data" / "ESPCN_x4.pb")
 
