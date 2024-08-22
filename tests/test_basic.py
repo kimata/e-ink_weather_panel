@@ -1,30 +1,25 @@
 #!/usr/bin/env python3
 # ruff: noqa: S101
 import datetime
+import logging
 import os
 import pathlib
 import re
-import sys
 from unittest import mock
 
+import my_lib.config
 import pytest
+import weather_display.webapp
 
-sys.path.append(str(pathlib.Path(__file__).parent.parent / "app"))
-sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
-
-import logging
-
-logging.getLogger("selenium.webdriver.remote").setLevel(logging.WARN)
+logging.getLogger("selenium.webdriver.remote").setLevel(logging.WARNING)
 logging.getLogger("selenium.webdriver.common").setLevel(logging.DEBUG)
 
-
-from config import load_config
-from webapp import create_app
 
 CONFIG_FILE = "config.example.yaml"
 CONFIG_SMALL_FILE = "config-small.example.yaml"
 EVIDENCE_DIR = pathlib.Path(__file__).parent / "evidence" / "image"
 EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
+TIMEZONE = datetime.timezone(datetime.timedelta(hours=+9), "JST")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -51,16 +46,16 @@ def slack_mock():
 @pytest.fixture(scope="session")
 def app():
     with mock.patch.dict("os.environ", {"WERKZEUG_RUN_MAIN": "true"}):
-        app = create_app(CONFIG_FILE, CONFIG_SMALL_FILE, dummy_mode=True)
+        app = weather_display.webapp.create_app(CONFIG_FILE, CONFIG_SMALL_FILE, dummy_mode=True)
 
         yield app
 
 
-@pytest.fixture(scope="function", autouse=True)
-def clear():
+@pytest.fixture(autouse=True)
+def _clear():
     import notify_slack
 
-    config = load_config(CONFIG_FILE)
+    config = my_lib.config.load(CONFIG_FILE)
 
     pathlib.Path(config["LIVENESS"]["FILE"]).unlink(missing_ok=True)
 
@@ -87,18 +82,18 @@ def gen_wbgt_info():
     }
 
 
-def mock_sensor_fetch_data(mocker):
-    def fetch_data_mock(
-        db_config,
-        measure,
-        hostname,
+def mock_sensor_fetch_data(mocker):  # noqa: C901
+    def fetch_data_mock(  # noqa: PLR0911, PLR0912, PLR0913
+        db_config,  # noqa: ARG001
+        measure,  # noqa: ARG001
+        hostname,  # noqa: ARG001
         field,
-        start="-30h",
-        stop="now()",
-        every_min=1,
-        window_min=3,
-        create_empty=True,
-        last=False,
+        start="-30h",  # noqa: ARG001
+        stop="now(TIMEZONE)",  # noqa: ARG001
+        every_min=1,  # noqa: ARG001
+        window_min=3,  # noqa: ARG001
+        create_empty=True,  # noqa: ARG001
+        last=False,  # noqa: ARG001
     ):
         if field in fetch_data_mock.count:
             fetch_data_mock.count[field] += 1
@@ -134,7 +129,7 @@ def mock_sensor_fetch_data(mocker):
     mocker.patch("power_graph.fetch_data", side_effect=fetch_data_mock)
 
 
-def gen_sensor_data(value=[30, 34, 25, 20], valid=True):
+def gen_sensor_data(value=[30, 34, 25, 20], valid=True):  # noqa: B006
     sensor_data = {"value": value, "time": [], "valid": valid}
 
     for i in range(len(value)):
@@ -155,18 +150,13 @@ def check_notify_slack(message, index=-1):
         assert notify_hist == [], "正常なはずなのに，エラー通知がされています．"
     else:
         assert len(notify_hist) != 0, "異常が発生したはずなのに，エラー通知がされていません．"
-        assert notify_hist[index].find(message) != -1, "「{message}」が Slack で通知されていません．".format(
-            message=message
-        )
+        assert notify_hist[index].find(message) != -1, f"「{message}」が Slack で通知されていません．"
 
 
 def save_image(request, img, index):
     from pil_util import convert_to_gray
 
-    if index is None:
-        file_name = "{test_name}.png".format(test_name=request.node.name)
-    else:
-        file_name = "{test_name}_{index}.png".format(test_name=request.node.name, index=index)
+    file_name = f"{request.node.name}.png" if index is None else f"{request.node.name}_{index}.png"
 
     convert_to_gray(img).save(EVIDENCE_DIR / file_name, "PNG")
 
@@ -175,17 +165,17 @@ def check_image(request, img, size, index=None):
     save_image(request, img, index)
 
     # NOTE: matplotlib で生成した画像の場合，期待値より 1pix 小さい場合がある
-    assert (abs(img.size[0] - size["WIDTH"]) < 2) and (
-        abs(img.size[1] - size["HEIGHT"]) < 2
-    ), "画像サイズが期待値と一致しません．(期待値: {exp_x} x {exp_y}, 実際: {act_x} x {act_y})".format(
-        exp_x=size["WIDTH"], exp_y=size["HEIGHT"], act_x=img.size[0], act_y=img.size[1]
+    assert abs(img.size[0] - size["WIDTH"]) < 2
+    assert abs(img.size[1] - size["HEIGHT"]) < 2, (
+        "画像サイズが期待値と一致しません．"
+        f"""(期待値: {size["WIDTH"]} x {size["HEIGHT"]}, 実際: {img.size[0]} x {img.size[1]})"""
     )
 
 
 def load_test_config(config_file, tmp_path, request):
-    config = load_config(config_file)
+    config = my_lib.config.load(config_file)
 
-    config["LIVENESS"]["FILE"] = "{dir_path}/healthz-{name}".format(dir_path=tmp_path, name=request.node.name)
+    config["LIVENESS"]["FILE"] = f"{tmp_path}/healthz-{request.node.name}"
     pathlib.Path(config["LIVENESS"]["FILE"]).unlink(missing_ok=True)
     config["PANEL"]["UPDATE"]["INTERVAL"] = 60
 
@@ -210,10 +200,10 @@ def test_create_image(request, mocker):
     check_image(
         request,
         create_image.create_image(CONFIG_FILE, test_mode=True)[0],
-        load_config(CONFIG_FILE)["PANEL"]["DEVICE"],
+        my_lib.config.load(CONFIG_FILE)["PANEL"]["DEVICE"],
     )
     check_image(
-        request, create_image.create_image(CONFIG_FILE)[0], load_config(CONFIG_FILE)["PANEL"]["DEVICE"]
+        request, create_image.create_image(CONFIG_FILE)[0], my_lib.config.load(CONFIG_FILE)["PANEL"]["DEVICE"]
     )
 
     check_notify_slack(None)
@@ -227,7 +217,7 @@ def test_create_image_small(request, mocker):
     check_image(
         request,
         create_image.create_image(CONFIG_SMALL_FILE, test_mode=False)[0],
-        load_config(CONFIG_SMALL_FILE)["PANEL"]["DEVICE"],
+        my_lib.config.load(CONFIG_SMALL_FILE)["PANEL"]["DEVICE"],
     )
 
     check_notify_slack(None)
@@ -242,13 +232,13 @@ def test_create_image_error(request, mocker):
     check_image(
         request,
         create_image.create_image(CONFIG_FILE, small_mode=True, dummy_mode=True)[0],
-        load_config(CONFIG_FILE)["PANEL"]["DEVICE"],
+        my_lib.config.load(CONFIG_FILE)["PANEL"]["DEVICE"],
     )
 
     check_image(
         request,
         create_image.create_image(CONFIG_FILE)[0],
-        load_config(CONFIG_FILE)["PANEL"]["DEVICE"],
+        my_lib.config.load(CONFIG_FILE)["PANEL"]["DEVICE"],
     )
 
     check_notify_slack("Traceback")
@@ -265,7 +255,7 @@ def test_create_image_influx_error(request, mocker):
     check_image(
         request,
         create_image.create_image(CONFIG_FILE, small_mode=False, dummy_mode=True)[0],
-        load_config(CONFIG_FILE)["PANEL"]["DEVICE"],
+        my_lib.config.load(CONFIG_FILE)["PANEL"]["DEVICE"],
     )
 
     # NOTE: テスト結果を安定させるため，ウェイトを追加
@@ -284,8 +274,8 @@ def test_weather_panel(request):
 
     check_image(
         request,
-        weather_panel.create(load_config(CONFIG_SMALL_FILE), False)[0],
-        load_config(CONFIG_SMALL_FILE)["WEATHER"]["PANEL"],
+        weather_panel.create(my_lib.config.load(CONFIG_SMALL_FILE), False)[0],
+        my_lib.config.load(CONFIG_SMALL_FILE)["WEATHER"]["PANEL"],
     )
 
     check_notify_slack(None)
@@ -331,8 +321,8 @@ def test_weather_panel_dummy(mocker, request):
 
     check_image(
         request,
-        weather_panel.create(load_config(CONFIG_FILE))[0],
-        load_config(CONFIG_FILE)["WEATHER"]["PANEL"],
+        weather_panel.create(my_lib.config.load(CONFIG_FILE))[0],
+        my_lib.config.load(CONFIG_FILE)["WEATHER"]["PANEL"],
     )
 
     check_notify_slack(None)
@@ -344,8 +334,8 @@ def test_wbgt_panel(request):
 
     check_image(
         request,
-        wbgt_panel.create(load_config(CONFIG_FILE))[0],
-        load_config(CONFIG_FILE)["WBGT"]["PANEL"],
+        wbgt_panel.create(my_lib.config.load(CONFIG_FILE))[0],
+        my_lib.config.load(CONFIG_FILE)["WBGT"]["PANEL"],
     )
 
     check_notify_slack(None)
@@ -360,8 +350,8 @@ def test_wbgt_panel_var(mocker, request):
         mocker.patch("wbgt_panel.get_wbgt", return_value=wbgt_info)
         check_image(
             request,
-            wbgt_panel.create(load_config(CONFIG_FILE))[0],
-            load_config(CONFIG_FILE)["WBGT"]["PANEL"],
+            wbgt_panel.create(my_lib.config.load(CONFIG_FILE))[0],
+            my_lib.config.load(CONFIG_FILE)["WBGT"]["PANEL"],
             i,
         )
 
@@ -372,12 +362,12 @@ def test_wbgt_panel_error_1(freezer, mocker, request):
     import wbgt_panel
 
     # NOTE: 暑さ指数は夏のみ使うので，時期を変更
-    freezer.move_to(datetime.datetime.now().replace(month=8))
+    freezer.move_to(datetime.datetime.now(TIMEZONE).replace(month=8))
 
     mocker.patch("weather_data.fetch_page", side_effect=RuntimeError())
 
-    ret = wbgt_panel.create(load_config(CONFIG_FILE))
-    check_image(request, ret[0], load_config(CONFIG_FILE)["WBGT"]["PANEL"])
+    ret = wbgt_panel.create(my_lib.config.load(CONFIG_FILE))
+    check_image(request, ret[0], my_lib.config.load(CONFIG_FILE)["WBGT"]["PANEL"])
 
     assert len(ret) == 3
     assert "Traceback" in ret[2]
@@ -388,8 +378,8 @@ def test_wbgt_panel_error_2(mocker, request):
 
     mocker.patch("lxml.html.HtmlElement.xpath", return_value=[])
 
-    ret = wbgt_panel.create(load_config(CONFIG_FILE))
-    check_image(request, ret[0], load_config(CONFIG_FILE)["WBGT"]["PANEL"])
+    ret = wbgt_panel.create(my_lib.config.load(CONFIG_FILE))
+    check_image(request, ret[0], my_lib.config.load(CONFIG_FILE)["WBGT"]["PANEL"])
 
     # NOTE: ページのフォーマットが期待値と異なるくらいではエラーにしない
     assert len(ret) == 2
@@ -401,8 +391,8 @@ def test_time_panel(request):
 
     check_image(
         request,
-        time_panel.create(load_config(CONFIG_FILE))[0],
-        load_config(CONFIG_FILE)["TIME"]["PANEL"],
+        time_panel.create(my_lib.config.load(CONFIG_FILE))[0],
+        my_lib.config.load(CONFIG_FILE)["TIME"]["PANEL"],
     )
 
     check_notify_slack(None)
@@ -416,8 +406,8 @@ def test_create_power_graph(mocker, request):
 
     check_image(
         request,
-        power_graph.create(load_config(CONFIG_FILE))[0],
-        load_config(CONFIG_FILE)["POWER"]["PANEL"],
+        power_graph.create(my_lib.config.load(CONFIG_FILE))[0],
+        my_lib.config.load(CONFIG_FILE)["POWER"]["PANEL"],
         0,
     )
 
@@ -425,8 +415,8 @@ def test_create_power_graph(mocker, request):
 
     check_image(
         request,
-        power_graph.create(load_config(CONFIG_FILE))[0],
-        load_config(CONFIG_FILE)["POWER"]["PANEL"],
+        power_graph.create(my_lib.config.load(CONFIG_FILE))[0],
+        my_lib.config.load(CONFIG_FILE)["POWER"]["PANEL"],
         1,
     )
 
@@ -440,8 +430,8 @@ def test_create_power_graph_invalid(mocker, request):
 
     check_image(
         request,
-        power_graph.create(load_config(CONFIG_FILE))[0],
-        load_config(CONFIG_FILE)["POWER"]["PANEL"],
+        power_graph.create(my_lib.config.load(CONFIG_FILE))[0],
+        my_lib.config.load(CONFIG_FILE)["POWER"]["PANEL"],
     )
 
     check_notify_slack(None)
@@ -454,8 +444,8 @@ def test_create_power_graph_error(mocker, request):
 
     check_image(
         request,
-        power_graph.create(load_config(CONFIG_FILE))[0],
-        load_config(CONFIG_FILE)["POWER"]["PANEL"],
+        power_graph.create(my_lib.config.load(CONFIG_FILE))[0],
+        my_lib.config.load(CONFIG_FILE)["POWER"]["PANEL"],
     )
 
     check_notify_slack(None)
@@ -467,21 +457,21 @@ def test_create_sensor_graph_1(freezer, mocker, request):
 
     mock_sensor_fetch_data(mocker)
 
-    freezer.move_to(datetime.datetime.now().replace(hour=12))
+    freezer.move_to(datetime.datetime.now(TIMEZONE).replace(hour=12))
 
     check_image(
         request,
-        sensor_graph.create(load_config(CONFIG_FILE))[0],
-        load_config(CONFIG_FILE)["SENSOR"]["PANEL"],
+        sensor_graph.create(my_lib.config.load(CONFIG_FILE))[0],
+        my_lib.config.load(CONFIG_FILE)["SENSOR"]["PANEL"],
         0,
     )
 
-    freezer.move_to(datetime.datetime.now().replace(hour=20))
+    freezer.move_to(datetime.datetime.now(TIMEZONE).replace(hour=20))
 
     check_image(
         request,
-        sensor_graph.create(load_config(CONFIG_FILE))[0],
-        load_config(CONFIG_FILE)["SENSOR"]["PANEL"],
+        sensor_graph.create(my_lib.config.load(CONFIG_FILE))[0],
+        my_lib.config.load(CONFIG_FILE)["SENSOR"]["PANEL"],
         1,
     )
 
@@ -521,12 +511,12 @@ def test_create_sensor_graph_2(freezer, mocker, request):
         return_value=query_api_mock,
     )
 
-    freezer.move_to(datetime.datetime.now().replace(hour=12))
+    freezer.move_to(datetime.datetime.now(TIMEZONE).replace(hour=12))
 
     check_image(
         request,
-        sensor_graph.create(load_config(CONFIG_FILE))[0],
-        load_config(CONFIG_FILE)["SENSOR"]["PANEL"],
+        sensor_graph.create(my_lib.config.load(CONFIG_FILE))[0],
+        my_lib.config.load(CONFIG_FILE)["SENSOR"]["PANEL"],
     )
 
     check_notify_slack(None)
@@ -539,21 +529,21 @@ def test_create_sensor_graph_dummy(freezer, mocker, request):
 
     mock_sensor_fetch_data(mocker)
 
-    freezer.move_to(datetime.datetime.now().replace(hour=12))
+    freezer.move_to(datetime.datetime.now(TIMEZONE).replace(hour=12))
 
     check_image(
         request,
-        sensor_graph.create(load_config(CONFIG_FILE))[0],
-        load_config(CONFIG_FILE)["SENSOR"]["PANEL"],
+        sensor_graph.create(my_lib.config.load(CONFIG_FILE))[0],
+        my_lib.config.load(CONFIG_FILE)["SENSOR"]["PANEL"],
         0,
     )
 
-    freezer.move_to(datetime.datetime.now().replace(hour=20))
+    freezer.move_to(datetime.datetime.now(TIMEZONE).replace(hour=20))
 
     check_image(
         request,
-        sensor_graph.create(load_config(CONFIG_FILE))[0],
-        load_config(CONFIG_FILE)["SENSOR"]["PANEL"],
+        sensor_graph.create(my_lib.config.load(CONFIG_FILE))[0],
+        my_lib.config.load(CONFIG_FILE)["SENSOR"]["PANEL"],
         1,
     )
 
@@ -565,7 +555,7 @@ def test_create_sensor_graph_invalid(mocker, request):
 
     import sensor_graph
 
-    def dummy_data(db_config, measure, hostname, field, start, stop, last=False):
+    def dummy_data(db_config, measure, hostname, field, start, stop, last=False):  # noqa: ARG001,PLR0913
         dummy_data.i += 1
         if (dummy_data.i % 4 == 0) or (inspect.stack()[4].function == "get_aircon_power"):
             return gen_sensor_data(valid=False)
@@ -578,8 +568,8 @@ def test_create_sensor_graph_invalid(mocker, request):
 
     check_image(
         request,
-        sensor_graph.create(load_config(CONFIG_FILE))[0],
-        load_config(CONFIG_FILE)["SENSOR"]["PANEL"],
+        sensor_graph.create(my_lib.config.load(CONFIG_FILE))[0],
+        my_lib.config.load(CONFIG_FILE)["SENSOR"]["PANEL"],
     )
 
     check_notify_slack(None)
@@ -590,31 +580,31 @@ def test_create_sensor_graph_influx_error(mocker, request):
 
     mocker.patch("influxdb_client.InfluxDBClient.query_api", side_effect=RuntimeError())
 
-    ret = sensor_graph.create(load_config(CONFIG_FILE))
+    ret = sensor_graph.create(my_lib.config.load(CONFIG_FILE))
 
-    check_image(request, ret[0], load_config(CONFIG_FILE)["SENSOR"]["PANEL"])
+    check_image(request, ret[0], my_lib.config.load(CONFIG_FILE)["SENSOR"]["PANEL"])
 
     assert len(ret) == 3
     assert "Traceback" in ret[2]
 
 
 ######################################################################
-def test_create_rain_cloud_panel(mocker, request):
+def test_create_rain_cloud_panel(request):
     import rain_cloud_panel
 
     rain_cloud_panel.WINDOW_SIZE_CACHE.unlink(missing_ok=True)
 
     check_image(
         request,
-        rain_cloud_panel.create(load_config(CONFIG_FILE))[0],
-        load_config(CONFIG_FILE)["RAIN_CLOUD"]["PANEL"],
+        rain_cloud_panel.create(my_lib.config.load(CONFIG_FILE))[0],
+        my_lib.config.load(CONFIG_FILE)["RAIN_CLOUD"]["PANEL"],
         0,
     )
 
     check_image(
         request,
-        rain_cloud_panel.create(load_config(CONFIG_SMALL_FILE), is_side_by_side=False)[0],
-        load_config(CONFIG_SMALL_FILE)["RAIN_CLOUD"]["PANEL"],
+        rain_cloud_panel.create(my_lib.config.load(CONFIG_SMALL_FILE), is_side_by_side=False)[0],
+        my_lib.config.load(CONFIG_SMALL_FILE)["RAIN_CLOUD"]["PANEL"],
         1,
     )
 
@@ -629,15 +619,15 @@ def test_create_rain_cloud_panel_cache_and_error(mocker, request):
     def click_xpath_mock(driver, xpath, wait=None, is_warn=True):
         click_xpath_mock.i += 1
         if click_xpath_mock.i <= 6:
-            raise RuntimeError()
-        else:
-            return click_xpath_orig(driver, xpath, wait, is_warn)
+            raise RuntimeError
+
+        return click_xpath_orig(driver, xpath, wait, is_warn)
 
     click_xpath_mock.i = 0
 
     mocker.patch("rain_cloud_panel.click_xpath", side_effect=click_xpath_mock)
 
-    month_ago = datetime.datetime.now() + datetime.timedelta(days=-1)
+    month_ago = datetime.datetime.now(TIMEZONE) + datetime.timedelta(days=-1)
     month_ago_epoch = month_ago.timestamp()
 
     if rain_cloud_panel.WINDOW_SIZE_CACHE.exists():
@@ -646,8 +636,8 @@ def test_create_rain_cloud_panel_cache_and_error(mocker, request):
 
     check_image(
         request,
-        rain_cloud_panel.create(load_config(CONFIG_FILE))[0],
-        load_config(CONFIG_FILE)["RAIN_CLOUD"]["PANEL"],
+        rain_cloud_panel.create(my_lib.config.load(CONFIG_FILE))[0],
+        my_lib.config.load(CONFIG_FILE)["RAIN_CLOUD"]["PANEL"],
         0,
     )
 
@@ -655,8 +645,8 @@ def test_create_rain_cloud_panel_cache_and_error(mocker, request):
 
     check_image(
         request,
-        rain_cloud_panel.create(load_config(CONFIG_FILE))[0],
-        load_config(CONFIG_FILE)["RAIN_CLOUD"]["PANEL"],
+        rain_cloud_panel.create(my_lib.config.load(CONFIG_FILE))[0],
+        my_lib.config.load(CONFIG_FILE)["RAIN_CLOUD"]["PANEL"],
         1,
     )
 
@@ -681,8 +671,8 @@ def test_create_rain_cloud_panel_xpath_fail(mocker, request):
 
     check_image(
         request,
-        rain_cloud_panel.create(load_config(CONFIG_FILE))[0],
-        load_config(CONFIG_FILE)["RAIN_CLOUD"]["PANEL"],
+        rain_cloud_panel.create(my_lib.config.load(CONFIG_FILE))[0],
+        my_lib.config.load(CONFIG_FILE)["RAIN_CLOUD"]["PANEL"],
     )
 
     # NOTE: エラー通知される可能性があるのでチェックは見送る
@@ -697,9 +687,9 @@ def test_create_rain_cloud_panel_selenium_error(mocker, request):
     def create_driver_impl_mock(profile_name, data_path):
         create_driver_impl_mock.i += 1
         if create_driver_impl_mock.i == 1:
-            raise RuntimeError()
-        else:
-            return create_driver_impl(profile_name, data_path)
+            raise RuntimeError
+
+        return create_driver_impl(profile_name, data_path)
 
     create_driver_impl_mock.i = 0
 
@@ -707,8 +697,8 @@ def test_create_rain_cloud_panel_selenium_error(mocker, request):
 
     check_image(
         request,
-        rain_cloud_panel.create(load_config(CONFIG_SMALL_FILE))[0],
-        load_config(CONFIG_SMALL_FILE)["RAIN_CLOUD"]["PANEL"],
+        rain_cloud_panel.create(my_lib.config.load(CONFIG_SMALL_FILE))[0],
+        my_lib.config.load(CONFIG_SMALL_FILE)["RAIN_CLOUD"]["PANEL"],
     )
 
     # NOTE: CONFIG_SMALL_FILE には Slack の設定がないので，None になる
@@ -733,8 +723,8 @@ def test_create_rain_cloud_panel_xpath_error(mocker, request):
 
     check_image(
         request,
-        rain_cloud_panel.create(load_config(CONFIG_SMALL_FILE))[0],
-        load_config(CONFIG_SMALL_FILE)["RAIN_CLOUD"]["PANEL"],
+        rain_cloud_panel.create(my_lib.config.load(CONFIG_SMALL_FILE))[0],
+        my_lib.config.load(CONFIG_SMALL_FILE)["RAIN_CLOUD"]["PANEL"],
     )
 
     # NOTE: CONFIG_SMALL_FILE には Slack の設定がないので，None になる
@@ -748,8 +738,8 @@ def test_slack_error(mocker, request):
 
     mock_sensor_fetch_data(mocker)
 
-    def webclient_mock(self, token):
-        raise slack_sdk.errors.SlackClientError()
+    def webclient_mock(self, token):  # noqa: ARG001
+        raise slack_sdk.errors.SlackClientError
 
     mocker.patch.object(slack_sdk.web.client.WebClient, "__init__", webclient_mock)
     mocker.patch("create_image.draw_panel", side_effect=RuntimeError())
@@ -757,7 +747,7 @@ def test_slack_error(mocker, request):
     check_image(
         request,
         create_image.create_image(CONFIG_FILE, small_mode=True, dummy_mode=True)[0],
-        load_config(CONFIG_FILE)["PANEL"]["DEVICE"],
+        my_lib.config.load(CONFIG_FILE)["PANEL"]["DEVICE"],
     )
 
     check_notify_slack("Traceback")
@@ -772,7 +762,7 @@ def test_slack_error_with_image(mocker, request):
         if fetch_cloud_image_mock.i == 1:
             return fetch_cloud_image(driver, url, width, height, is_future)
         else:
-            raise RuntimeError()
+            raise RuntimeError
 
     fetch_cloud_image_mock.i = 0
 
@@ -780,8 +770,8 @@ def test_slack_error_with_image(mocker, request):
 
     check_image(
         request,
-        rain_cloud_panel.create(load_config(CONFIG_FILE))[0],
-        load_config(CONFIG_FILE)["RAIN_CLOUD"]["PANEL"],
+        rain_cloud_panel.create(my_lib.config.load(CONFIG_FILE))[0],
+        my_lib.config.load(CONFIG_FILE)["RAIN_CLOUD"]["PANEL"],
     )
 
     check_notify_slack("Traceback")
@@ -824,9 +814,9 @@ def test_api_run(client, mocker):
     def dummy_time():
         dummy_time.i += 1
         if (dummy_time.i == 1) or (inspect.stack()[4].function == "generate_image"):
-            return (datetime.datetime.now() + datetime.timedelta(days=-1)).timestamp()
+            return (datetime.datetime.now(TIMEZONE) + datetime.timedelta(days=-1)).timestamp()
         else:
-            return datetime.datetime.now().timestamp()
+            return datetime.datetime.now(TIMEZONE).timestamp()
 
     dummy_time.i = 0
 
@@ -899,9 +889,9 @@ def test_api_run_small(client, mocker):
     def dummy_time():
         dummy_time.i += 1
         if (dummy_time.i == 1) or (inspect.stack()[4].function == "generate_image"):
-            return (datetime.datetime.now() + datetime.timedelta(days=-1)).timestamp()
+            return (datetime.datetime.now(TIMEZONE) + datetime.timedelta(days=-1)).timestamp()
         else:
-            return datetime.datetime.now().timestamp()
+            return datetime.datetime.now(TIMEZONE).timestamp()
 
     dummy_time.i = 0
 
@@ -917,9 +907,7 @@ def test_api_run_small(client, mocker):
     )
     assert response.status_code == 200
 
-    m = re.compile(r"{callback}\((.*)\)".format(callback=CALLBACK), re.MULTILINE | re.DOTALL).match(
-        response.text
-    )
+    m = re.compile(rf"{CALLBACK}\((.*)\)", re.MULTILINE | re.DOTALL).match(response.text)
 
     assert m is not None
 
@@ -953,15 +941,15 @@ def test_api_run_normal(mocker):
     # NOTE: fixture の方はダミーモード固定で動かしているので，
     # ここではノーマルモードで webapp を動かしてテストする．
     mocker.patch.dict("os.environ", {"WERKZEUG_RUN_MAIN": "true"})
-    app = create_app(CONFIG_FILE, CONFIG_SMALL_FILE)
+    app = weather_display.webappcreate_app(CONFIG_FILE, CONFIG_SMALL_FILE)
     client = app.test_client()
 
     def dummy_time():
         dummy_time.i += 1
         if (dummy_time.i == 1) or (inspect.stack()[4].function == "generate_image"):
-            return (datetime.datetime.now() + datetime.timedelta(days=-1)).timestamp()
+            return (datetime.datetime.now(TIMEZONE) + datetime.timedelta(days=-1)).timestamp()
         else:
-            return datetime.datetime.now().timestamp()
+            return datetime.datetime.now(TIMEZONE).timestamp()
 
     dummy_time.i = 0
 
@@ -1017,7 +1005,7 @@ def test_display_image(mocker, tmp_path, request):
 
     orig_open = builtins.open
 
-    def open_mock(
+    def open_mock(  # noqa: PLR0913
         file,
         mode="r",
         buffering=-1,
@@ -1063,7 +1051,7 @@ def test_display_image_onetime(mocker, tmp_path, request):
 
     orig_open = builtins.open
 
-    def open_mock(
+    def open_mock(  # noqa: PLR0913
         file,
         mode="r",
         buffering=-1,
@@ -1112,7 +1100,7 @@ def test_display_image_error_major(mocker, tmp_path, request):
 
     orig_open = builtins.open
 
-    def open_mock(
+    def open_mock(  # noqa: PLR0913
         file,
         mode="r",
         buffering=-1,
@@ -1163,7 +1151,7 @@ def test_display_image_error_minor(mocker, tmp_path, request):
 
     orig_open = builtins.open
 
-    def open_mock(
+    def open_mock(  # noqa: PLR0913
         file,
         mode="r",
         buffering=-1,
@@ -1213,7 +1201,7 @@ def test_display_image_error_unknown(mocker, tmp_path, request):
 
     orig_open = builtins.open
 
-    def open_mock(
+    def open_mock(  # noqa: PLR0913
         file,
         mode="r",
         buffering=-1,

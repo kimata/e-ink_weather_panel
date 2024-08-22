@@ -51,7 +51,7 @@ def test_webapp(page, host, port):
         """
     )
     img_path = EVIDENCE_PATH / "generated.png"
-    with open(img_path, "wb") as f:
+    with pathlib.Path(img_path).open("wb") as f:
         f.write(base64.b64decode(img_base64))
 
     # NOTE: サイズが一定以上あること
