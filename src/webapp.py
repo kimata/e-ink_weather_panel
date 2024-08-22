@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 電子ペーパ表示用の画像を表示する簡易的な Web サーバです．
 

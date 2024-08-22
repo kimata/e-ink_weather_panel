@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 電子ペーパ表示用の画像を生成します．
 
@@ -112,8 +111,8 @@ def draw_panel(config, img, is_small_mode=False):
 
         panel_map[panel["name"]] = panel_img
 
-        logging.info("elapsed time: {name} panel = {time:.3f} sec".format(name=panel["name"], time=elapsed))
-    logging.info("total elapsed time: {time:.3f} sec".format(time=time.perf_counter() - start))
+        logging.info("elapsed time: %s panel = %.3f sec", panel["name"], elapsed)
+    logging.info("total elapsed time: %.3f sec", time.perf_counter() - start)
 
     draw_wall(config, img)
 
@@ -134,10 +133,7 @@ def draw_panel(config, img, is_small_mode=False):
 
 
 def create_image(config_file, small_mode=False, dummy_mode=False, test_mode=False, debug_mode=False):
-    if debug_mode:  # pragma: no cover
-        log_level = logging.DEBUG
-    else:
-        log_level = logging.INFO
+    log_level = logging.DEBUG if debug_mode else logging.INFO
 
     logger.init("panel.e-ink.weather", level=log_level)
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
+# ruff: noqa: S101
 import datetime
 import os
 import pathlib
@@ -71,7 +70,6 @@ def clear():
 
 @pytest.fixture()
 def client(app):
-
     test_client = app.test_client()
 
     yield test_client

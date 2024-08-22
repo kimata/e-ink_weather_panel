@@ -11,7 +11,6 @@ Options:
   -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
 """
 
-
 import logging
 
 import PIL.Image

@@ -15,17 +15,17 @@ import datetime
 import logging
 import time
 
+import my_lib.pil_util
 import PIL.Image
 import PIL.ImageDraw
 import PIL.ImageEnhance
 import PIL.ImageFont
-from pil_util import draw_text, get_font, text_size
 
 
 def get_face_map(font_config):
     return {
         "time": {
-            "value": get_font(font_config, "EN_BOLD", 130),
+            "value": my_lib.get_font(font_config, "EN_BOLD", 130),
         },
     }
 
@@ -36,10 +36,10 @@ def draw_time(img, pos_x, pos_y, face):
         + datetime.timedelta(minutes=1)
     ).strftime("%H:%M")
 
-    pos_y -= text_size(img, face["value"], time_text)[1]
+    pos_y -= my_lib.text_size(img, face["value"], time_text)[1]
     pos_x += 10
 
-    draw_text(
+    my_lib.draw_text(
         img,
         time_text,
         (pos_x, pos_y),

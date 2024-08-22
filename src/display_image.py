@@ -29,10 +29,11 @@ from docopt import docopt
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
 
-import create_image
 import logger
 from config import load_config
 from panel_util import notify_error
+
+import create_image
 
 RETRY_COUNT = 3
 RETRY_WAIT = 2
@@ -46,13 +47,12 @@ def exec_patiently(func, args):
     for i in range(RETRY_COUNT):
         try:
             return func(*args)
-        except:
+        except Exception:
             if i == (RETRY_COUNT - 1):
                 raise
             else:
                 logging.warning(traceback.format_exc())
                 time.sleep(RETRY_WAIT)
-                pass
 
 
 def ssh_connect(hostname, key_filename):

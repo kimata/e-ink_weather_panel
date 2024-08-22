@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
+# ruff: noqa: S101
 import base64
 import logging
 import pathlib
@@ -60,4 +59,5 @@ def test_webapp(page, host, port):
 
     # NOTE: 画像として正常に認識できること
     img_size = PIL.Image.open(img_path).size
-    assert (img_size[0]) > 100 and (img_size[1] > 100)
+    assert img_size[0] > 100
+    assert img_size[1] > 100
