@@ -15,7 +15,7 @@ RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
     --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update && apt-get install --no-install-recommends --assume-yes \
     python3 \
-    python3-dev
+    python3-dev \
     language-pack-ja \
     ./google-chrome-stable_current_amd64.deb
 

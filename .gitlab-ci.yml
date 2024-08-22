@@ -42,7 +42,7 @@ build-image:
         - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
         - mv private_font/* font
         - docker pull ${CI_REGISTRY_IMAGE} || true
-        - docker build . -t ${CI_REGISTRY_IMAGE}
+        - docker buildx build . -t ${CI_REGISTRY_IMAGE}
         - docker push ${CI_REGISTRY_IMAGE}
 
 test-prepare:
