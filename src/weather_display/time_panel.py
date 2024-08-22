@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 時刻の画像を生成します．
 
@@ -25,7 +24,7 @@ import PIL.ImageFont
 def get_face_map(font_config):
     return {
         "time": {
-            "value": my_lib.get_font(font_config, "EN_BOLD", 130),
+            "value": my_lib.pil_util.get_font(font_config, "en_bold", 130),
         },
     }
 
@@ -36,10 +35,10 @@ def draw_time(img, pos_x, pos_y, face):
         + datetime.timedelta(minutes=1)
     ).strftime("%H:%M")
 
-    pos_y -= my_lib.text_size(img, face["value"], time_text)[1]
+    pos_y -= my_lib.pil_util.text_size(img, face["value"], time_text)[1]
     pos_x += 10
 
-    my_lib.draw_text(
+    my_lib.pil_util.draw_text(
         img,
         time_text,
         (pos_x, pos_y),
@@ -52,16 +51,16 @@ def draw_time(img, pos_x, pos_y, face):
 
 
 def draw_panel_time(img, config):
-    panel_config = config["TIME"]
-    font_config = config["FONT"]
+    panel_config = config["time"]
+    font_config = config["font"]
 
     face_map = get_face_map(font_config)
 
     # 右下に描画する
     draw_time(
         img,
-        panel_config["PANEL"]["WIDTH"] - 10,
-        panel_config["PANEL"]["HEIGHT"] - 10,
+        panel_config["panel"]["width"] - 10,
+        panel_config["panel"]["height"] - 10,
         face_map["time"],
     )
 
@@ -72,7 +71,7 @@ def create(config):
 
     img = PIL.Image.new(
         "RGBA",
-        (config["TIME"]["PANEL"]["WIDTH"], config["TIME"]["PANEL"]["HEIGHT"]),
+        (config["time"]["panel"]["width"], config["time"]["panel"]["height"]),
         (255, 255, 255, 0),
     )
 
@@ -82,21 +81,20 @@ def create(config):
 
 
 if __name__ == "__main__":
-    import logger
-    from config import load_config
-    from docopt import docopt
-    from pil_util import convert_to_gray
+    import docopt
+    import my_lib.config
+    import my_lib.logger
 
-    args = docopt(__doc__)
+    args = docopt.docopt(__doc__)
 
-    logger.init("test", level=logging.INFO)
+    my_lib.logger.init("test", level=logging.INFO)
 
-    config = load_config(args["-c"])
+    config = my_lib.config.load(args["-c"])
     out_file = args["-o"]
 
     img = create(config)[0]
 
-    logging.info("Save {out_file}.".format(out_file=out_file))
-    convert_to_gray(img).save(out_file, "PNG")
+    logging.info("Save %s.", out_file)
+    my_lib.pil_util.convert_to_gray(img).save(out_file, "PNG")
 
     logging.info("Finish.")
