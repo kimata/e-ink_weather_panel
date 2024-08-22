@@ -6,7 +6,7 @@ authors = [
     { name = "KIMATA Tetsuya", email = "kimata@green-rabbit.net" }
 ]
 readme = "README.md"
-requires-python = ">= 3.10"
+requires-python = ">= 3.11"
 
 dependencies = [
     "coloredlogs>=15.0.1",
@@ -16,7 +16,7 @@ dependencies = [
     "schedule>=1.2.2",
     "rpi-lgpio>=0.6",
     "influxdb-client[ciso]>=1.44.0",
-    "my-lib @ git+https://github.com/kimata/my-py-lib@c93ad83b845ec083bb021b2866b7a7063bcc733c",
+    "my-lib @ git+https://github.com/kimata/my-py-lib@449193eb4bf0b07b9340d97e10cc15a85f725f0b",
     "opencv-contrib-python-headless>=4.10.0.84",
     "lxml>=5.3.0",
     "matplotlib>=3.9.2",
