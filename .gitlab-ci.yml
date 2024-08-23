@@ -408,3 +408,4 @@ renovate:
         - if: '$CI_PIPELINE_SOURCE == "schedule"'
         - changes:
               - renovate.json
+          when: on_success
