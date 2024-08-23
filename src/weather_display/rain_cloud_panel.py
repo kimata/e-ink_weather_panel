@@ -408,7 +408,10 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
     if sub_panel_config["is_future"]:
         time.sleep(2)
 
-    driver = my_lib.selenium_util.create_driver("Default", DATA_PATH)
+    driver = my_lib.selenium_util.create_driver(
+        "rain_cloud" + ("_future" if sub_panel_config["is_future"] else ""), DATA_PATH
+    )
+
     wait = selenium.webdriver.support.wait.WebDriverWait(driver, 5)
 
     my_lib.selenium_util.clear_cache(driver)
