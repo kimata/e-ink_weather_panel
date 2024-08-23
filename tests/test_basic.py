@@ -61,7 +61,7 @@ def _clear():
 
     config = my_lib.config.load(CONFIG_FILE)
 
-    pathlib.Path(config["liveness"]["file"]).unlink(missing_ok=True)
+    pathlib.Path(config["liveness"]["file"]["display"]).unlink(missing_ok=True)
 
     my_lib.notify_slack.interval_clear()
     my_lib.notify_slack.hist_clear()
@@ -179,15 +179,15 @@ def check_image(request, img, size, index=None):
 def load_test_config(config_file, tmp_path, request):
     config = my_lib.config.load(config_file)
 
-    config["liveness"]["file"] = f"{tmp_path}/healthz-{request.node.name}"
-    pathlib.Path(config["liveness"]["file"]).unlink(missing_ok=True)
+    config["liveness"]["file"]["display"] = f"{tmp_path}/healthz-{request.node.name}"
+    pathlib.Path(config["liveness"]["file"]["display"]).unlink(missing_ok=True)
     config["panel"]["update"]["interval"] = 60
 
     return config
 
 
 def check_liveness(config, is_should_exist):
-    healthz_file = pathlib.Path(config["liveness"]["file"])
+    healthz_file = pathlib.Path(config["liveness"]["file"]["display"])
 
     if is_should_exist:
         assert healthz_file.exists(), "存在すべき healthz が存在しません．"
