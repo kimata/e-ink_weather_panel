@@ -388,6 +388,10 @@ deploy:
               - pyoroject.json
               - src/**/*
           when: on_success
+        - if: $CI_PIPELINE_SOURCE == "deploy-e-ink_weather"
+          when: on_success
+        - if: $CI_PIPELINE_SOURCE == "deploy-e-ink_weather-small"
+          when: on_success
         - when: never
 
 renovate:
