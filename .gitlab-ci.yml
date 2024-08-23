@@ -423,7 +423,7 @@ deploy:
         - changes:
               - react/package.json
               - react/package-lock.json
-              - pyoroject.toml
+              - pyproject.toml
               - src/**/*
           when: on_success
         - if: $CI_PIPELINE_SOURCE == "deploy-e-ink_weather"
