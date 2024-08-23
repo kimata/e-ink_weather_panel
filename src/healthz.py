@@ -43,10 +43,11 @@ if __name__ == "__main__":
 
     target_list = [
         {
-            "name": "display",
-            "liveness_file": pathlib.Path(config["liveness"]["file"]["display"]),
+            "name": name,
+            "liveness_file": pathlib.Path(config["liveness"]["file"][name]),
             "interval": config["panel"]["update"]["interval"],
         }
+        for name in ["display"]
     ]
 
     if check_liveness(target_list):
