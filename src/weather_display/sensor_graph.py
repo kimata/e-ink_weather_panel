@@ -20,12 +20,11 @@ import traceback
 
 import matplotlib as mpl
 import matplotlib.dates as mdates
-import matplotlib.font_manager
+import matplotlib.offsetbox
 import matplotlib.pyplot as plt
 import my_lib.panel_util
+import my_lib.sensor_data
 import PIL.Image
-from matplotlib.offsetbox import AnnotationBbox, OffsetImage
-from my_lib.sensor_data import fetch_data
 from pandas.plotting import register_matplotlib_converters
 
 mpl.use("Agg")
@@ -39,11 +38,11 @@ AIRCON_WORK_THRESHOLD = 30
 
 
 def get_plot_font(config, font_type, size):
-    font_path = str(pathlib.Path(config["path"]) / config["map"][font_type])
+    font_path = pathlib.Path(config["path"]).resolve() / config["map"][font_type]
 
     logging.info("Load font: %s", font_path)
 
-    return matplotlib.font_manager.FontProperties(fname=font_path, size=size)
+    return mpl.font_manager.FontProperties(fname=font_path, size=size)
 
 
 def get_face_map(font_config):
@@ -139,7 +138,7 @@ def get_aircon_power(db_config, aircon):
         start = "-1h"
         stop = "now()"
 
-    data = fetch_data(
+    data = my_lib.sensor_data.fetch_data(
         db_config,
         aircon["measure"],
         aircon["host"],
@@ -163,10 +162,10 @@ def draw_aircon_icon(ax, power, icon_config):
 
     img = plt.imread(str(pathlib.Path(icon_file)))
 
-    imagebox = OffsetImage(img, zoom=0.3)
+    imagebox = matplotlib.offsetbox.OffsetImage(img, zoom=0.3)
     imagebox.image.axes = ax
 
-    ab = AnnotationBbox(
+    ab = matplotlib.offsetbox.AnnotationBbox(
         offsetbox=imagebox,
         box_alignment=(0, 1),
         xycoords="axes fraction",
@@ -194,10 +193,10 @@ def draw_light_icon(ax, lux_list, icon_config):
 
     img = plt.imread(str(pathlib.Path(icon_file)))
 
-    imagebox = OffsetImage(img, zoom=0.25)
+    imagebox = matplotlib.offsetbox.OffsetImage(img, zoom=0.25)
     imagebox.image.axes = ax
 
-    ab = AnnotationBbox(
+    ab = matplotlib.offsetbox.AnnotationBbox(
         offsetbox=imagebox,
         box_alignment=(0, 1),
         xycoords="axes fraction",
@@ -216,7 +215,7 @@ def sensor_data(db_config, host_specify_list, param):
         period_stop = "now()"
 
     for host_specify in host_specify_list:
-        data = fetch_data(
+        data = my_lib.sensor_data.fetch_data(
             db_config,
             host_specify["type"],
             host_specify["name"],
@@ -331,7 +330,16 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
     buf = io.BytesIO()
     plt.savefig(buf, format="png", dpi=IMAGE_DPI, transparent=True)
 
-    return PIL.Image.open(buf)
+    buf.seek(0)
+
+    img = PIL.Image.open(buf).copy()
+
+    buf.close()
+
+    plt.clf()
+    plt.close(fig)
+
+    return img
 
 
 def create(config):

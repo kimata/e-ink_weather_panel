@@ -36,10 +36,11 @@ IMAGE_DPI = 100.0
 
 
 def get_plot_font(config, font_type, size):
-    return matplotlib.font_manager.FontProperties(
-        fname=str(pathlib.Path(config["path"]) / config["map"][font_type]),
-        size=size,
-    )
+    font_path = pathlib.Path(config["path"]).resolve() / config["map"][font_type]
+
+    logging.info("Load font: %s", font_path)
+
+    return mpl.font_manager.FontProperties(fname=font_path, size=size)
 
 
 def get_face_map(font_config):
@@ -165,7 +166,16 @@ def create_power_graph_impl(panel_config, font_config, db_config):
     buf = io.BytesIO()
     plt.savefig(buf, format="png", dpi=IMAGE_DPI, transparent=True)
 
-    return PIL.Image.open(buf)
+    buf.seek(0)
+
+    img = PIL.Image.open(buf).copy()
+
+    buf.close()
+
+    plt.clf()
+    plt.close(fig)
+
+    return img
 
 
 def create(config):
