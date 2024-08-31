@@ -1,6 +1,6 @@
 liveness:
     file:
-        display: /dev/shm/healthz
+        display: data/healthz
 
 panel:
     device:
