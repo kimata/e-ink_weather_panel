@@ -1,6 +1,6 @@
 liveness:
     file:
-        display: data/healthz
+        display: data/liveness/display
 
 panel:
     device:
