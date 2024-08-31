@@ -187,10 +187,17 @@ def load_test_config(config_file, tmp_path, request):
 
 
 def check_liveness(config, is_should_healthy):
-    import my_lib.healthz
+    import healthz
 
-    liveness = my_lib.healthz.check_liveness(
-        "display", pathlib.Path(config["liveness"]["file"]["display"]), 60
+    liveness = healthz.check_liveness(
+        [
+            {
+                "name": name,
+                "liveness_file": pathlib.Path(config["liveness"]["file"][name]),
+                "interval": config["panel"]["update"]["interval"],
+            }
+            for name in ["display"]
+        ]
     )
 
     if is_should_healthy:
