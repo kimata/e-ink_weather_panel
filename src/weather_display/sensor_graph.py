@@ -23,8 +23,8 @@ import matplotlib.dates as mdates
 import matplotlib.offsetbox
 import matplotlib.pyplot as plt
 import my_lib.panel_util
-import my_lib.sensor_data
 import PIL.Image
+from my_lib.sensor_data import fetch_data
 from pandas.plotting import register_matplotlib_converters
 
 mpl.use("Agg")
@@ -138,7 +138,7 @@ def get_aircon_power(db_config, aircon):
         start = "-1h"
         stop = "now()"
 
-    data = my_lib.sensor_data.fetch_data(
+    data = fetch_data(
         db_config,
         aircon["measure"],
         aircon["host"],
@@ -215,7 +215,7 @@ def sensor_data(db_config, host_specify_list, param):
         period_stop = "now()"
 
     for host_specify in host_specify_list:
-        data = my_lib.sensor_data.fetch_data(
+        data = fetch_data(
             db_config,
             host_specify["type"],
             host_specify["name"],
