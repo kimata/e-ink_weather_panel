@@ -186,13 +186,17 @@ def load_test_config(config_file, tmp_path, request):
     return config
 
 
-def check_liveness(config, is_should_exist):
-    healthz_file = pathlib.Path(config["liveness"]["file"]["display"])
+def check_liveness(config, is_should_healthy):
+    import my_lib.healthz
 
-    if is_should_exist:
-        assert healthz_file.exists(), "存在すべき healthz が存在しません．"
+    liveness = my_lib.healthz.check_liveness(
+        "display", pathlib.Path(config["liveness"]["file"]["display"]), 60
+    )
+
+    if is_should_healthy:
+        assert liveness, "Livenss が更新されていません．"
     else:
-        assert not healthz_file.exists(), "存在してはいけない healthz が存在します．"
+        assert not liveness, "Livenss が更新されてしまっています．"
 
 
 ######################################################################
