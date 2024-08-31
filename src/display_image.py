@@ -125,12 +125,12 @@ def display_image(  # noqa: PLR0913, C901
     # NOTE: -24 は create_image.py の異常時の終了コードに合わせる．
     if proc.returncode == 0:
         logging.info("Succeeded.")
-        my_lib.footprint.upadte(pathlib.Path(config["liveness"]["file"]["display"]))
+        my_lib.footprint.update(pathlib.Path(config["liveness"]["file"]["display"]))
     elif proc.returncode == create_image.ERROR_CODE_MAJOR:
         logging.warning("Something is wrong. (code: %d)", proc.returncode)
     elif proc.returncode == create_image.ERROR_CODE_MINOR:
         logging.warning("Something is wrong. (code: %d)", proc.returncode)
-        my_lib.footprint.upadte(pathlib.Path(config["liveness"]["file"]["display"]))
+        my_lib.footprint.update(pathlib.Path(config["liveness"]["file"]["display"]))
     else:
         logging.error("Failed to create image. (code: %d)", proc.returncode)
         sys.exit(proc.returncode)
