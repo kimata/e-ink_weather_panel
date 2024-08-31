@@ -1,3 +1,7 @@
 .git/
+.venv/
+.mypy_cache/
+.pytest_cache/
 data/
 react/node_modules/
+tests/evidence/

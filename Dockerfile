@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 # NOTE:
 # python:3.11.4-bookworm とかを使った場合，Selenium を同時に複数動かせないので，
@@ -35,7 +35,7 @@ RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
 RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     --mount=type=bind,source=README.md,target=README.md \
     --mount=type=cache,target=/root/.cache/pip \
-    pip install --no-cache-dir -r requirements.lock
+    pip install --break-system-packages --no-cache-dir -r requirements.lock
 
 
 ARG IMAGE_BUILD_DATE
@@ -50,8 +50,6 @@ WORKDIR /opt/e-ink_weather
 
 
 COPY font /usr/share/fonts/
-
-RUN useradd -m ubuntu
 
 COPY . .
 
