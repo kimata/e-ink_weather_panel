@@ -18,6 +18,7 @@ RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
     language-pack-ja \
     python3-pip \
     git \
+    gcc \
     ./google-chrome-stable_current_amd64.deb
 
 ENV PYTHONDONTWRITEBYTECODE=1
