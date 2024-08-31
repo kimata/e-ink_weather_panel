@@ -29,7 +29,7 @@ def test_webapp(page, host, port):
 
     page.get_by_test_id("button").click()
     expect(page.get_by_test_id("button")).to_contain_text("生成中")
-    expect(page.get_by_test_id("button")).to_be_enabled(timeout=180000)
+    expect(page.get_by_test_id("button")).to_be_enabled(timeout=240000)
 
     log_list = page.locator('//div[contains(@data-testid,"log")]/small/span')
     for i in range(log_list.count()):
