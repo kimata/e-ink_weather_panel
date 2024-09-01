@@ -397,12 +397,6 @@ pages:
 deploy:
     stage: deploy
 
-    needs:
-        - test-walk-through
-        - test-display
-        - test-display-small
-        - test-webapp
-
     dependencies: []
 
     image:
