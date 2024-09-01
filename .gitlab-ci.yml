@@ -415,7 +415,7 @@ renovate:
     script:
         - renovate --platform gitlab --token ${RENOVATE_TOKEN} --endpoint ${CI_SERVER_URL}/api/v4 ${CI_PROJECT_PATH}
     rules:
-        - if: $CI_COMMIT_BRANCH != "master"
+        - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
           when: never
         - if: $CI_PIPELINE_SOURCE == "schedule"
         - changes:
