@@ -1,3 +1,4 @@
+---
 name: Regression
 on:
     push:
@@ -13,19 +14,19 @@ jobs:
 
         strategy:
             matrix:
-                node-version: [20.x]
+                node-version: [22.x]
 
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
 
             - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v3
+              uses: actions/setup-node@v4
               with:
                   node-version: ${{ matrix.node-version }}
 
             - name: Cache node modules
               id: cache-node-modules
-              uses: actions/cache@v3
+              uses: actions/cache@v4
               env:
                   cache-name: cache-node-modules
               with:
@@ -48,7 +49,7 @@ jobs:
               working-directory: ./react
 
             - name: Upload built file
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
               with:
                   name: react-dist
                   path: react/dist
@@ -57,20 +58,24 @@ jobs:
         needs: build
         runs-on: ubuntu-latest
 
+        env:
+            TZ: Asia/Tokyo
+
+
         strategy:
             matrix:
-                python-version: ["3.10"]
+                python-version: ['3.10']
 
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
 
             - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v4
+              uses: actions/setup-python@v5
               with:
                   python-version: ${{ matrix.python-version }}
 
             - name: Download react built files
-              uses: actions/download-artifact@v3
+              uses: actions/download-artifact@v4
               with:
                   name: react-dist
                   path: react/dist
@@ -88,7 +93,7 @@ jobs:
 
             - name: Cache python modules
               id: cache-python-modules
-              uses: actions/cache@v3
+              uses: actions/cache@v4
               env:
                   cache-name: cache-python-modules
               with:
@@ -107,14 +112,14 @@ jobs:
               run: rye run pytest --cov-report=html tests/test_basic.py
 
             - name: Upload coverage file
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
               if: always()
               with:
                   name: pytest
                   path: tests/evidence
 
             - name: Upload artifact
-              uses: actions/upload-pages-artifact@v2
+              uses: actions/upload-pages-artifact@v3
               with:
                   path: tests/evidence
 
@@ -128,4 +133,4 @@ jobs:
         steps:
             - name: Download test results
               id: deployment
-              uses: actions/deploy-pages@v2
+              uses: actions/deploy-pages@v4
