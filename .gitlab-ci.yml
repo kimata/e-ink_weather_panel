@@ -11,7 +11,7 @@ stages:
 build-react:
     stage: build-webapp
 
-    image: node:20.17
+    image: node:20.14
     script:
         - cd react
         - npm ci --cache .npm --prefer-offline
@@ -397,6 +397,12 @@ pages:
 deploy:
     stage: deploy
 
+    needs:
+        - test-walk-through
+        - test-display
+        - test-display-small
+        - test-webapp
+
     dependencies: []
 
     image:
@@ -411,20 +417,8 @@ deploy:
         - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-webapp-deployment
 
     rules:
-        # NOTE: 自動実行ではデプロイしない
-        - if: '$CI_PIPELINE_SOURCE == "schedule"'
-          when: never
-        - changes:
-              - react/package.json
-              - react/package-lock.json
-              - pyproject.toml
-              - src/**/*
-          when: on_success
-        - if: $CI_PIPELINE_SOURCE == "deploy-e-ink_weather"
-          when: on_success
-        - if: $CI_PIPELINE_SOURCE == "deploy-e-ink_weather-small"
-          when: on_success
-        - when: never
+        - if: '$CI_PIPELINE_SOURCE == "push"'
+        - if: '$CI_PIPELINE_SOURCE == "pipeline"'
 
 renovate:
     stage: renovate
