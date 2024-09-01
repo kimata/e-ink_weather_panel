@@ -435,10 +435,6 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
             sub_panel_config["is_future"],
         )
     except Exception:
-        # NOTE: 3回目のリトライ以降のみ通知する
-        logging.error("A")  # noqa: TRY400
-        logging.error(slack_config)  # noqa: TRY400
-        logging.error(trial)  # noqa: TRY400
         if (trial >= 3) and (slack_config is not None):
             my_lib.notify_slack.error_with_image(
                 slack_config["bot_token"],
@@ -452,6 +448,8 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
                 },
                 interval_min=slack_config["error"]["interval_min"],
             )
+        driver.quit()
+
         # NOTE: リトライまでに時間を空けるようにする
         time.sleep(10)
 
