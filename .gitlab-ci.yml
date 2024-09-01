@@ -389,6 +389,8 @@ deploy:
         # NOTE: 自動実行ではデプロイしない
         - if: '$CI_PIPELINE_SOURCE == "schedule"'
           when: never
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+          when: never
         - when: on_success
 
 renovate:
