@@ -79,12 +79,12 @@ jobs:
               run: |
                   sudo locale-gen ja_JP.UTF-8
 
-            - name: Install Poetry
+            - name: Install Rye
               run: |
-                  curl -sSL https://install.python-poetry.org | python3 -
+                  curl -sSf https://rye.astral.sh/get | RYE_NO_AUTO_INSTALL=1 RYE_INSTALL_OPTION="--yes" bash
 
-            - name: Add path for Poetry
-              run: echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+            - name: Add path of Rye
+              run: echo "$HOME/.rye/shims" >> $GITHUB_PATH
 
             - name: Cache python modules
               id: cache-python-modules
@@ -100,10 +100,11 @@ jobs:
                       ${{ runner.os }}-
 
             - name: Install Dependencies
-              run: poetry install --no-interaction --with test
+              run: |
+                  rye sync
 
             - name: Run Tests
-              run: poetry run pytest --numprocesses 4 tests/test_basic.py
+              run: rye run pytest --cov-report=html tests/test_basic.py
 
             - name: Upload coverage file
               uses: actions/upload-artifact@v3
