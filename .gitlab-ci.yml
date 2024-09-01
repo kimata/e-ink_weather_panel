@@ -26,7 +26,6 @@ build-react:
 
 build-image:
     stage: build-image
-    needs: ["build-react"]
 
     variables:
         BUILDER: builder
@@ -71,8 +70,7 @@ test-prepare:
 test-walk-through:
     stage: test
 
-    needs:
-        - build-react
+    dependencies:
         - test-prepare
 
     script:
@@ -95,10 +93,6 @@ test-walk-through:
 test-sensor-graph:
     stage: test
 
-    needs:
-        - build-image
-        - test-prepare
-
     dependencies:
         - test-prepare
 
@@ -119,10 +113,6 @@ test-sensor-graph:
 test-power-graph:
     stage: test
 
-    needs:
-        - build-image
-        - test-prepare
-
     dependencies:
         - test-prepare
 
@@ -141,10 +131,6 @@ test-power-graph:
 # 天気予報画像のテスト
 test-weather-panel:
     stage: test
-
-    needs:
-        - build-image
-        - test-prepare
 
     dependencies:
         - test-prepare
@@ -167,10 +153,6 @@ test-weather-panel:
 test-rain-cloud-panel:
     stage: test
 
-    needs:
-        - build-image
-        - test-prepare
-
     dependencies:
         - test-prepare
 
@@ -192,8 +174,6 @@ test-sample:
     stage: test
 
     needs:
-        - build-image
-        - test-prepare
         - test-weather-panel
         - test-power-graph
         - test-sensor-graph
@@ -216,8 +196,6 @@ test-sample-small:
     stage: test
 
     needs:
-        - build-image
-        - test-prepare
         - test-weather-panel
         - test-rain-cloud-panel
 
@@ -238,8 +216,6 @@ test-demo:
     stage: test
 
     needs:
-        - build-image
-        - test-prepare
         - test-weather-panel
         - test-power-graph
         - test-sensor-graph
@@ -263,8 +239,6 @@ test-regular:
     stage: test
 
     needs:
-        - build-image
-        - test-prepare
         - test-weather-panel
         - test-power-graph
         - test-sensor-graph
@@ -287,8 +261,6 @@ test-regular-small:
     stage: test
 
     needs:
-        - build-image
-        - test-prepare
         - test-weather-panel
         - test-rain-cloud-panel
 
@@ -311,8 +283,6 @@ test-display:
     stage: test
 
     needs:
-        - build-image
-        - test-prepare
         - test-regular
 
     dependencies:
@@ -329,8 +299,6 @@ test-display-small:
     stage: test
 
     needs:
-        - build-image
-        - test-prepare
         - test-regular-small
 
     dependencies:
@@ -347,8 +315,6 @@ test-webapp:
     stage: test
 
     needs:
-        - build-image
-        - test-prepare
         - test-demo
 
     dependencies:
@@ -396,12 +362,6 @@ pages:
 
 deploy:
     stage: deploy
-
-    needs:
-        - test-walk-through
-        - test-display
-        - test-display-small
-        - test-webapp
 
     dependencies: []
 
