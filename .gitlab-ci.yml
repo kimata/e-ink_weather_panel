@@ -72,6 +72,7 @@ test-walk-through:
 
     dependencies:
         - test-prepare
+        - build-react
 
     script:
         - rye run pytest --cov-report=html tests/test_basic.py
