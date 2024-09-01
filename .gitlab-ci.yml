@@ -75,7 +75,7 @@ test-walk-through:
         - build-react
 
     script:
-        - rye run pytest --cov-report=html tests/test_basic.py
+        - rye run pytest --cov-report=html -n auto tests/test_basic.py
 
     variables:
         RUST_LOG: trace
