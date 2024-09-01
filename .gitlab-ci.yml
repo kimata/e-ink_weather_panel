@@ -417,8 +417,10 @@ deploy:
         - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-webapp-deployment
 
     rules:
-        - if: '$CI_PIPELINE_SOURCE == "push"'
-        - if: '$CI_PIPELINE_SOURCE == "pipeline"'
+        # NOTE: 自動実行ではデプロイしない
+        - if: '$CI_PIPELINE_SOURCE == "schedule"'
+          when: never
+        - when: on_success
 
 renovate:
     stage: renovate
