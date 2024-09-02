@@ -802,15 +802,15 @@ def test_slack_error_with_image(mocker, request):
 def test_redirect(client):
     response = client.get("/")
     assert response.status_code == 302
-    assert re.search(r"/weather_panel/$", response.location)
+    assert re.search(rf"{my_lib.webapp.config.URL_PREFIX}/$", response.location)
 
 
 def test_index(client):
-    response = client.get("/weather_panel/")
+    response = client.get(f"{my_lib.webapp.config.URL_PREFIX}/")
     assert response.status_code == 200
     assert "気象パネル画像" in response.data.decode("utf-8")
 
-    response = client.get("/weather_panel/", headers={"Accept-Encoding": "gzip"})
+    response = client.get(f"{my_lib.webapp.config.URL_PREFIX}/", headers={"Accept-Encoding": "gzip"})
     assert response.status_code == 200
 
 
@@ -821,7 +821,7 @@ def test_index_with_other_status(client, mocker):
         new_callable=mocker.PropertyMock,
     )
 
-    response = client.get("/weather_panel/", headers={"Accept-Encoding": "gzip"})
+    response = client.get(f"{my_lib.webapp.config.URL_PREFIX}/", headers={"Accept-Encoding": "gzip"})
     assert response.status_code == 301
 
 
@@ -845,7 +845,7 @@ def test_api_run(client, mocker):
 
     # NOTE: 1回目
     response = client.get(
-        "/weather_panel/api/run",
+        f"{my_lib.webapp.config.URL_PREFIX}/api/run",
         query_string={
             "test": True,
         },
@@ -853,14 +853,14 @@ def test_api_run(client, mocker):
     assert response.status_code == 200
 
     token = response.json["token"]
-    response = client.post("/weather_panel/api/log", data={"token": token})
+    response = client.post(f"{my_lib.webapp.config.URL_PREFIX}/api/log", data={"token": token})
     assert response.status_code == 200
     # NOTE: ログを出し切るまで待つ
     assert response.data.decode()
 
     # NOTE: 2回目
     response = client.get(
-        "/weather_panel/api/run",
+        f"{my_lib.webapp.config.URL_PREFIX}/api/run",
         query_string={
             "test": True,
         },
@@ -869,14 +869,14 @@ def test_api_run(client, mocker):
 
     token = response.json["token"]
 
-    response = client.post("/weather_panel/api/log", data={"token": token})
+    response = client.post(f"{my_lib.webapp.config.URL_PREFIX}/api/log", data={"token": token})
     assert response.status_code == 200
     # NOTE: ログを出し切るまで待つ
     assert response.data.decode()
 
     # NOTE: 3回目
     response = client.get(
-        "/weather_panel/api/run",
+        f"{my_lib.webapp.config.URL_PREFIX}/api/run",
         query_string={
             "test": True,
         },
@@ -884,13 +884,13 @@ def test_api_run(client, mocker):
     assert response.status_code == 200
     token = response.json["token"]
 
-    response = client.post("/weather_panel/api/log", data={"token": token})
+    response = client.post(f"{my_lib.webapp.config.URL_PREFIX}/api/log", data={"token": token})
     assert response.status_code == 200
     # NOTE: ログを出し切るまで待つ
     assert response.data.decode()
 
     response = client.post(
-        "/weather_panel/api/image",
+        f"{my_lib.webapp.config.URL_PREFIX}/api/image",
         headers={"Accept-Encoding": "gzip"},
         data={"token": token},
     )
@@ -920,7 +920,7 @@ def test_api_run_small(client, mocker):
 
     # NOTE: 1回目
     response = client.get(
-        "/weather_panel/api/run",
+        f"{my_lib.webapp.config.URL_PREFIX}/api/run",
         query_string={
             "mode": "small",
             "callback": CALLBACK,
@@ -934,7 +934,7 @@ def test_api_run_small(client, mocker):
 
     token = json.loads(m.group(1))["token"]
 
-    response = client.post("/weather_panel/api/log", data={"token": token})
+    response = client.post(f"{my_lib.webapp.config.URL_PREFIX}/api/log", data={"token": token})
     assert response.status_code == 200
     # NOTE: ログを出し切るまで待つ
     assert response.data.decode()
@@ -944,15 +944,15 @@ def test_api_run_error(client, mocker):
     mocker.patch("weather_display.generator.generate_image", side_effect=RuntimeError())
 
     response = client.get(
-        "/weather_panel/api/run",
+        f"{my_lib.webapp.config.URL_PREFIX}/api/run",
         query_string={"test": True, "mode": "small"},
     )
     assert response.status_code == 200
 
-    response = client.post("/weather_panel/api/log", data={"token": "TEST"})
+    response = client.post(f"{my_lib.webapp.config.URL_PREFIX}/api/log", data={"token": "TEST"})
     assert response.status_code == 200
 
-    response = client.post("/weather_panel/api/image", data={"token": "TEST"})
+    response = client.post(f"{my_lib.webapp.config.URL_PREFIX}/api/image", data={"token": "TEST"})
     assert response.status_code == 200
 
 
@@ -978,7 +978,7 @@ def test_api_run_normal(mocker):
 
     # NOTE: 1回目
     response = client.get(
-        "/weather_panel/api/run",
+        f"{my_lib.webapp.config.URL_PREFIX}/api/run",
         query_string={
             "test": True,
         },
@@ -986,14 +986,14 @@ def test_api_run_normal(mocker):
     assert response.status_code == 200
 
     token = response.json["token"]
-    response = client.post("/weather_panel/api/log", data={"token": token})
+    response = client.post(f"{my_lib.webapp.config.URL_PREFIX}/api/log", data={"token": token})
     assert response.status_code == 200
     # NOTE: ログを出し切るまで待つ．
     response.data.decode()
 
     # NOTE: 2回目
     response = client.get(
-        "/weather_panel/api/run",
+        f"{my_lib.webapp.config.URL_PREFIX}/api/run",
         query_string={
             "mode": "small",
             "test": True,
@@ -1003,7 +1003,7 @@ def test_api_run_normal(mocker):
 
     token = response.json["token"]
 
-    response = client.post("/weather_panel/api/log", data={"token": token})
+    response = client.post(f"{my_lib.webapp.config.URL_PREFIX}/api/log", data={"token": token})
     assert response.status_code == 200
     # NOTE: ログを出し切るまで待つ
     response.data.decode()
