@@ -4,11 +4,19 @@ FROM ubuntu:24.04
 # python:3.11.4-bookworm とかを使った場合，Selenium を同時に複数動かせないので，
 # Ubuntu イメージを使う
 
+ARG IMAGE_BUILD_DATE
+
+ENV TZ=Asia/Tokyo
+ENV IMAGE_BUILD_DATE=${IMAGE_BUILD_DATE}
+
 RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
     --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update && apt-get install --no-install-recommends --assume-yes \
     curl \
-    ca-certificates
+    ca-certificates \
+    git \
+    clang \
+    python3-pip
 
 RUN curl -O https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 
@@ -16,8 +24,6 @@ RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
     --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update && apt-get install --no-install-recommends --assume-yes \
     language-pack-ja \
-    python3-pip \
-    git \
     ./google-chrome-stable_current_amd64.deb
 
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -35,11 +41,8 @@ RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     --mount=type=cache,target=/root/.cache/pip \
     pip install --break-system-packages --no-cache-dir -r requirements.lock
 
-
-ARG IMAGE_BUILD_DATE
-
-ENV TZ=Asia/Tokyo
-ENV IMAGE_BUILD_DATE=${IMAGE_BUILD_DATE}
+# Rye は requreiments.lock の生成のみに使うため，削除しておく．
+RUN rm -rf /root/.rye/shims
 
 RUN locale-gen en_US.UTF-8
 RUN locale-gen ja_JP.UTF-8
