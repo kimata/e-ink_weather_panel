@@ -1,9 +1,9 @@
-version: "2"
+version: '2'
 
 services:
     weather_panel:
         build:
-            context: "."
+            context: .
         environment:
             - RASP_HOSTNAME=rasp-meter-1
         restart: always

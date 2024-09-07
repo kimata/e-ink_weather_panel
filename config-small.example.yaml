@@ -120,7 +120,7 @@ power:
             type: sensor.rasp
         param:
             name: power
-            format: "{:,.0f}"
+            format: '{:,.0f}'
             unit: W
             range:
                 - 0
@@ -194,7 +194,7 @@ font:
 
 webapp:
     timezone:
-        offset: "+9"
+        offset: '+9'
         name: JST
         zone: Asia/Tokyo
 

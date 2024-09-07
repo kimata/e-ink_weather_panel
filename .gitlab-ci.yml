@@ -1,4 +1,3 @@
----
 image: registry.green-rabbit.net:5000/kimata/local_ubuntu:240730E
 
 stages:
@@ -45,9 +44,7 @@ build-image:
 
         - docker buildx create --name ${BUILDER} --use
         - docker buildx use ${BUILDER}
-        - docker buildx build --platform linux/amd64 --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:cache --cache-to
-          type=registry,ref=${CI_REGISTRY_IMAGE}:cache --build-arg IMAGE_BUILD_DATE=$(date --iso-8601=seconds) --push --tag
-          ${CI_REGISTRY_IMAGE} .
+        - docker buildx build --platform linux/amd64 --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:cache --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}:cache --build-arg IMAGE_BUILD_DATE=$(date --iso-8601=seconds) --push --tag ${CI_REGISTRY_IMAGE} .
 
 test-prepare:
     stage: pre-test
@@ -98,11 +95,9 @@ test-sensor-graph:
 
     script:
         # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
-        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop --time
-          5 $id; done || true
+        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop --time 5 $id; done || true
         - docker pull ${CI_REGISTRY_IMAGE}
-        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/weather_display/sensor_graph.py
-          -c config.yaml -o ${CI_JOB_NAME}.png
+        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/weather_display/sensor_graph.py -c config.yaml -o ${CI_JOB_NAME}.png
         - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
         - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
         - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
@@ -120,11 +115,9 @@ test-power-graph:
 
     script:
         # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
-        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop --time
-          5 $id; done || true
+        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop --time 5 $id; done || true
         - docker pull ${CI_REGISTRY_IMAGE}
-        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/weather_display/power_graph.py
-          -c config.yaml -o ${CI_JOB_NAME}.png
+        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/weather_display/power_graph.py -c config.yaml -o ${CI_JOB_NAME}.png
         - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
         - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
         - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
@@ -141,11 +134,9 @@ test-weather-panel:
 
     script:
         # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
-        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop --timet
-          5 $id; docker rm $id; done || true
+        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop --timet 5 $id; docker rm $id; done || true
         - docker pull ${CI_REGISTRY_IMAGE}
-        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/weather_display/weather_panel.py
-          -c config.yaml -o ${CI_JOB_NAME}.png
+        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/weather_display/weather_panel.py -c config.yaml -o ${CI_JOB_NAME}.png
         - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
         - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
         - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
@@ -164,11 +155,9 @@ test-rain-cloud-panel:
 
     script:
         # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
-        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop --time
-          5 $id; docker rm $id; done || true
+        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop --time 5 $id; docker rm $id; done || true
         - docker pull ${CI_REGISTRY_IMAGE}
-        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/weather_display/rain_cloud_panel.py
-          -c config.yaml -o ${CI_JOB_NAME}.png
+        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/weather_display/rain_cloud_panel.py -c config.yaml -o ${CI_JOB_NAME}.png
         - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
         - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
         - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
@@ -193,8 +182,7 @@ test-sample:
 
     script:
         - docker pull ${CI_REGISTRY_IMAGE}
-        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/create_image.py
-          -c config.example.yaml -o ${CI_JOB_NAME}.png
+        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/create_image.py -c config.example.yaml -o ${CI_JOB_NAME}.png
         - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
         - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
         - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
@@ -215,8 +203,7 @@ test-sample-small:
 
     script:
         - docker pull ${CI_REGISTRY_IMAGE}
-        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/create_image.py
-          -s -c config-small.example.yaml -o ${CI_JOB_NAME}.png
+        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/create_image.py -s -c config-small.example.yaml -o ${CI_JOB_NAME}.png
         - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
         - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
         - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
@@ -239,8 +226,7 @@ test-demo:
 
     script:
         - docker pull ${CI_REGISTRY_IMAGE}
-        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/create_image.py
-          -c config-demo.yaml -o ${CI_JOB_NAME}.png
+        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/create_image.py -c config-demo.yaml -o ${CI_JOB_NAME}.png
         - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
         - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
         - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
@@ -264,8 +250,7 @@ test-regular:
 
     script:
         - docker pull ${CI_REGISTRY_IMAGE}
-        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/create_image.py
-          -o ${CI_JOB_NAME}.png
+        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/create_image.py -o ${CI_JOB_NAME}.png
         - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
         - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
         - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
@@ -286,8 +271,7 @@ test-regular-small:
 
     script:
         - docker pull ${CI_REGISTRY_IMAGE}
-        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/create_image.py
-          -s -c config-small.yaml -o ${CI_JOB_NAME}.png
+        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} src/create_image.py -s -c config-small.yaml -o ${CI_JOB_NAME}.png
         - CID=`docker ps --quiet --latest --filter "ancestor=${CI_REGISTRY_IMAGE}" --filter "label=job=${CI_JOB_NAME}"`
         - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
         - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
@@ -329,8 +313,7 @@ test-display-small:
 
     script:
         - docker pull ${CI_REGISTRY_IMAGE}
-        - docker run --rm --tty=true ${CI_REGISTRY_IMAGE} src/display_image.py -s -c config-small.yaml -d ${RASP_HOSTNAME}
-          -O
+        - docker run --rm --tty=true ${CI_REGISTRY_IMAGE} src/display_image.py -s -c config-small.yaml -d ${RASP_HOSTNAME} -O
 
 test-webapp:
     stage: test
@@ -344,16 +327,13 @@ test-webapp:
 
     script:
         # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
-        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop -t
-          5 $id; done || true
+        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop -t 5 $id; done || true
         - docker pull ${CI_REGISTRY_IMAGE}
-        - docker run --rm --detach=true --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE}
-          ./src/webapp.py -c config-demo.yaml -D
+        - docker run --rm --detach=true --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE} ./src/webapp.py -c config-demo.yaml -D
 
         - python3 -m playwright install
 
-        - rye run pytest tests/test_playwright.py --host $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'
-          ${CI_JOB_NAME}-${CI_JOB_ID})
+        - rye run pytest tests/test_playwright.py --host $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
 
         - docker logs ${CI_JOB_NAME}-${CI_JOB_ID} > flask_log.txt
         - docker stop ${CI_JOB_NAME}-${CI_JOB_ID}
@@ -426,4 +406,4 @@ renovate:
           when: never
         - if: $CI_PIPELINE_SOURCE == "schedule"
         - changes:
-              - renovate.json
+            - renovate.json
