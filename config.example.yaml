@@ -217,9 +217,9 @@ sensor:
     icon:
         light:
             # NOTE: on/off は「'」で囲わないと文字列以外に変換されてしまうので注意
-            on:
+            'on':
                 path: img/light-on.png
-            off:
+            'off':
                 path: img/light-off.png
         aircon:
             path: img/aircon.png
