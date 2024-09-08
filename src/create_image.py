@@ -39,6 +39,8 @@ import weather_display.time_panel
 import weather_display.wbgt_panel
 import weather_display.weather_panel
 
+SCHEMA_CONFIG = "config.schema"
+
 # 一部の描画でエラー
 ERROR_CODE_MINOR = 220
 # 描画全体がエラー
@@ -206,8 +208,7 @@ if __name__ == "__main__":
 
     my_lib.logger.init("panel.e-ink.weather", level=log_level)
 
-    logging.info("Using config config: %s", config_file)
-    config = my_lib.config.load(config_file)
+    config = my_lib.config.load(config_file, pathlib.Path(SCHEMA_CONFIG))
 
     img, status = create_image(config, small_mode, dummy_mode, test_mode)
 

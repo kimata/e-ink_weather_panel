@@ -29,6 +29,8 @@ import my_lib.panel_util
 import paramiko
 from docopt import docopt
 
+SCHEMA_CONFIG = "config.schema"
+
 RETRY_COUNT = 3
 RETRY_WAIT = 2
 NOTIFY_THRESHOLD = 2
@@ -188,8 +190,7 @@ if __name__ == "__main__":
 
     my_lib.logger.init("panel.e-ink.weather", level=logging.INFO)
 
-    logging.info("Using config config: %s", config_file)
-    config = my_lib.config.load(config_file)
+    config = my_lib.config.load(config_file, pathlib.Path(SCHEMA_CONFIG))
 
     logging.info("Raspberry Pi hostname: %s", rasp_hostname)
 

@@ -19,7 +19,7 @@ import traceback
 from concurrent import futures
 
 import cv2
-import my_lib.notify_slack
+import my_lib.notify.slack
 import my_lib.panel_util
 import my_lib.pil_util
 import my_lib.selenium_util
@@ -436,7 +436,7 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
         )
     except Exception:
         if (trial >= 3) and (slack_config is not None):
-            my_lib.notify_slack.error_with_image(
+            my_lib.notify.slack.error_with_image(
                 slack_config["bot_token"],
                 slack_config["error"]["channel"]["name"],
                 slack_config["error"]["channel"]["id"],

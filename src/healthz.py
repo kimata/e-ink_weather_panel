@@ -16,6 +16,8 @@ import sys
 
 import my_lib.healthz
 
+SCHEMA_CONFIG = "config.schema"
+
 
 def check_liveness(target_list):
     for target in target_list:
@@ -38,8 +40,7 @@ if __name__ == "__main__":
 
     my_lib.logger.init("panel.e-ink.weather", level=logging.DEBUG if debug_mode else logging.INFO)
 
-    logging.info("Using config config: %s", config_file)
-    config = my_lib.config.load(config_file)
+    config = my_lib.config.load(config_file, pathlib.Path(SCHEMA_CONFIG))
 
     target_list = [
         {

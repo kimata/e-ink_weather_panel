@@ -22,6 +22,8 @@ import weather_display.generator
 from flask import Flask
 from flask_cors import CORS
 
+SCHEMA_CONFIG = "config.schema"
+
 
 def create_app(config_file_normal, config_file_small, dummy_mode=False):
     # NOTE: アクセスログは無効にする
@@ -47,7 +49,7 @@ def create_app(config_file_normal, config_file_small, dummy_mode=False):
     import my_lib.webapp.config
 
     my_lib.webapp.config.URL_PREFIX = "/weather_panel"
-    my_lib.webapp.config.init(my_lib.config.load(config_file_normal))
+    my_lib.webapp.config.init(my_lib.config.load(config_file_normal, pathlib.Path(SCHEMA_CONFIG)))
 
     import my_lib.webapp.base
 
