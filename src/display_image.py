@@ -30,6 +30,7 @@ import paramiko
 from docopt import docopt
 
 SCHEMA_CONFIG = "config.schema"
+SCHEMA_CONFIG_SMALL = "config-small.schema"
 
 RETRY_COUNT = 3
 RETRY_WAIT = 2
@@ -190,7 +191,9 @@ if __name__ == "__main__":
 
     my_lib.logger.init("panel.e-ink.weather", level=logging.INFO)
 
-    config = my_lib.config.load(config_file, pathlib.Path(SCHEMA_CONFIG))
+    config = my_lib.config.load(
+        config_file, pathlib.Path(SCHEMA_CONFIG_SMALL if small_mode else SCHEMA_CONFIG)
+    )
 
     logging.info("Raspberry Pi hostname: %s", rasp_hostname)
 
