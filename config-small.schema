@@ -1,0 +1,907 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "liveness": {
+            "type": "object",
+            "properties": {
+                "file": {
+                    "type": "object",
+                    "properties": {
+                        "display": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "display"
+                    ]
+                }
+            },
+            "required": [
+                "file"
+            ]
+        },
+        "panel": {
+            "type": "object",
+            "properties": {
+                "device": {
+                    "type": "object",
+                    "properties": {
+                        "width": {
+                            "type": "integer"
+                        },
+                        "height": {
+                            "type": "integer"
+                        }
+                    },
+                    "required": [
+                        "height",
+                        "width"
+                    ]
+                },
+                "update": {
+                    "type": "object",
+                    "properties": {
+                        "interval": {
+                            "type": "integer"
+                        }
+                    },
+                    "required": [
+                        "interval"
+                    ]
+                }
+            },
+            "required": [
+                "device",
+                "update"
+            ]
+        },
+        "influxdb": {
+            "type": "object",
+            "properties": {
+                "url": {
+                    "type": "string"
+                },
+                "org": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "bucket": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "bucket",
+                "org",
+                "token",
+                "url"
+            ]
+        },
+        "time": {
+            "type": "object",
+            "properties": {
+                "panel": {
+                    "type": "object",
+                    "properties": {
+                        "width": {
+                            "type": "integer"
+                        },
+                        "height": {
+                            "type": "integer"
+                        },
+                        "offset_x": {
+                            "type": "integer"
+                        },
+                        "offset_y": {
+                            "type": "integer"
+                        },
+                        "scale": {
+                            "type": "number"
+                        }
+                    },
+                    "required": [
+                        "height",
+                        "offset_x",
+                        "offset_y",
+                        "scale",
+                        "width"
+                    ]
+                }
+            },
+            "required": [
+                "panel"
+            ]
+        },
+        "weather": {
+            "type": "object",
+            "properties": {
+                "panel": {
+                    "type": "object",
+                    "properties": {
+                        "width": {
+                            "type": "integer"
+                        },
+                        "height": {
+                            "type": "integer"
+                        },
+                        "offset_x": {
+                            "type": "integer"
+                        },
+                        "offset_y": {
+                            "type": "integer"
+                        },
+                        "scale": {
+                            "type": "number"
+                        }
+                    },
+                    "required": [
+                        "height",
+                        "offset_x",
+                        "offset_y",
+                        "scale",
+                        "width"
+                    ]
+                },
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "yahoo": {
+                            "type": "object",
+                            "properties": {
+                                "url": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "url"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "yahoo"
+                    ]
+                },
+                "icon": {
+                    "type": "object",
+                    "properties": {
+                        "sunset": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "type": "string"
+                                },
+                                "scale": {
+                                    "type": "number"
+                                }
+                            },
+                            "required": [
+                                "path",
+                                "scale"
+                            ]
+                        },
+                        "sun": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "type": "string"
+                                },
+                                "scale": {
+                                    "type": "number"
+                                },
+                                "brightness": {
+                                    "type": "number"
+                                }
+                            },
+                            "required": [
+                                "brightness",
+                                "path",
+                                "scale"
+                            ]
+                        },
+                        "arrow": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "type": "string"
+                                },
+                                "scale": {
+                                    "type": "number"
+                                }
+                            },
+                            "required": [
+                                "path",
+                                "scale"
+                            ]
+                        },
+                        "thermo": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "type": "string"
+                                },
+                                "brightness": {
+                                    "type": "number"
+                                },
+                                "scale": {
+                                    "type": "number"
+                                }
+                            },
+                            "required": [
+                                "brightness",
+                                "path",
+                                "scale"
+                            ]
+                        },
+                        "clothes": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "type": "string"
+                                },
+                                "brightness": {
+                                    "type": "number"
+                                },
+                                "scale": {
+                                    "type": "number"
+                                }
+                            },
+                            "required": [
+                                "brightness",
+                                "path",
+                                "scale"
+                            ]
+                        },
+                        "clothing-full-1": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "type": "string"
+                                },
+                                "scale": {
+                                    "type": "number"
+                                },
+                                "brightness": {
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "brightness",
+                                "path",
+                                "scale"
+                            ]
+                        },
+                        "clothing-full-2": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "type": "string"
+                                },
+                                "scale": {
+                                    "type": "number"
+                                },
+                                "brightness": {
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "brightness",
+                                "path",
+                                "scale"
+                            ]
+                        },
+                        "clothing-full-3": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "type": "string"
+                                },
+                                "scale": {
+                                    "type": "number"
+                                },
+                                "brightness": {
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "brightness",
+                                "path",
+                                "scale"
+                            ]
+                        },
+                        "clothing-full-4": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "type": "string"
+                                },
+                                "scale": {
+                                    "type": "number"
+                                },
+                                "brightness": {
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "brightness",
+                                "path",
+                                "scale"
+                            ]
+                        },
+                        "clothing-full-5": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "type": "string"
+                                },
+                                "scale": {
+                                    "type": "number"
+                                },
+                                "brightness": {
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "brightness",
+                                "path",
+                                "scale"
+                            ]
+                        },
+                        "clothing-half-1": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "type": "string"
+                                },
+                                "scale": {
+                                    "type": "number"
+                                },
+                                "brightness": {
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "brightness",
+                                "path",
+                                "scale"
+                            ]
+                        },
+                        "clothing-half-2": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "type": "string"
+                                },
+                                "scale": {
+                                    "type": "number"
+                                },
+                                "brightness": {
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "brightness",
+                                "path",
+                                "scale"
+                            ]
+                        },
+                        "clothing-half-3": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "type": "string"
+                                },
+                                "scale": {
+                                    "type": "number"
+                                },
+                                "brightness": {
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "brightness",
+                                "path",
+                                "scale"
+                            ]
+                        },
+                        "clothing-half-4": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "type": "string"
+                                },
+                                "scale": {
+                                    "type": "number"
+                                },
+                                "brightness": {
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "brightness",
+                                "path",
+                                "scale"
+                            ]
+                        },
+                        "clothing-half-5": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "type": "string"
+                                },
+                                "scale": {
+                                    "type": "number"
+                                },
+                                "brightness": {
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "brightness",
+                                "path",
+                                "scale"
+                            ]
+                        },
+                        "precip": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "type": "string"
+                                },
+                                "brightness": {
+                                    "type": "number"
+                                },
+                                "scale": {
+                                    "type": "number"
+                                }
+                            },
+                            "required": [
+                                "brightness",
+                                "path",
+                                "scale"
+                            ]
+                        },
+                        "wind": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "type": "string"
+                                },
+                                "brightness": {
+                                    "type": "number"
+                                },
+                                "scale": {
+                                    "type": "number"
+                                }
+                            },
+                            "required": [
+                                "brightness",
+                                "path",
+                                "scale"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "arrow",
+                        "clothes",
+                        "clothing-full-1",
+                        "clothing-full-2",
+                        "clothing-full-3",
+                        "clothing-full-4",
+                        "clothing-full-5",
+                        "clothing-half-1",
+                        "clothing-half-2",
+                        "clothing-half-3",
+                        "clothing-half-4",
+                        "clothing-half-5",
+                        "precip",
+                        "sun",
+                        "sunset",
+                        "thermo",
+                        "wind"
+                    ]
+                }
+            },
+            "required": [
+                "data",
+                "icon",
+                "panel"
+            ]
+        },
+        "power": {
+            "type": "object",
+            "properties": {
+                "panel": {
+                    "type": "object",
+                    "properties": {
+                        "width": {
+                            "type": "integer"
+                        },
+                        "height": {
+                            "type": "integer"
+                        },
+                        "overlap": {
+                            "type": "integer"
+                        }
+                    },
+                    "required": [
+                        "height",
+                        "overlap",
+                        "width"
+                    ]
+                },
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "host": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "type": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "name",
+                                "type"
+                            ]
+                        },
+                        "param": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "format": {
+                                    "type": "string"
+                                },
+                                "unit": {
+                                    "type": "string"
+                                },
+                                "range": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer"
+                                    }
+                                }
+                            },
+                            "required": [
+                                "format",
+                                "name",
+                                "range",
+                                "unit"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "host",
+                        "param"
+                    ]
+                }
+            },
+            "required": [
+                "data",
+                "panel"
+            ]
+        },
+        "rain_cloud": {
+            "type": "object",
+            "properties": {
+                "panel": {
+                    "type": "object",
+                    "properties": {
+                        "offset_x": {
+                            "type": "integer"
+                        },
+                        "offset_y": {
+                            "type": "integer"
+                        },
+                        "width": {
+                            "type": "integer"
+                        },
+                        "height": {
+                            "type": "integer"
+                        }
+                    },
+                    "required": [
+                        "height",
+                        "offset_x",
+                        "offset_y",
+                        "width"
+                    ]
+                },
+                "legend": {
+                    "type": "object",
+                    "properties": {
+                        "bar_size": {
+                            "type": "integer"
+                        },
+                        "offset_x": {
+                            "type": "integer"
+                        },
+                        "offset_y": {
+                            "type": "integer"
+                        },
+                        "gamma": {
+                            "type": "number"
+                        }
+                    },
+                    "required": [
+                        "bar_size",
+                        "gamma",
+                        "offset_x",
+                        "offset_y"
+                    ]
+                },
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "jma": {
+                            "type": "object",
+                            "properties": {
+                                "url": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "url"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "jma"
+                    ]
+                }
+            },
+            "required": [
+                "data",
+                "legend",
+                "panel"
+            ]
+        },
+        "sunset": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "nao": {
+                            "type": "object",
+                            "properties": {
+                                "pref": {
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "pref"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "nao"
+                    ]
+                }
+            },
+            "required": [
+                "data"
+            ]
+        },
+        "wbgt": {
+            "type": "object",
+            "properties": {
+                "panel": {
+                    "type": "object",
+                    "properties": {
+                        "offset_x": {
+                            "type": "integer"
+                        },
+                        "offset_y": {
+                            "type": "integer"
+                        },
+                        "width": {
+                            "type": "integer"
+                        },
+                        "height": {
+                            "type": "integer"
+                        }
+                    },
+                    "required": [
+                        "height",
+                        "offset_x",
+                        "offset_y",
+                        "width"
+                    ]
+                },
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "env_go": {
+                            "type": "object",
+                            "properties": {
+                                "url": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "url"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "env_go"
+                    ]
+                },
+                "icon": {
+                    "type": "object",
+                    "properties": {
+                        "face": {
+                            "type": "array",
+                            "minItems": 5,
+                            "maxItems": 5,
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "path": {
+                                        "type": "string"
+                                    },
+                                    "brightness": {
+                                        "type": "number"
+                                    }
+                                },
+                                "required": [
+                                    "brightness",
+                                    "path"
+                                ]
+                            }
+                        }
+                    },
+                    "required": [
+                        "face"
+                    ]
+                }
+            },
+            "required": [
+                "data",
+                "icon",
+                "panel"
+            ]
+        },
+        "font": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string"
+                },
+                "map": {
+                    "type": "object",
+                    "properties": {
+                        "jp_regular": {
+                            "type": "string"
+                        },
+                        "jp_medium": {
+                            "type": "string"
+                        },
+                        "jp_bold": {
+                            "type": "string"
+                        },
+                        "en_cond_bold": {
+                            "type": "string"
+                        },
+                        "en_cond": {
+                            "type": "string"
+                        },
+                        "en_medium": {
+                            "type": "string"
+                        },
+                        "en_bold": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "en_bold",
+                        "en_cond",
+                        "en_cond_bold",
+                        "en_medium",
+                        "jp_bold",
+                        "jp_medium",
+                        "jp_regular"
+                    ]
+                }
+            },
+            "required": [
+                "map",
+                "path"
+            ]
+        },
+        "webapp": {
+            "type": "object",
+            "properties": {
+                "timezone": {
+                    "type": "object",
+                    "properties": {
+                        "offset": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "zone": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "name",
+                        "offset",
+                        "zone"
+                    ]
+                },
+                "static_dir_path": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "static_dir_path",
+                "timezone"
+            ]
+        },
+        "slack": {
+            "type": "object",
+            "properties": {
+                "from": {
+                    "type": "string"
+                },
+                "bot_token": {
+                    "type": "string"
+                },
+                "error": {
+                    "type": "object",
+                    "properties": {
+                        "channel": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "id": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "name"
+                            ]
+                        },
+                        "interval_min": {
+                            "type": "integer"
+                        }
+                    },
+                    "required": [
+                        "channel",
+                        "interval_min"
+                    ]
+                }
+            },
+            "required": [
+                "bot_token",
+                "error",
+                "from"
+            ]
+        }
+    },
+    "required": [
+        "font",
+        "influxdb",
+        "liveness",
+        "panel",
+        "power",
+        "rain_cloud",
+        "sunset",
+        "time",
+        "wbgt",
+        "weather",
+        "webapp"
+    ]
+}

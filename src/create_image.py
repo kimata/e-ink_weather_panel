@@ -40,6 +40,7 @@ import weather_display.wbgt_panel
 import weather_display.weather_panel
 
 SCHEMA_CONFIG = "config.schema"
+SCHEMA_CONFIG_SMALL = "config-small.schema"
 
 # 一部の描画でエラー
 ERROR_CODE_MINOR = 220
@@ -208,7 +209,9 @@ if __name__ == "__main__":
 
     my_lib.logger.init("panel.e-ink.weather", level=log_level)
 
-    config = my_lib.config.load(config_file, pathlib.Path(SCHEMA_CONFIG))
+    config = my_lib.config.load(
+        config_file, pathlib.Path(SCHEMA_CONFIG_SMALL if small_mode else SCHEMA_CONFIG)
+    )
 
     img, status = create_image(config, small_mode, dummy_mode, test_mode)
 
