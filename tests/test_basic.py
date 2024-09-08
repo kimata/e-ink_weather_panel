@@ -1049,7 +1049,7 @@ def test_display_image(mocker, tmp_path, request):
         config,
         "TEST",
         "TEST",
-        CONFIG_FILE,
+        CONFIG_SMALL_FILE,
         small_mode=True,
         test_mode=True,
         is_one_time=False,
