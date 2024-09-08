@@ -41,7 +41,7 @@ def env_mock():
 @pytest.fixture(scope="session", autouse=True)
 def slack_mock():
     with mock.patch(
-        "my_lib.notify_slack.slack_sdk.web.client.WebClient.chat_postMessage",
+        "my_lib.notify.slack.slack_sdk.web.client.WebClient.chat_postMessage",
         retunr_value=True,
     ) as fixture:
         yield fixture
@@ -57,14 +57,14 @@ def app():
 
 @pytest.fixture(autouse=True)
 def _clear():
-    import my_lib.notify_slack
+    import my_lib.notify.slack
 
     config = my_lib.config.load(CONFIG_FILE)
 
     pathlib.Path(config["liveness"]["file"]["display"]).unlink(missing_ok=True)
 
-    my_lib.notify_slack.interval_clear()
-    my_lib.notify_slack.hist_clear()
+    my_lib.notify.slack.interval_clear()
+    my_lib.notify.slack.hist_clear()
 
 
 @pytest.fixture()
@@ -146,9 +146,9 @@ def gen_sensor_data(value=[30, 34, 25, 20], valid=True):  # noqa: B006
 
 # NOTE: テストを並列実行すると，この関数が結果を誤判定する可能性あり
 def check_notify_slack(message, index=-1):
-    import my_lib.notify_slack
+    import my_lib.notify.slack
 
-    notify_hist = my_lib.notify_slack.hist_get()
+    notify_hist = my_lib.notify.slack.hist_get()
 
     if message is None:
         assert notify_hist == [], "正常なはずなのに，エラー通知がされています．"
