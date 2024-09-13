@@ -1019,10 +1019,17 @@ def test_display_image(mocker, tmp_path, request):
 
     import display_image
 
-    ssh_client_mock = mocker.MagicMock()
+    ssh_mock = mocker.MagicMock()
+
+    stdin_mock = mocker.MagicMock()
+    stdout_mock = mocker.MagicMock()
+    stderr_mock = mocker.MagicMock()
+    stdout_mock.channel.recv_exit_status.return_value = 0
+
+    ssh_mock.exec_command.return_value = (stdin_mock, stdout_mock, stderr_mock)
 
     mocker.patch("paramiko.RSAKey.from_private_key")
-    mocker.patch("paramiko.SSHClient", new=ssh_client_mock)
+    mocker.patch("paramiko.SSHClient", return_value=ssh_mock)
 
     orig_open = builtins.open
 
@@ -1065,10 +1072,17 @@ def test_display_image_onetime(mocker, tmp_path, request):
 
     import display_image
 
-    ssh_client_mock = mocker.MagicMock()
+    ssh_mock = mocker.MagicMock()
+
+    stdin_mock = mocker.MagicMock()
+    stdout_mock = mocker.MagicMock()
+    stderr_mock = mocker.MagicMock()
+    stdout_mock.channel.recv_exit_status.return_value = 0
+
+    ssh_mock.exec_command.return_value = (stdin_mock, stdout_mock, stderr_mock)
 
     mocker.patch("paramiko.RSAKey.from_private_key")
-    mocker.patch("paramiko.SSHClient", new=ssh_client_mock)
+    mocker.patch("paramiko.SSHClient", return_value=ssh_mock)
 
     orig_open = builtins.open
 
@@ -1111,12 +1125,21 @@ def test_display_image_error_major(mocker, tmp_path, request):
     import create_image
     import display_image
 
-    ssh_client_mock = mocker.MagicMock()
+    ssh_mock = mocker.MagicMock()
+
+    stdin_mock = mocker.MagicMock()
+    stdout_mock = mocker.MagicMock()
+    stderr_mock = mocker.MagicMock()
+    stdout_mock.channel.recv_exit_status.return_value = 0
+
+    ssh_mock.exec_command.return_value = (stdin_mock, stdout_mock, stderr_mock)
+
+    mocker.patch("paramiko.RSAKey.from_private_key")
+    mocker.patch("paramiko.SSHClient", return_value=ssh_mock)
+
     subprocess_popen_mock = mocker.MagicMock()
     type(subprocess_popen_mock).returncode = mocker.PropertyMock(return_value=create_image.ERROR_CODE_MAJOR)
 
-    mocker.patch("paramiko.RSAKey.from_private_key")
-    mocker.patch("paramiko.SSHClient", new=ssh_client_mock)
     mocker.patch("subprocess.Popen", return_value=subprocess_popen_mock)
 
     orig_open = builtins.open
@@ -1162,12 +1185,21 @@ def test_display_image_error_minor(mocker, tmp_path, request):
     import create_image
     import display_image
 
-    ssh_client_mock = mocker.MagicMock()
+    ssh_mock = mocker.MagicMock()
+
+    stdin_mock = mocker.MagicMock()
+    stdout_mock = mocker.MagicMock()
+    stderr_mock = mocker.MagicMock()
+    stdout_mock.channel.recv_exit_status.return_value = 0
+
+    ssh_mock.exec_command.return_value = (stdin_mock, stdout_mock, stderr_mock)
+
+    mocker.patch("paramiko.RSAKey.from_private_key")
+    mocker.patch("paramiko.SSHClient", return_value=ssh_mock)
+
     subprocess_popen_mock = mocker.MagicMock()
     type(subprocess_popen_mock).returncode = mocker.PropertyMock(return_value=create_image.ERROR_CODE_MINOR)
 
-    mocker.patch("paramiko.RSAKey.from_private_key")
-    mocker.patch("paramiko.SSHClient", new=ssh_client_mock)
     mocker.patch("subprocess.Popen", return_value=subprocess_popen_mock)
 
     orig_open = builtins.open
@@ -1212,12 +1244,21 @@ def test_display_image_error_unknown(mocker, tmp_path, request):
 
     import display_image
 
-    ssh_client_mock = mocker.MagicMock()
+    ssh_mock = mocker.MagicMock()
+
+    stdin_mock = mocker.MagicMock()
+    stdout_mock = mocker.MagicMock()
+    stderr_mock = mocker.MagicMock()
+    stdout_mock.channel.recv_exit_status.return_value = 0
+
+    ssh_mock.exec_command.return_value = (stdin_mock, stdout_mock, stderr_mock)
+
+    mocker.patch("paramiko.RSAKey.from_private_key")
+    mocker.patch("paramiko.SSHClient", return_value=ssh_mock)
+
     subprocess_popen_mock = mocker.MagicMock()
     type(subprocess_popen_mock).returncode = mocker.PropertyMock(return_value=-1)
 
-    mocker.patch("paramiko.RSAKey.from_private_key")
-    mocker.patch("paramiko.SSHClient", new=ssh_client_mock)
     mocker.patch("subprocess.Popen", return_value=subprocess_popen_mock)
 
     orig_open = builtins.open
