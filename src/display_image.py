@@ -86,7 +86,7 @@ def ssh_kill_and_close(ssh, cmd):
         raise
 
 
-def display_image(  # noqa: PLR0913, C901
+def display_image(  # noqa: PLR0913, PLR0912, C901
     config,
     rasp_hostname,
     key_file_path,
@@ -102,13 +102,13 @@ def display_image(  # noqa: PLR0913, C901
 
     ssh = exec_patiently(ssh_connect, (rasp_hostname, key_file_path))
 
-    ssh_stdin = exec_patiently(
+    ssh_stdin, ssh_stdout, ssh_stderr = exec_patiently(
         ssh.exec_command,
         (
             "cat - > /dev/shm/display.png && "
             "sudo fbi -1 -T 1 -d /dev/fb0 --noverbose /dev/shm/display.png; echo $?",
         ),
-    )[0]
+    )
 
     logging.info("Start drawing.")
 
@@ -122,18 +122,26 @@ def display_image(  # noqa: PLR0913, C901
     ssh_stdin.write(proc.communicate()[0])
     proc.wait()
 
-    ssh_stdin.close()
-    print(proc.communicate()[1].decode("utf-8"), file=sys.stderr)  # noqa: T201
+    ssh_stdin.flush()
+    ssh_stdin.channel.shutdown_write()
+
+    logging.info(proc.communicate()[1].decode("utf-8"))
+
+    fbi_status = ssh_stdout.channel.recv_exit_status()
 
     # NOTE: -24 は create_image.py の異常時の終了コードに合わせる．
-    if proc.returncode == 0:
+    if (fbi_status == 0) and (proc.returncode == 0):
         logging.info("Succeeded.")
         my_lib.footprint.update(pathlib.Path(config["liveness"]["file"]["display"]))
     elif proc.returncode == create_image.ERROR_CODE_MAJOR:
-        logging.warning("Something is wrong. (code: %d)", proc.returncode)
+        logging.warning("Failed to create image at all. (code: %d)", proc.returncode)
     elif proc.returncode == create_image.ERROR_CODE_MINOR:
-        logging.warning("Something is wrong. (code: %d)", proc.returncode)
+        logging.warning("Failed to create image partially. (code: %d)", proc.returncode)
         my_lib.footprint.update(pathlib.Path(config["liveness"]["file"]["display"]))
+    elif fbi_status != 0:
+        logging.warning("Failed to display image. (code: %d)", fbi_status)
+        logging.warning("[stdout] %s", ssh_stdout.read().decode("utf-8"))
+        logging.warning("[stderr] %s", ssh_stderr.read().decode("utf-8"))
     else:
         logging.error("Failed to create image. (code: %d)", proc.returncode)
         sys.exit(proc.returncode)
