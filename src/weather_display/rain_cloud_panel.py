@@ -23,6 +23,7 @@ import my_lib.notify.slack
 import my_lib.panel_util
 import my_lib.pil_util
 import my_lib.selenium_util
+import my_lib.thread_util
 import numpy as np
 import PIL.Image
 import PIL.ImageDraw
@@ -548,7 +549,7 @@ def create_rain_cloud_panel_impl(  # noqa: PLR0913
     slack_config,
     is_side_by_side,
     trial,
-    unused=None,  # noqa: ARG001
+    is_threaded=True,
 ):
     if is_side_by_side:
         sub_width = int(panel_config["panel"]["width"] / 2)
@@ -588,31 +589,33 @@ def create_rain_cloud_panel_impl(  # noqa: PLR0913
     face_map = get_face_map(font_config)
 
     task_list = []
-    # NOTE: 並列に生成する
-    with futures.ThreadPoolExecutor() as executor:
-        for sub_panel_config in SUB_PANEL_CONFIG_LIST:
-            task_list.append(
-                executor.submit(
-                    create_rain_cloud_img,
-                    panel_config,
-                    sub_panel_config,
-                    face_map,
-                    slack_config,
-                    trial,
-                )
+    executor = futures.ThreadPoolExecutor() if is_threaded else my_lib.thread_util.SingleThreadExecutor()
+
+    for sub_panel_config in SUB_PANEL_CONFIG_LIST:
+        task_list.append(
+            executor.submit(
+                create_rain_cloud_img,
+                panel_config,
+                sub_panel_config,
+                face_map,
+                slack_config,
+                trial,
             )
-            # NOTE: タイミングをずらさないと，初回起動時 user-data-dir を生成しようとした
-            # タイミングでエラーになる．
-            time.sleep(3)
+        )
+        # NOTE: タイミングをずらさないと，初回起動時 user-data-dir を生成しようとした
+        # タイミングでエラーになる．
+        time.sleep(3)
 
     for i, sub_panel_config in enumerate(SUB_PANEL_CONFIG_LIST):
         sub_img, bar = task_list[i].result()
         img.paste(sub_img, (sub_panel_config["offset_x"], sub_panel_config["offset_y"]))
 
+    executor.shutdown(True)
+
     return draw_legend(img, bar, panel_config, face_map)
 
 
-def create(config, is_side_by_side=True):
+def create(config, is_side_by_side=True, is_threaded=True):
     logging.info("draw rain cloud panel")
 
     return my_lib.panel_util.draw_panel_patiently(
@@ -621,6 +624,7 @@ def create(config, is_side_by_side=True):
         config["font"],
         config.get("slack", None),
         is_side_by_side,
+        is_threaded,
     )
 
 

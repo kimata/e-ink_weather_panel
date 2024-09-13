@@ -12,7 +12,7 @@ dependencies = [
     "schedule>=1.2.2",
     "rpi-lgpio>=0.6",
     "influxdb-client[ciso]>=1.44.0",
-    "my-lib @ git+https://github.com/kimata/my-py-lib@9d7b60017ad82e9bbef6a26531e6fe11b7b9fcca",
+    "my-lib @ git+https://github.com/kimata/my-py-lib@26523adb613c1a5af544a262671483198750ccde",
     "opencv-contrib-python-headless>=4.10.0.84",
     "matplotlib>=3.9.2",
     "pandas>=2.2.2",
