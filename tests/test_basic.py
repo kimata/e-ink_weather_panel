@@ -697,7 +697,7 @@ def test_create_rain_cloud_panel_cache_and_error(mocker, request, tmp_path):
 
     check_image(
         request,
-        weather_display.rain_cloud_panel.create(config)[0],
+        weather_display.rain_cloud_panel.create(config, True, False)[0],
         config["rain_cloud"]["panel"],
         0,
     )
