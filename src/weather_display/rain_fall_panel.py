@@ -48,7 +48,7 @@ def get_rainfall_status(panel_config, db_config):
         panel_config["host"]["name"],
         "rain",
         start=START,
-        window_min=None,
+        window_min=0,
         last=True,
     )
 
