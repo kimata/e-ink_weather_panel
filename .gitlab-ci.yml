@@ -51,6 +51,7 @@ build-image:
         paths:
             - /var/lib/apt
             - /var/cache/apt
+            - /root/.cache
 
 test-prepare:
     stage: pre-test
