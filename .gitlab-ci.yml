@@ -71,7 +71,7 @@ test-walk-through:
         - build-react
 
     script:
-        - rye run pytest tests/test_basic.py -n auto
+        - rye run pytest tests/test_basic.py
 
     variables:
         RUST_LOG: trace
