@@ -224,6 +224,20 @@ sensor:
         aircon:
             path: img/aircon.png
 
+rain_fall:
+    panel:
+        offset_x: 1604
+        offset_y: 960
+        width: 1596
+        height: 860
+    host:
+        name: rasp-weather-1
+        type: sensor.rasp
+
+    icon:
+        path: img/rainfall.png
+        scale: 0.3
+
 rain_cloud:
     panel:
         offset_x: 1604

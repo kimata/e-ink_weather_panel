@@ -34,6 +34,7 @@ import my_lib.panel_util
 import my_lib.pil_util
 import weather_display.power_graph
 import weather_display.rain_cloud_panel
+import weather_display.rain_fall_panel
 import weather_display.sensor_graph
 import weather_display.time_panel
 import weather_display.wbgt_panel
@@ -74,6 +75,7 @@ def draw_panel(config, img, is_small_mode=False):
             {"name": "power", "func": weather_display.power_graph.create},
             {"name": "weather", "func": weather_display.weather_panel.create},
             {"name": "wbgt", "func": weather_display.wbgt_panel.create},
+            {"name": "rain_fall", "func": weather_display.rain_fall_panel.create},
             {"name": "time", "func": weather_display.time_panel.create},
         ]
 
@@ -117,7 +119,7 @@ def draw_panel(config, img, is_small_mode=False):
 
     draw_wall(config, img)
 
-    for name in ["power", "weather", "sensor", "rain_cloud", "wbgt", "time"]:
+    for name in ["power", "weather", "sensor", "rain_cloud", "wbgt", "rain_fall", "time"]:
         if name not in panel_map:
             continue
 
