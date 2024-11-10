@@ -207,6 +207,7 @@ def check_liveness(config, is_should_healthy):
 
 
 ######################################################################
+@pytest.mark.xdist_group(name="Selenium")
 def test_create_image(request, mocker, tmp_path):
     import create_image
 
@@ -228,6 +229,7 @@ def test_create_image(request, mocker, tmp_path):
     check_notify_slack(None)
 
 
+@pytest.mark.xdist_group(name="Selenium")
 def test_create_image_small(request, tmp_path, mocker):
     import create_image
 
@@ -646,6 +648,7 @@ def test_create_sensor_graph_influx_error(mocker, request, tmp_path):
 
 
 ######################################################################
+@pytest.mark.xdist_group(name="Selenium")
 def test_create_rain_cloud_panel(request, tmp_path):
     import weather_display.rain_cloud_panel
 
@@ -670,6 +673,7 @@ def test_create_rain_cloud_panel(request, tmp_path):
     check_notify_slack(None)
 
 
+@pytest.mark.xdist_group(name="Selenium")
 def test_create_rain_cloud_panel_cache_and_error(mocker, request, tmp_path):
     import weather_display.rain_cloud_panel
     from my_lib.selenium_util import click_xpath as click_xpath_orig
@@ -714,6 +718,7 @@ def test_create_rain_cloud_panel_cache_and_error(mocker, request, tmp_path):
     check_notify_slack("Traceback")
 
 
+@pytest.mark.xdist_group(name="Selenium")
 def test_create_rain_cloud_panel_xpath_fail(mocker, request, tmp_path):
     import weather_display.rain_cloud_panel
     from my_lib.selenium_util import xpath_exists
@@ -770,6 +775,7 @@ def test_create_rain_cloud_panel_selenium_error(mocker, request, tmp_path):
     check_notify_slack(None)
 
 
+@pytest.mark.xdist_group(name="Selenium")
 def test_create_rain_cloud_panel_xpath_error(mocker, request, tmp_path):
     import weather_display.rain_cloud_panel
     from my_lib.selenium_util import xpath_exists
@@ -822,6 +828,7 @@ def test_slack_error(mocker, request, tmp_path):
     check_notify_slack("Traceback")
 
 
+@pytest.mark.xdist_group(name="Selenium")
 def test_slack_error_with_image(mocker, request, tmp_path):
     import weather_display.rain_cloud_panel
     from weather_display.rain_cloud_panel import fetch_cloud_image
