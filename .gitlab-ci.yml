@@ -46,6 +46,11 @@ build-image:
         - docker buildx use ${BUILDER}
         - docker buildx build --platform linux/amd64 --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:cache --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}:cache --build-arg IMAGE_BUILD_DATE=$(date --iso-8601=seconds) --push --tag ${CI_REGISTRY_IMAGE} .
 
+    cache:
+        key: buildx
+        paths:
+            - /cache
+
 test-prepare:
     stage: pre-test
 
