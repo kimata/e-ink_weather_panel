@@ -102,12 +102,12 @@ def gen_start_text(start_time):
     total_minutes = delta.total_seconds() // 60
 
     if total_minutes < 60:
-        return f"({int(total_minutes)}分前)"
+        return f"({int(total_minutes)}分前〜)"
     elif total_minutes < 120:
-        return f"(1時間{int(total_minutes - 60)}分前)"
+        return f"(1時間{int(total_minutes - 60)}分前〜)"
     else:
         total_hours = total_minutes // 60
-        return f"({int(total_hours)}時間前)"
+        return f"({int(total_hours)}時間前〜)"
 
 
 def draw_rainfall(img, rainfall_status, icon_config, face_map):
