@@ -642,16 +642,16 @@
                             "aircon": {
                                 "type": "object",
                                 "properties": {
-                                    "measure": {
+                                    "type": {
                                         "type": "string"
                                     },
-                                    "host": {
+                                    "name": {
                                         "type": "string"
                                     }
                                 },
                                 "required": [
-                                    "host",
-                                    "measure"
+                                    "name",
+                                    "type"
                                 ]
                             },
                             "type": {

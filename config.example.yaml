@@ -147,8 +147,8 @@ sensor:
               type: sensor.rasp
           light_icon: on
           aircon:
-            measure: hems.sharp
-            host: リビングエアコン
+            type: hems.sharp
+            name: リビングエアコン
         - label: 和室
           type: rasp
           host:
@@ -156,8 +156,8 @@ sensor:
               type: sensor.rasp
           light_icon: on
           aircon:
-            measure: hems.sharp
-            host: 和室エアコン
+            type: hems.sharp
+            name: 和室エアコン
         - label: 洋室A
           host:
             - name: rpi-cm4-sensor-1
@@ -184,8 +184,8 @@ sensor:
               type: sensor.rasp
           light_icon: on
           aircon:
-            measure: hems.sharp
-            host: 書斎エアコン
+            type: hems.sharp
+            name: 書斎エアコン
 
     param_list:
         - name: temp

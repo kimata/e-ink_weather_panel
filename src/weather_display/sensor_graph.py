@@ -140,8 +140,8 @@ def get_aircon_power(db_config, aircon):
 
     data = fetch_data(
         db_config,
-        aircon["measure"],
-        aircon["host"],
+        aircon["type"],
+        aircon["name"],
         "power",
         start,
         stop,
