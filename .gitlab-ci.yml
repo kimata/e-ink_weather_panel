@@ -1,4 +1,4 @@
-image: registry.green-rabbit.net:5000/kimata/local_ubuntu:240730E
+image: registry.green-rabbit.net:5000/kimata/local_ubuntu:241105B
 
 stages:
     - build-webapp
@@ -42,7 +42,7 @@ build-image:
         - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
         - mv private_font/* font
 
-        - docker buildx create --name ${BUILDER} --use
+        - docker buildx create --name ${BUILDER} --use --config /etc/buildkitd.toml
         - docker buildx use ${BUILDER}
         - docker buildx build --platform linux/amd64 --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:cache --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}:cache --build-arg IMAGE_BUILD_DATE=$(date --iso-8601=seconds) --push --tag ${CI_REGISTRY_IMAGE} .
 
