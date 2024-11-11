@@ -530,7 +530,7 @@
                 "data": {
                     "type": "object",
                     "properties": {
-                        "host": {
+                        "sensor": {
                             "type": "object",
                             "properties": {
                                 "name": {
@@ -573,8 +573,8 @@
                         }
                     },
                     "required": [
-                        "host",
-                        "param"
+                        "param",
+                        "sensor"
                     ]
                 }
             },
@@ -611,14 +611,13 @@
                 },
                 "room_list": {
                     "type": "array",
-                    "minItems": 1,
                     "items": {
                         "type": "object",
                         "properties": {
                             "label": {
                                 "type": "string"
                             },
-                            "host": {
+                            "sensor": {
                                 "type": "array",
                                 "items": {
                                     "type": "object",
@@ -653,21 +652,17 @@
                                     "name",
                                     "type"
                                 ]
-                            },
-                            "type": {
-                                "type": "string"
                             }
                         },
                         "required": [
-                            "host",
                             "label",
-                            "light_icon"
+                            "light_icon",
+                            "sensor"
                         ]
                     }
                 },
                 "param_list": {
                     "type": "array",
-                    "minItems": 1,
                     "items": {
                         "type": "object",
                         "properties": {
@@ -767,6 +762,69 @@
                 "panel",
                 "param_list",
                 "room_list"
+            ]
+        },
+        "rain_fall": {
+            "type": "object",
+            "properties": {
+                "panel": {
+                    "type": "object",
+                    "properties": {
+                        "offset_x": {
+                            "type": "integer"
+                        },
+                        "offset_y": {
+                            "type": "integer"
+                        },
+                        "width": {
+                            "type": "integer"
+                        },
+                        "height": {
+                            "type": "integer"
+                        }
+                    },
+                    "required": [
+                        "height",
+                        "offset_x",
+                        "offset_y",
+                        "width"
+                    ]
+                },
+                "sensor": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "name",
+                        "type"
+                    ]
+                },
+                "icon": {
+                    "type": "object",
+                    "properties": {
+                        "path": {
+                            "type": "string"
+                        },
+                        "scale": {
+                            "type": "number"
+                        }
+                    },
+                    "required": [
+                        "path",
+                        "scale"
+                    ]
+                }
+            },
+            "required": [
+                "icon",
+                "panel",
+                "sensor"
             ]
         },
         "rain_cloud": {
@@ -921,8 +979,6 @@
                     "properties": {
                         "face": {
                             "type": "array",
-                            "minItems": 5,
-                            "maxItems": 5,
                             "items": {
                                 "type": "object",
                                 "properties": {
@@ -1080,7 +1136,9 @@
         "panel",
         "power",
         "rain_cloud",
+        "rain_fall",
         "sensor",
+        "slack",
         "sunset",
         "time",
         "wbgt",

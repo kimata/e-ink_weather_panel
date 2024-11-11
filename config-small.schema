@@ -534,7 +534,7 @@
                 "data": {
                     "type": "object",
                     "properties": {
-                        "host": {
+                        "sensor": {
                             "type": "object",
                             "properties": {
                                 "name": {
@@ -577,8 +577,8 @@
                         }
                     },
                     "required": [
-                        "host",
-                        "param"
+                        "param",
+                        "sensor"
                     ]
                 }
             },
@@ -739,8 +739,6 @@
                     "properties": {
                         "face": {
                             "type": "array",
-                            "minItems": 5,
-                            "maxItems": 5,
                             "items": {
                                 "type": "object",
                                 "properties": {
@@ -898,6 +896,7 @@
         "panel",
         "power",
         "rain_cloud",
+        "slack",
         "sunset",
         "time",
         "wbgt",

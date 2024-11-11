@@ -253,7 +253,7 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
         for col in range(len(room_list)):
             data = sensor_data(
                 db_config,
-                room_list[col]["host"],
+                room_list[col]["sensor"],
                 param["name"],
             )
             if not data["valid"]:
@@ -286,7 +286,7 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
         for col in range(len(room_list)):
             data = sensor_data(
                 db_config,
-                room_list[col]["host"],
+                room_list[col]["sensor"],
                 param["name"],
             )
             if not data["valid"]:

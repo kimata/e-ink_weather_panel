@@ -115,7 +115,7 @@ power:
         height: 510
         overlap: 380
     data:
-        host:
+        sensor:
             name: rasp-meter-5
             type: sensor.rasp
         param:

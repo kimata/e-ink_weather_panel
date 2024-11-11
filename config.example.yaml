@@ -115,7 +115,7 @@ power:
         offset_y: 620
 
     data:
-        host:
+        sensor:
             name: rasp-meter-5
             type: sensor.rasp
         param:
@@ -135,14 +135,14 @@ sensor:
 
     room_list:
         - label: 屋外
-          host:
+          sensor:
             - name: ESP32-outdoor-1
               type: sensor.esp32
             - name: rasp-meter-8
               type: sensor.rasp
           light_icon: off
         - label: リビング
-          host:
+          sensor:
             - name: rpi-cm4-sensor-6
               type: sensor.rasp
           light_icon: on
@@ -151,7 +151,7 @@ sensor:
             name: リビングエアコン
         - label: 和室
           type: rasp
-          host:
+          sensor:
             - name: rasp-meter-2
               type: sensor.rasp
           light_icon: on
@@ -159,27 +159,27 @@ sensor:
             type: hems.sharp
             name: 和室エアコン
         - label: 洋室A
-          host:
+          sensor:
             - name: rpi-cm4-sensor-1
               type: sensor.rasp
           light_icon: on
         - label: 洋室B
-          host:
+          sensor:
             - name: rpi-cm4-sensor-2
               type: sensor.rasp
           light_icon: on
         - label: 洋室C
-          host:
+          sensor:
             - name: rpi-cm4-sensor-3
               type: sensor.rasp
           light_icon: on
         - label: 家事室
-          host:
+          sensor:
             - name: rpi-cm4-sensor-4
               type: sensor.rasp
           light_icon: on
         - label: 書斎
-          host:
+          sensor:
             - name: rasp-meter-3
               type: sensor.rasp
           light_icon: on
@@ -230,7 +230,7 @@ rain_fall:
         offset_y: 960
         width: 1596
         height: 860
-    host:
+    sensor:
         name: rasp-weather-1
         type: sensor.rasp
 
