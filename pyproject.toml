@@ -9,8 +9,6 @@ readme = "README.md"
 requires-python = ">= 3.10"
 
 dependencies = [
-    "schedule>=1.2.2",
-    "rpi-lgpio>=0.6",
     "influxdb-client[ciso]>=1.44.0",
     "my-lib @ git+https://github.com/kimata/my-py-lib@e36ac136f8dfa42cac603bb753c9bff4c07c9bdf",
     "opencv-contrib-python-headless>=4.10.0.84",
