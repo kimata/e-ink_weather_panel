@@ -30,7 +30,6 @@ import PIL.ImageDraw
 import selenium.webdriver.common.by
 import selenium.webdriver.support
 import selenium.webdriver.support.wait
-from my_lib.selenium_util import click_xpath
 
 DATA_PATH = pathlib.Path("data")
 WINDOW_SIZE_CACHE = DATA_PATH / "window_size.cache"
@@ -101,25 +100,25 @@ def change_setting(driver, wait):
     #     selenium.webdriver.common.by.By.XPATH, '//a[contains(@aria-label, "地形を表示")]'
     # ).click()
 
-    click_xpath(
+    my_lib.selenium_util.click_xpath(
         driver,
         '//a[contains(@aria-label, "色の濃さ")]',
         wait,
         True,
     )
-    click_xpath(
+    my_lib.selenium_util.click_xpath(
         driver,
         '//span[contains(text(), "濃い")]',
         wait,
         True,
     )
-    click_xpath(
+    my_lib.selenium_util.click_xpath(
         driver,
         '//a[contains(@aria-label, "地図を切り替え")]',
         wait,
         True,
     )
-    click_xpath(
+    my_lib.selenium_util.click_xpath(
         driver,
         '//span[contains(text(), "地名なし")]',
         wait,
@@ -129,7 +128,7 @@ def change_setting(driver, wait):
 
 def shape_cloud_display(driver, wait, width, height, is_future):  # noqa: ARG001
     if is_future:
-        click_xpath(
+        my_lib.selenium_util.click_xpath(
             driver,
             '//div[@class="jmatile-control"]//div[contains(text(), " +1時間 ")]',
             wait,
@@ -150,15 +149,10 @@ def change_window_size_impl(driver, wait, url, width, height):
             (selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH)
         )
     )
+    time.sleep(1)
 
     # NOTE: まずはサイズを大きめにしておく
     driver.set_window_size(int(height * 2), int(height * 1.5))
-    driver.refresh()
-    wait.until(
-        selenium.webdriver.support.expected_conditions.presence_of_element_located(
-            (selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH)
-        )
-    )
 
     # NOTE: 最初に横サイズを調整
     window_size = driver.get_window_size()
@@ -170,17 +164,11 @@ def change_window_size_impl(driver, wait, url, width, height):
         element_size["width"],
         element_size["height"],
     )
+
     if element_size["width"] != width:
         target_window_width = window_size["width"] + (width - element_size["width"])
         logging.info("[change] window: %d x %d", target_window_width, window_size["height"])
         driver.set_window_size(target_window_width, height)
-    driver.refresh()
-    wait.until(
-        selenium.webdriver.support.expected_conditions.presence_of_element_located(
-            (selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH)
-        )
-    )
-    time.sleep(1)
 
     # NOTE: 次に縦サイズを調整
     window_size = driver.get_window_size()
@@ -199,13 +187,6 @@ def change_window_size_impl(driver, wait, url, width, height):
             window_size["width"],
             target_window_height,
         )
-    driver.refresh()
-    wait.until(
-        selenium.webdriver.support.expected_conditions.presence_of_element_located(
-            (selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH)
-        )
-    )
-    time.sleep(1)
 
     window_size = driver.get_window_size()
     element_size = driver.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).size
