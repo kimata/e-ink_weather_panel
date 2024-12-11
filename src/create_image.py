@@ -6,12 +6,12 @@ Usage:
   create_image.py [-c CONFIG] [-s] [-o PNG_FILE] [-t] [-D] [-d]
 
 Options:
-  -c CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
-  -s           : 小型ディスプレイモードで実行します．
-  -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
-  -t           : テストモードで実行します．
-  -D           : ダミーモードで実行します．
-  -d           : デバッグモード．
+  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
+  -s                : 小型ディスプレイモードで実行します．
+  -o PNG_FILE       : 生成した画像を指定されたパスに保存します．
+  -t                : テストモードで実行します．
+  -D                : ダミーモードで実行します．
+  -d                : デバッグモードで動作します．
 """
 
 import logging

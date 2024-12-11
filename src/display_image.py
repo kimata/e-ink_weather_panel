@@ -6,11 +6,11 @@ Usage:
   display_image.py [-c CONFIG] [-d HOSTNAME] [-s] [-t] [-O]
 
 Options:
-  -c CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
-  -s           : 小型ディスプレイモードで実行します．
-  -t           : テストモードで実行します．
-  -d HOSTNAME  : 表示を行う Raspberry Pi のホスト名．
-  -O           : 1回のみ表示
+  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
+  -s                : 小型ディスプレイモードで実行します．
+  -t                : テストモードで実行します．
+  -d HOSTNAME       : 表示を行う Raspberry Pi のホスト名．
+  -O                : 1回のみ表示
 """
 
 import datetime
