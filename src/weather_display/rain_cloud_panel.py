@@ -13,7 +13,6 @@ Options:
 import io
 import logging
 import pathlib
-import pickle
 import time
 import traceback
 from concurrent import futures
@@ -139,17 +138,9 @@ def shape_cloud_display(driver, wait, width, height, is_future):  # noqa: ARG001
     hide_label_and_icon(driver, wait)
 
 
-def change_window_size_impl(driver, wait, url, width, height):
+def change_window_size(driver, width, height):
     # NOTE: 雨雲画像がこのサイズになるように，ウィンドウサイズを調整する
     logging.info("target: %d x %d", width, height)
-
-    driver.get(url)
-    wait.until(
-        selenium.webdriver.support.expected_conditions.presence_of_element_located(
-            (selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH)
-        )
-    )
-    time.sleep(1)
 
     # NOTE: まずはサイズを大きめにしておく
     driver.set_window_size(int(height * 2), int(height * 1.5))
@@ -169,7 +160,7 @@ def change_window_size_impl(driver, wait, url, width, height):
         target_window_width = window_size["width"] + (width - element_size["width"])
         logging.info("[change] window: %d x %d", target_window_width, window_size["height"])
         driver.set_window_size(target_window_width, height)
-        time.sleep(0.8)
+        time.sleep(0.6)
 
     # NOTE: 次に縦サイズを調整
     window_size = driver.get_window_size()
@@ -188,7 +179,7 @@ def change_window_size_impl(driver, wait, url, width, height):
             window_size["width"],
             target_window_height,
         )
-        time.sleep(0.8)
+        time.sleep(0.6)
 
     window_size = driver.get_window_size()
     element_size = driver.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).size
@@ -207,65 +198,6 @@ def change_window_size_impl(driver, wait, url, width, height):
     return driver.get_window_size()
 
 
-def change_window_size_using_cache(driver, width, height):
-    window_size_map = {}
-    try:
-        if pathlib.Path(WINDOW_SIZE_CACHE).exists():
-            if (time.time() - WINDOW_SIZE_CACHE.stat().st_mtime) < CACHE_EXPIRE_HOUR * 60 * 60:
-                with pathlib.Path(WINDOW_SIZE_CACHE).open("rb") as f:
-                    window_size_map = pickle.load(f)  # noqa: S301
-            else:
-                # NOTE: キャッシュの有効期限切れ
-                WINDOW_SIZE_CACHE.unlink(missing_ok=True)
-    except Exception:
-        logging.exception("Failed to load window size cache")
-
-        return False
-
-    if (width not in window_size_map) or (height not in window_size_map[width]):
-        return False
-
-    logging.info("change %d x %d based on a cache", width, height)
-    driver.set_window_size(
-        window_size_map[width][height]["width"],
-        window_size_map[width][height]["height"],
-    )
-
-    window_size = driver.get_window_size()
-    element_size = driver.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).size
-    if (element_size["width"] != width) or (element_size["height"] != height):
-        logging.info(
-            "[actual] window: %d x %d, element: %d x %d",
-            window_size["width"],
-            window_size["height"],
-            element_size["width"],
-            element_size["height"],
-        )
-        logging.warning("Retrying resize...")
-
-        return False
-
-    return True
-
-
-def change_window_size(driver, wait, url, width, height):
-    # NOTE: 雨雲画像のサイズ調整には時間がかかるので，結果をキャッシュして使う
-    window_size_map = {}
-
-    if change_window_size_using_cache(driver, width, height):
-        return
-
-    window_size = change_window_size_impl(driver, wait, url, width, height)
-
-    if width in window_size_map:
-        window_size_map[width][height] = window_size
-    else:
-        window_size_map[width] = {height: window_size}
-
-    with pathlib.Path(WINDOW_SIZE_CACHE).open("wb") as f:
-        pickle.dump(window_size_map, f)
-
-
 def fetch_cloud_image(driver, wait, url, width, height, is_future=False):  # noqa: PLR0913
     logging.info("fetch cloud image")
 
@@ -277,6 +209,7 @@ def fetch_cloud_image(driver, wait, url, width, height, is_future=False):  # noq
         )
     )
 
+    change_window_size(driver, width, height)
     shape_cloud_display(driver, wait, width, height, is_future)
 
     wait.until(lambda driver: driver.execute_script("return document.readyState") == "complete")
@@ -428,14 +361,6 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
 
     img = None
     try:
-        change_window_size(
-            driver,
-            wait,
-            panel_config["data"]["jma"]["url"],
-            sub_panel_config["width"],
-            sub_panel_config["height"],
-        )
-
         img = fetch_cloud_image(
             driver,
             wait,
