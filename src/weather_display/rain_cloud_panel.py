@@ -207,8 +207,7 @@ def change_window_size_impl(driver, wait, url, width, height):
     return driver.get_window_size()
 
 
-def change_window_size(driver, wait, url, width, height):
-    # NOTE: 雨雲画像のサイズ調整には時間がかかるので，結果をキャッシュして使う
+def change_window_size_using_cache(driver, width, height):
     window_size_map = {}
     try:
         if pathlib.Path(WINDOW_SIZE_CACHE).exists():
@@ -221,12 +220,39 @@ def change_window_size(driver, wait, url, width, height):
     except Exception:
         logging.exception("Failed to load window size cache")
 
-    if width in window_size_map and height in window_size_map[width]:
-        logging.info("change %d x %d based on a cache", width, height)
-        driver.set_window_size(
-            window_size_map[width][height]["width"],
-            window_size_map[width][height]["height"],
+        return False
+
+    if (width not in window_size_map) or (height not in window_size_map[width]):
+        return False
+
+    logging.info("change %d x %d based on a cache", width, height)
+    driver.set_window_size(
+        window_size_map[width][height]["width"],
+        window_size_map[width][height]["height"],
+    )
+
+    window_size = driver.get_window_size()
+    element_size = driver.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).size
+    if (element_size["width"] != width) or (element_size["height"] != height):
+        logging.info(
+            "[actual] window: %d x %d, element: %d x %d",
+            window_size["width"],
+            window_size["height"],
+            element_size["width"],
+            element_size["height"],
         )
+        logging.warning("Retrying resize...")
+
+        return False
+
+    return True
+
+
+def change_window_size(driver, wait, url, width, height):
+    # NOTE: 雨雲画像のサイズ調整には時間がかかるので，結果をキャッシュして使う
+    window_size_map = {}
+
+    if change_window_size_using_cache(driver, width, height):
         return
 
     window_size = change_window_size_impl(driver, wait, url, width, height)
