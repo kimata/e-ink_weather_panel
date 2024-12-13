@@ -523,7 +523,11 @@ def create_rain_cloud_panel_impl(  # noqa: PLR0913
     face_map = get_face_map(font_config)
 
     task_list = []
-    executor = futures.ThreadPoolExecutor() if is_threaded else my_lib.thread_util.SingleThreadExecutor()
+    executor = (
+        futures.ThreadPoolExecutor(len(SUB_PANEL_CONFIG_LIST))
+        if is_threaded
+        else my_lib.thread_util.SingleThreadExecutor()
+    )
 
     for sub_panel_config in SUB_PANEL_CONFIG_LIST:
         task_list.append(
