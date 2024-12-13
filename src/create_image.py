@@ -61,7 +61,7 @@ def draw_wall(config, img):
 def draw_panel(config, img, is_small_mode=False):
     if is_small_mode:
         panel_list = [
-            {"name": "rain_cloud", "func": weather_display.rain_cloud_panel.create, "arg": (False,)},
+            {"name": "rain_cloud", "func": weather_display.rain_cloud_panel.create, "arg": (True,)},
             {"name": "weather", "func": weather_display.weather_panel.create, "arg": (False,)},
             {"name": "wbgt", "func": weather_display.wbgt_panel.create},
             {"name": "time", "func": weather_display.time_panel.create},
