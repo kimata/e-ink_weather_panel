@@ -15,8 +15,6 @@ Options:
 """
 
 import logging
-
-# from concurrent import futures
 import multiprocessing
 import os
 import pathlib
