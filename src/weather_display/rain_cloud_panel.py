@@ -145,7 +145,7 @@ def change_window_size(driver, width, height):
     # NOTE: まずはサイズを大きめにしておく
     driver.set_window_size(int(height * 2), int(height * 1.5))
 
-    time.sleep(0.4)
+    time.sleep(1)
 
     # NOTE: 最初に横サイズを調整
     window_size = driver.get_window_size()
@@ -162,7 +162,7 @@ def change_window_size(driver, width, height):
         target_window_width = window_size["width"] + (width - element_size["width"])
         logging.info("[change] window: %d x %d", target_window_width, window_size["height"])
         driver.set_window_size(target_window_width, height)
-        time.sleep(0.8)
+        time.sleep(1)
 
     # NOTE: 次に縦サイズを調整
     window_size = driver.get_window_size()
@@ -181,7 +181,7 @@ def change_window_size(driver, width, height):
             window_size["width"],
             target_window_height,
         )
-        time.sleep(0.8)
+        time.sleep(1)
 
     window_size = driver.get_window_size()
     element_size = driver.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).size
