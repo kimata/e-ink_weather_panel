@@ -452,7 +452,7 @@ def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):  # noqa: PLR0913
 def draw_weather_info(  # noqa: PLR0913
     img,
     info,
-    wbgt_info,
+    wbgt,
     is_wbgt_exist,
     is_today,
     is_first,
@@ -508,7 +508,7 @@ def draw_weather_info(  # noqa: PLR0913
     if is_wbgt_exist:
         next_pos_y = draw_temp(
             img,
-            wbgt_info,
+            wbgt,
             is_first,
             pos_x,
             next_pos_y,
@@ -519,7 +519,7 @@ def draw_weather_info(  # noqa: PLR0913
         temp_sens = calc_misnar_formula(info["temp"], info["humi"], info["wind"]["speed"])
         next_pos_y = draw_temp(
             img,
-            int(temp_sens),
+            temp_sens,
             is_first,
             pos_x,
             next_pos_y,
