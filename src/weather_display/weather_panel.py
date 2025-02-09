@@ -239,7 +239,9 @@ def draw_text_info(  # noqa: PLR0913
         )
         value_start_x = int_pos_x - my_lib.pil_util.text_size(img, face["zero"], "0.")[0]
     else:
-        if value < 0.01:
+        if value < -0.5:
+            value_text = f"{value:.0f}"
+        elif value < 0.01:
             value_text = "0"
         elif value < 1:
             value_text = f"{value:.1f}"
