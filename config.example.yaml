@@ -116,7 +116,7 @@ power:
 
     data:
         sensor:
-            name: rasp-meter-5
+            name: rasp-power
             type: sensor.rasp
         param:
             name: power
