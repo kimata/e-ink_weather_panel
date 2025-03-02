@@ -318,6 +318,8 @@ test-webapp:
     script:
         # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
         - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop -t 5 $id; done || true
+        # NOTE: 「-D」をつけると一週間前のデータを取得するので、センサーデータがしばらく欠損していた場合、
+        # センサーが復活しても一週間程度はこのテストは失敗するので注意
         - docker run --rm --detach=true --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} ./src/webapp.py -c config-demo.yaml -D
 
         - python3 -m playwright install
