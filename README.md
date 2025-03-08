@@ -33,7 +33,7 @@ https://weather-panel-webapp-demo.kubernetes.green-rabbit.net/weather_panel/
 ### ライブラリのインストール
 
 ```bash:bash
-poetry install
+rye sync
 ```
 
 後述する Docker を使った方法で実行する場合は，インストール不要です．
@@ -50,7 +50,7 @@ apt-get install -y fbi
 
 `config.yaml` に記述します．サンプルを `config.example.yaml` として登録してありますので参考にしてください．
 
-Raspberry Pi のホスト名については，`docker-compose.yaml` の RASP_HOSTNAME にて設定します．
+Raspberry Pi のホスト名については，`compose.yaml` の RASP_HOSTNAME にて設定します．
 
 Influx DB からセンサー情報を取得する部分( `sensor_data.py` の `fetch_data` )はお手元の環境に合わせて修正が必要かもしれません．
 
