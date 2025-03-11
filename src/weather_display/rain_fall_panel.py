@@ -91,7 +91,7 @@ def get_rainfall_status(panel_config, db_config):
 def gen_amount_text(amount):
     if amount >= 10:
         return str(int(amount))
-    elif amount < 1:
+    elif (amount < 1) and (int(amount * 100) % 10 != 0):
         return f"{amount:.2f}"
     else:
         return f"{amount:.1f}"
