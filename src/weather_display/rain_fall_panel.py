@@ -48,14 +48,14 @@ def get_rainfall_status(panel_config, db_config):
         panel_config["sensor"]["name"],
         "rain",
         start=START,
-        window_min=0,
-        last=True,
+        window_min=1,
     )
 
     if not data["valid"]:
         return None
 
-    amount = data["value"][0]
+    # NOTE:過去二分間の平均にする
+    amount = (data["value"][-1] + data["value"][-2]) / 2.0 if len(data["value"]) > 1 else data["value"][-1]
 
     # NOTE: 1分あたりの降水量なので，時間あたりに直す
     amount *= 60
