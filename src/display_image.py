@@ -17,6 +17,7 @@ import datetime
 import logging
 import os
 import pathlib
+import signal
 import statistics
 import subprocess
 import sys
@@ -103,7 +104,7 @@ def exec_display_image(ssh, config, config_file, small_mode, test_mode):
     if test_mode:
         cmd.append("-t")
 
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # noqa: S603
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)  # noqa: S603, PLW1509
     ssh_stdin.write(proc.communicate()[0])
     proc.wait()
 
@@ -134,6 +135,8 @@ def exec_display_image(ssh, config, config_file, small_mode, test_mode):
     ssh_stdin.close()
     ssh_stdout.close()
     ssh_stderr.close()
+
+    os.killpg(proc.pid, signal.SIGTERM)
 
 
 def display_image(  # noqa: PLR0913
