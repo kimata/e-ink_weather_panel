@@ -86,22 +86,7 @@ def ssh_kill_and_close(ssh, cmd):
         raise
 
 
-def display_image(  # noqa: PLR0913, PLR0912, C901
-    config,
-    rasp_hostname,
-    key_file_path,
-    config_file,
-    small_mode,
-    test_mode,
-    is_one_time,
-    prev_ssh=None,
-):
-    start = time.perf_counter()
-
-    exec_patiently(ssh_kill_and_close, (prev_ssh, "fbi"))
-
-    ssh = exec_patiently(ssh_connect, (rasp_hostname, key_file_path))
-
+def exec_display_image(ssh, config_file, small_mode, test_mode):
     ssh_stdin, ssh_stdout, ssh_stderr = exec_patiently(
         ssh.exec_command,
         (
@@ -145,6 +130,29 @@ def display_image(  # noqa: PLR0913, PLR0912, C901
     else:
         logging.error("Failed to create image. (code: %d)", proc.returncode)
         sys.exit(proc.returncode)
+
+    ssh_stdin.close()
+    ssh_stdout.close()
+    ssh_stderr.close()
+
+
+def display_image(  # noqa: PLR0913
+    config,
+    rasp_hostname,
+    key_file_path,
+    config_file,
+    small_mode,
+    test_mode,
+    is_one_time,
+    prev_ssh=None,
+):
+    start = time.perf_counter()
+
+    exec_patiently(ssh_kill_and_close, (prev_ssh, "fbi"))
+
+    ssh = exec_patiently(ssh_connect, (rasp_hostname, key_file_path))
+
+    exec_display_image(ssh, config_file, small_mode, test_mode)
 
     if is_one_time:
         # NOTE: 表示がされるまで待つ
