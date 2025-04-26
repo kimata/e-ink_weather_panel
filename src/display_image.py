@@ -86,7 +86,7 @@ def ssh_kill_and_close(ssh, cmd):
         raise
 
 
-def exec_display_image(ssh, config_file, small_mode, test_mode):
+def exec_display_image(ssh, config, config_file, small_mode, test_mode):
     ssh_stdin, ssh_stdout, ssh_stderr = exec_patiently(
         ssh.exec_command,
         (
@@ -152,7 +152,7 @@ def display_image(  # noqa: PLR0913
 
     ssh = exec_patiently(ssh_connect, (rasp_hostname, key_file_path))
 
-    exec_display_image(ssh, config_file, small_mode, test_mode)
+    exec_display_image(ssh, config, config_file, small_mode, test_mode)
 
     if is_one_time:
         # NOTE: 表示がされるまで待つ
