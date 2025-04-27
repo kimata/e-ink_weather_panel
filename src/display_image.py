@@ -218,6 +218,9 @@ if __name__ == "__main__":
         pathlib.Path("key/panel.id_rsa"),
     )
 
+    if rasp_hostname is None:
+        raise ValueError("HOSTNAME is required")  # noqa: TRY003, EM101
+
     my_lib.logger.init("panel.e-ink.weather", level=logging.INFO)
 
     config = my_lib.config.load(
