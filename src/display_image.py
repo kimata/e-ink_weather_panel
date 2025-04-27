@@ -26,6 +26,7 @@ import traceback
 import create_image
 import my_lib.footprint
 import my_lib.panel_util
+import my_lib.proc
 import paramiko
 from docopt import docopt
 
@@ -86,17 +87,6 @@ def ssh_kill_and_close(ssh, cmd):
         raise
 
 
-def clean_zombie():
-    try:
-        while True:
-            pid, status = os.waitpid(-1, os.WNOHANG)
-            if pid == 0:
-                break
-            logging.warning("Reaped zombie process: pid=%d status=%s", pid, status)
-    except ChildProcessError:
-        pass
-
-
 def exec_display_image(ssh, config, config_file, small_mode, test_mode):
     ssh_stdin, ssh_stdout, ssh_stderr = exec_patiently(
         ssh.exec_command,
@@ -146,7 +136,7 @@ def exec_display_image(ssh, config, config_file, small_mode, test_mode):
     ssh_stdout.close()
     ssh_stderr.close()
 
-    clean_zombie()
+    my_lib.proc.reap_zombie()
 
 
 def display_image(  # noqa: PLR0913
