@@ -17,7 +17,6 @@ import datetime
 import logging
 import os
 import pathlib
-import signal
 import statistics
 import subprocess
 import sys
@@ -87,6 +86,17 @@ def ssh_kill_and_close(ssh, cmd):
         raise
 
 
+def clean_zombie():
+    try:
+        while True:
+            pid, status = os.waitpid(-1, os.WNOHANG)
+            if pid == 0:
+                break
+            logging.warning("Reaped zombie process: pid=%d status=%s", pid, status)
+    except ChildProcessError:
+        pass
+
+
 def exec_display_image(ssh, config, config_file, small_mode, test_mode):
     ssh_stdin, ssh_stdout, ssh_stderr = exec_patiently(
         ssh.exec_command,
@@ -104,7 +114,7 @@ def exec_display_image(ssh, config, config_file, small_mode, test_mode):
     if test_mode:
         cmd.append("-t")
 
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)  # noqa: S603, PLW1509
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # noqa: S603
     ssh_stdin.write(proc.communicate()[0])
     proc.wait()
 
@@ -136,7 +146,7 @@ def exec_display_image(ssh, config, config_file, small_mode, test_mode):
     ssh_stdout.close()
     ssh_stderr.close()
 
-    os.killpg(proc.pid, signal.SIGTERM)
+    clean_zombie()
 
 
 def display_image(  # noqa: PLR0913
