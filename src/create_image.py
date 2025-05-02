@@ -23,13 +23,9 @@ import textwrap
 import time
 import traceback
 
-import PIL.Image
-from docopt import docopt
-
-sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
-
 import my_lib.panel_util
 import my_lib.pil_util
+import PIL.Image
 import weather_display.power_graph
 import weather_display.rain_cloud_panel
 import weather_display.rain_fall_panel
@@ -37,6 +33,7 @@ import weather_display.sensor_graph
 import weather_display.time_panel
 import weather_display.wbgt_panel
 import weather_display.weather_panel
+from docopt import docopt
 
 SCHEMA_CONFIG = "config.schema"
 SCHEMA_CONFIG_SMALL = "config-small.schema"
