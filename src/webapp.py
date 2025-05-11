@@ -3,12 +3,13 @@
 電子ペーパ表示用の画像を表示する簡易的な Web サーバです．
 
 Usage:
-  webapp.py [-c CONFIG] [-s CONFIG] [-D]
+  webapp.py [-c CONFIG] [-s CONFIG] [-d] [-D]
 
 Options:
-  -c CONFIG    : 通常モードで使う設定ファイルを指定します．[default: config.yaml]
-  -s CONFIG    : 小型ディスプレイモード使う設定ファイルを指定します．[default: config-small.yaml]
-  -D           : ダミーモードで実行します．
+  -c CONFIG         : 通常モードで使う設定ファイルを指定します．[default: config.yaml]
+  -s CONFIG         : 小型ディスプレイモード使う設定ファイルを指定します．[default: config-small.yaml]
+  -d                : ダミーモードで実行します．
+  -D                : デバッグモードで動作します．
 """
 
 import atexit
@@ -77,11 +78,12 @@ if __name__ == "__main__":
 
     config_file_normal = args["-c"]
     config_file_small = args["-s"]
-    dummy_mode = args["-D"]
+    dummy_mode = args["-d"]
+    debug_mode = args["-D"]
 
-    my_lib.logger.init("panel.e-ink.weather", level=logging.INFO)
+    my_lib.logger.init("panel.e-ink.weather", level=logging.DEBUG if debug_mode else logging.INFO)
 
     app = create_app(config_file_normal, config_file_small, dummy_mode)
 
     # NOTE: スクリプトの自動リロード停止したい場合は use_reloader=False にする
-    app.run(host="0.0.0.0", threaded=True, use_reloader=True)  # noqa: S104
+    app.run(host="0.0.0.0", threaded=True, use_reloader=True, debug=debug_mode)  # noqa: S104
