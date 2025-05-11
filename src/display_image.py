@@ -3,14 +3,15 @@
 電子ペーパ表示用の画像を表示します．
 
 Usage:
-  display_image.py [-c CONFIG] [-d HOSTNAME] [-s] [-t] [-O]
+  display_image.py [-c CONFIG] [-p HOSTNAME] [-s] [-t] [-O] [-D]
 
 Options:
   -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
   -s                : 小型ディスプレイモードで実行します．
   -t                : テストモードで実行します．
-  -d HOSTNAME       : 表示を行う Raspberry Pi のホスト名．
+  -p HOSTNAME       : 表示を行う Raspberry Pi のホスト名．
   -O                : 1回のみ表示
+  -D                : デバッグモードで動作します．
 """
 
 import datetime
@@ -190,7 +191,6 @@ def display_image(  # noqa: PLR0913
     return ssh
 
 
-######################################################################
 if __name__ == "__main__":
     import docopt
     import my_lib.config
@@ -201,8 +201,12 @@ if __name__ == "__main__":
     config_file = args["-c"]
     is_one_time = args["-O"]
     small_mode = args["-s"]
-    rasp_hostname = os.environ.get("RASP_HOSTNAME", args["-d"])
+    rasp_hostname = os.environ.get("RASP_HOSTNAME", args["-p"])
     test_mode = args["-t"]
+    debug_mode = args["-D"]
+
+    my_lib.logger.init("panel.e-ink.weather", level=logging.DEBUG if debug_mode else logging.INFO)
+
     key_file_path = os.environ.get(
         "SSH_KEY",
         pathlib.Path("key/panel.id_rsa"),
@@ -210,8 +214,6 @@ if __name__ == "__main__":
 
     if rasp_hostname is None:
         raise ValueError("HOSTNAME is required")  # noqa: TRY003, EM101
-
-    my_lib.logger.init("panel.e-ink.weather", level=logging.INFO)
 
     config = my_lib.config.load(
         config_file, pathlib.Path(SCHEMA_CONFIG_SMALL if small_mode else SCHEMA_CONFIG)

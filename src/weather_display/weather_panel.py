@@ -3,11 +3,12 @@
 天気予報画像を生成します．
 
 Usage:
-  weather_panel.py [-c CONFIG] -o PNG_FILE
+  weather_panel.py [-c CONFIG] -o PNG_FILE [-D]
 
 Options:
-  -c CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
-  -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
+  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
+  -o PNG_FILE       : 生成した画像を指定されたパスに保存します．
+  -D                : デバッグモードで動作します．
 """
 
 import datetime
@@ -790,15 +791,20 @@ def create(config, is_side_by_side=True):
 
 
 if __name__ == "__main__":
+    # TEST Code
     import docopt
     import my_lib.config
     import my_lib.logger
 
     args = docopt.docopt(__doc__)
 
-    my_lib.logger.init("test", level=logging.INFO)
+    config_file = args["-c"]
+    out_file = args["-o"]
+    debug_mode = args["-D"]
 
-    config = my_lib.config.load(args["-c"])
+    my_lib.logger.init("test", level=logging.DEBUG if debug_mode else logging.INFO)
+
+    config = my_lib.config.load(config_file)
     out_file = args["-o"]
 
     img = create_weather_panel_impl(

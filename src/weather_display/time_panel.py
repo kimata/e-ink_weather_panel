@@ -3,11 +3,12 @@
 時刻の画像を生成します．
 
 Usage:
-  time_panel.py [-c CONFIG] -o PNG_FILE
+  time_panel.py [-c CONFIG] -o PNG_FILE [-D]
 
 Options:
-  -c CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
-  -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
+  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
+  -o PNG_FILE       : 生成した画像を指定されたパスに保存します．
+  -D                : デバッグモードで動作します．
 """
 
 import datetime
@@ -81,17 +82,20 @@ def create(config):
 
 
 if __name__ == "__main__":
+    # TEST Code
     import docopt
     import my_lib.config
     import my_lib.logger
 
     args = docopt.docopt(__doc__)
 
-    my_lib.logger.init("test", level=logging.INFO)
-
-    config = my_lib.config.load(args["-c"])
+    config_file = args["-c"]
     out_file = args["-o"]
+    debug_mode = args["-D"]
 
+    my_lib.logger.init("test", level=logging.DEBUG if debug_mode else logging.INFO)
+
+    config = my_lib.config.load(config_file)
     img = create(config)[0]
 
     logging.info("Save %s.", out_file)

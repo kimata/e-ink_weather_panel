@@ -3,11 +3,11 @@
 Liveness のチェックを行います
 
 Usage:
-  healthz.py [-c CONFIG] [-d]
+  healthz.py [-c CONFIG] [-D]
 
 Options:
   -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
-  -d                : デバッグモードで動作します．
+  -D                : デバッグモードで動作します．
 """
 
 import logging
@@ -27,7 +27,6 @@ def check_liveness(target_list):
     return True
 
 
-######################################################################
 if __name__ == "__main__":
     import docopt
     import my_lib.config
@@ -36,7 +35,7 @@ if __name__ == "__main__":
     args = docopt.docopt(__doc__)
 
     config_file = args["-c"]
-    debug_mode = args["-d"]
+    debug_mode = args["-D"]
 
     my_lib.logger.init("panel.e-ink.weather", level=logging.DEBUG if debug_mode else logging.INFO)
 

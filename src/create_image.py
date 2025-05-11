@@ -10,8 +10,8 @@ Options:
   -s                : 小型ディスプレイモードで実行します．
   -o PNG_FILE       : 生成した画像を指定されたパスに保存します．
   -t                : テストモードで実行します．
-  -D                : ダミーモードで実行します．
-  -d                : デバッグモードで動作します．
+  -d                : ダミーモードで実行します．
+  -D                : デバッグモードで動作します．
 """
 
 import logging
@@ -187,7 +187,6 @@ def create_image(config, small_mode=False, dummy_mode=False, test_mode=False):
         return (img, ERROR_CODE_MAJOR)
 
 
-######################################################################
 if __name__ == "__main__":
     import docopt
     import my_lib.config
@@ -197,14 +196,12 @@ if __name__ == "__main__":
 
     config_file = args["-c"]
     small_mode = args["-s"]
-    dummy_mode = args["-D"]
+    dummy_mode = args["-d"]
     test_mode = args["-t"]
-    debug_mode = args["-d"]
-
-    log_level = logging.DEBUG if debug_mode else logging.INFO
+    debug_mode = args["-D"]
     out_file = args["-o"] if args["-o"] is not None else sys.stdout.buffer
 
-    my_lib.logger.init("panel.e-ink.weather", level=log_level)
+    my_lib.logger.init("panel.e-ink.weather", level=logging.DEBUG if debug_mode else logging.INFO)
 
     config = my_lib.config.load(
         config_file, pathlib.Path(SCHEMA_CONFIG_SMALL if small_mode else SCHEMA_CONFIG)

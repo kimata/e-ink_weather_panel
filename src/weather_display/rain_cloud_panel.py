@@ -3,11 +3,12 @@
 雨雲レーダー画像を生成します．
 
 Usage:
-  rain_cloud_panel.py [-c CONFIG] -o PNG_FILE
+  rain_cloud_panel.py [-c CONFIG] -o PNG_FILE [-D]
 
 Options:
-  -c CONFIG    : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
-  -o PNG_FILE  : 生成した画像を指定されたパスに保存します．
+  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
+  -o PNG_FILE       : 生成した画像を指定されたパスに保存します．
+  -D                : デバッグモードで動作します．
 """
 
 import io
@@ -569,17 +570,20 @@ def create(config, is_side_by_side=True, is_threaded=True):
 
 
 if __name__ == "__main__":
+    # TEST Code
     import docopt
     import my_lib.config
     import my_lib.logger
 
     args = docopt.docopt(__doc__)
 
-    my_lib.logger.init("test", level=logging.INFO)
-
-    config = my_lib.config.load(args["-c"])
+    config_file = args["-c"]
     out_file = args["-o"]
+    debug_mode = args["-D"]
 
+    my_lib.logger.init("test", level=logging.DEBUG if debug_mode else logging.INFO)
+
+    config = my_lib.config.load(config_file)
     img = create_rain_cloud_panel_impl(config["rain_cloud"], config["font"], None, True, 1)
 
     logging.info("Save %s.", out_file)
