@@ -15,6 +15,7 @@ import logging
 
 import my_lib.panel_util
 import my_lib.pil_util
+import my_lib.weather
 import PIL.Image
 import PIL.ImageDraw
 import PIL.ImageEnhance

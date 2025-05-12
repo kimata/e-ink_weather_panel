@@ -17,11 +17,11 @@ import logging
 import os
 import pathlib
 
+import flask
+import flask_cors
 import my_lib.config
 import my_lib.logger
 import weather_display.generator
-from flask import Flask
-from flask_cors import CORS
 
 SCHEMA_CONFIG = "config.schema"
 
@@ -54,9 +54,9 @@ def create_app(config_file_normal, config_file_small, dummy_mode=False):
 
     import my_lib.webapp.base
 
-    app = Flask("unit_cooler")
+    app = flask.Flask("unit_cooler")
 
-    CORS(app)
+    flask_cors.CORS(app)
 
     app.config["CONFIG_FILE_NORMAL"] = config_file_normal
     app.config["CONFIG_FILE_SMALL"] = config_file_small

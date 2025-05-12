@@ -10,6 +10,7 @@ from unittest import mock
 
 import my_lib.config
 import pytest
+import zoneinfo
 
 sys.path.append(str(pathlib.Path(__file__).parent.parent / "src"))
 
@@ -23,7 +24,7 @@ CONFIG_FILE = "config.example.yaml"
 CONFIG_SMALL_FILE = "config-small.example.yaml"
 EVIDENCE_DIR = pathlib.Path(__file__).parent / "evidence" / "image"
 EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
-TIMEZONE = datetime.timezone(datetime.timedelta(hours=+9), "JST")
+TIMEZONE = zoneinfo.ZoneInfo("Asia/Tokyo")
 
 
 @pytest.fixture(scope="session", autouse=True)

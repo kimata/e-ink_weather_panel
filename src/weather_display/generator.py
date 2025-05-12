@@ -1,23 +1,18 @@
 #!/usr/bin/env python3
 
 import io
-import pathlib
+import multiprocessing
+import multiprocessing.pool
 import subprocess
-import sys
 import threading
 import time
 import traceback
 import uuid
-from multiprocessing import Queue
-from multiprocessing.pool import ThreadPool
 
-from flask import Blueprint, Response, current_app, g, jsonify, request, stream_with_context
-
-sys.path.append(str(pathlib.Path(__file__).parent.parent / "lib"))
-
+import flask
 import my_lib.flask_util
 
-blueprint = Blueprint("webapp", __name__, url_prefix="/")
+blueprint = flask.Blueprint("webapp", __name__, url_prefix="/")
 
 thread_pool = None
 panel_data_map = {}
@@ -28,7 +23,7 @@ def init(create_image_path_):
     global thread_pool  # noqa: PLW0603
     global create_image_path  # noqa: PLW0603
 
-    thread_pool = ThreadPool(processes=3)
+    thread_pool = multiprocessing.pool.ThreadPool(processes=3)
     create_image_path = create_image_path_
 
 
@@ -61,7 +56,7 @@ def generate_image_impl(config_file, is_small_mode, is_dummy_mode, is_test_mode,
     if is_small_mode:
         cmd.append("-s")
     if is_dummy_mode:
-        cmd.append("-D")
+        cmd.append("-d")
     if is_test_mode:
         cmd.append("-t")
 
@@ -109,7 +104,7 @@ def generate_image(config_file, is_small_mode, is_dummy_mode, is_test_mode):
     clean_map()
 
     token = str(uuid.uuid4())
-    log_queue = Queue()
+    log_queue = multiprocessing.Queue()
 
     panel_data_map[token] = {
         "lock": threading.Lock(),
@@ -132,23 +127,23 @@ def api_image():
 
     # NOTE: @gzipped をつけた場合，キャッシュ用のヘッダを付与しているので，
     # 無効化する．
-    g.disable_cache = True
+    flask.g.disable_cache = True
 
-    token = request.form.get("token", "")
+    token = flask.request.form.get("token", "")
 
     if token not in panel_data_map:
         return f"Invalid token: {token}"
 
     image_data = panel_data_map[token]["image"]
 
-    return Response(image_data, mimetype="image/png")
+    return flask.Response(image_data, mimetype="image/png")
 
 
 @blueprint.route("/weather_panel/api/log", methods=["POST"])
 def api_log():
     global panel_data_map
 
-    token = request.form.get("token", "")
+    token = flask.request.form.get("token", "")
 
     if token not in panel_data_map:
         return f"Invalid token: {token}"
@@ -168,7 +163,7 @@ def api_log():
                 continue
             break
 
-    res = Response(stream_with_context(generate()), mimetype="text/plain")
+    res = flask.Response(flask.stream_with_context(generate()), mimetype="text/plain")
     res.headers.add("Access-Control-Allow-Origin", "*")
     res.headers.add("Cache-Control", "no-cache")
     res.headers.add("X-Accel-Buffering", "no")
@@ -179,18 +174,20 @@ def api_log():
 @blueprint.route("/weather_panel/api/run", methods=["GET"])
 @my_lib.flask_util.support_jsonp
 def api_run():
-    mode = request.args.get("mode", "")
+    mode = flask.request.args.get("mode", "")
     is_small_mode = mode == "small"
-    is_test_mode = request.args.get("test", False, type=bool)
+    is_test_mode = flask.request.args.get("test", False, type=bool)
 
     config_file = (
-        current_app.config["CONFIG_FILE_SMALL"] if is_small_mode else current_app.config["CONFIG_FILE_NORMAL"]
+        flask.current_app.config["CONFIG_FILE_SMALL"]
+        if is_small_mode
+        else flask.current_app.config["CONFIG_FILE_NORMAL"]
     )
-    is_dummy_mode = current_app.config["DUMMY_MODE"]
+    is_dummy_mode = flask.current_app.config["DUMMY_MODE"]
 
     try:
         token = generate_image(config_file, is_small_mode, is_dummy_mode, is_test_mode)
 
-        return jsonify({"token": token})
+        return flask.jsonify({"token": token})
     except Exception:
-        return jsonify({"token": "", "error": traceback.format_exc()})
+        return flask.jsonify({"token": "", "error": traceback.format_exc()})

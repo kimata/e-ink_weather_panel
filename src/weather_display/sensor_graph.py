@@ -19,18 +19,18 @@ import pathlib
 import time
 import traceback
 
-import matplotlib as mpl
-import matplotlib.dates as mdates
+import matplotlib  # noqa: ICN001
+import matplotlib.dates
 import matplotlib.offsetbox
-import matplotlib.pyplot as plt
+import matplotlib.pyplot  # noqa: ICN001
 import my_lib.panel_util
+import pandas.plotting
 import PIL.Image
 from my_lib.sensor_data import fetch_data
-from pandas.plotting import register_matplotlib_converters
 
-mpl.use("Agg")
+matplotlib.use("Agg")
 
-register_matplotlib_converters()
+pandas.plotting.register_matplotlib_converters()
 
 IMAGE_DPI = 100.0
 EMPTY_VALUE = -100.0
@@ -43,7 +43,7 @@ def get_plot_font(config, font_type, size):
 
     logging.info("Load font: %s", font_path)
 
-    return mpl.font_manager.FontProperties(fname=font_path, size=size)
+    return matplotlib.font_manager.FontProperties(fname=font_path, size=size)
 
 
 def get_face_map(font_config):
@@ -97,8 +97,8 @@ def plot_item(ax, title, unit, data, xbegin, ylim, fmt, scale, small, face_map):
 
     font = face_map["value_small"] if small else face_map["value"]
 
-    ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%-d"))
+    ax.xaxis.set_major_locator(matplotlib.dates.DayLocator(interval=1))
+    ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%-d"))
     for label in ax.get_xticklabels():
         label.set_fontproperties(face_map["xaxis"])
 
@@ -161,7 +161,7 @@ def draw_aircon_icon(ax, power, icon_config):
 
     icon_file = icon_config["aircon"]["path"]
 
-    img = plt.imread(str(pathlib.Path(icon_file)))
+    img = matplotlib.pyplot.imread(str(pathlib.Path(icon_file)))
 
     imagebox = matplotlib.offsetbox.OffsetImage(img, zoom=0.3)
     imagebox.image.axes = ax
@@ -192,7 +192,7 @@ def draw_light_icon(ax, lux_list, icon_config):
     else:
         icon_file = icon_config["light"]["on"]["path"]
 
-    img = plt.imread(str(pathlib.Path(icon_file)))
+    img = matplotlib.pyplot.imread(str(pathlib.Path(icon_file)))
 
     imagebox = matplotlib.offsetbox.OffsetImage(img, zoom=0.25)
     imagebox.image.axes = ax
@@ -236,9 +236,9 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
     width = panel_config["panel"]["width"]
     height = panel_config["panel"]["height"]
 
-    plt.style.use("grayscale")
+    matplotlib.pyplot.style.use("grayscale")
 
-    fig = plt.figure(facecolor="azure", edgecolor="coral", linewidth=2)
+    fig = matplotlib.pyplot.figure(facecolor="azure", edgecolor="coral", linewidth=2)
 
     fig.set_size_inches(width / IMAGE_DPI, height / IMAGE_DPI)
 
@@ -326,10 +326,10 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
                 draw_light_icon(ax, data["value"], panel_config["icon"])
 
     fig.tight_layout()
-    plt.subplots_adjust(hspace=0.1, wspace=0)
+    matplotlib.pyplot.subplots_adjust(hspace=0.1, wspace=0)
 
     buf = io.BytesIO()
-    plt.savefig(buf, format="png", dpi=IMAGE_DPI, transparent=True)
+    matplotlib.pyplot.savefig(buf, format="png", dpi=IMAGE_DPI, transparent=True)
 
     buf.seek(0)
 
@@ -337,8 +337,8 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
 
     buf.close()
 
-    plt.clf()
-    plt.close(fig)
+    matplotlib.pyplot.clf()
+    matplotlib.pyplot.close(fig)
 
     return img
 

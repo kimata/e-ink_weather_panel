@@ -20,10 +20,10 @@ import traceback
 import my_lib.notify.slack
 import my_lib.panel_util
 import my_lib.pil_util
+import my_lib.sensor_data
 import PIL.Image
 import PIL.ImageDraw
 import pytz
-from my_lib.sensor_data import fetch_data, get_last_event
 
 DATA_PATH = pathlib.Path("data")
 WINDOW_SIZE_CACHE = DATA_PATH / "window_size.cache"
@@ -43,7 +43,7 @@ def get_face_map(font_config):
 def get_rainfall_status(panel_config, db_config):
     START = "-3m"
 
-    data = fetch_data(
+    data = my_lib.sensor_data.fetch_data(
         db_config,
         panel_config["sensor"]["type"],
         panel_config["sensor"]["name"],
@@ -61,7 +61,7 @@ def get_rainfall_status(panel_config, db_config):
     # NOTE: 1分あたりの降水量なので，時間あたりに直す
     amount *= 60
 
-    data = fetch_data(
+    data = my_lib.sensor_data.fetch_data(
         db_config,
         panel_config["sensor"]["type"],
         panel_config["sensor"]["name"],
@@ -74,7 +74,7 @@ def get_rainfall_status(panel_config, db_config):
     raining_status = data["value"][0]
 
     if raining_status:
-        raining_start = get_last_event(
+        raining_start = my_lib.sensor_data.get_last_event(
             db_config, panel_config["sensor"]["type"], panel_config["sensor"]["name"], "raining"
         )
     else:

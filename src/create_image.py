@@ -33,7 +33,6 @@ import weather_display.sensor_graph
 import weather_display.time_panel
 import weather_display.wbgt_panel
 import weather_display.weather_panel
-from docopt import docopt
 
 SCHEMA_CONFIG = "config.schema"
 SCHEMA_CONFIG_SMALL = "config-small.schema"

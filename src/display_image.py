@@ -29,7 +29,9 @@ import my_lib.footprint
 import my_lib.panel_util
 import my_lib.proc
 import paramiko
-from docopt import docopt
+import zoneinfo
+
+TIMEZONE = zoneinfo.ZoneInfo("Asia/Tokyo")
 
 SCHEMA_CONFIG = "config.schema"
 SCHEMA_CONFIG_SMALL = "config-small.schema"
@@ -162,7 +164,7 @@ def display_image(  # noqa: PLR0913
         # NOTE: 表示がされるまで待つ
         sleep_time = 5
     else:
-        diff_sec = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9), "JST")).second
+        diff_sec = datetime.datetime.now(TIMEZONE).second
         if diff_sec > 30:
             diff_sec = 60 - diff_sec
         if diff_sec > 3:
@@ -179,7 +181,7 @@ def display_image(  # noqa: PLR0913
         sleep_time = (
             config["panel"]["update"]["interval"]
             - statistics.median(elapsed_list)
-            - datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9), "JST")).second
+            - datetime.datetime.now(TIMEZONE).second
         )
         while sleep_time < 0:
             sleep_time += 60

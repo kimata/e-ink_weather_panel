@@ -19,19 +19,19 @@ import pathlib
 import time
 import traceback
 
-import matplotlib as mpl
+import matplotlib  # noqa: ICN001
 import PIL.Image
 
-mpl.use("Agg")
+matplotlib.use("Agg")
 
-import matplotlib.dates as mdates
+import matplotlib.dates
 import matplotlib.font_manager
-import matplotlib.pyplot as plt
+import matplotlib.pyplot  # noqa: ICN001
 import my_lib.panel_util
+import pandas.plotting
 from my_lib.sensor_data import fetch_data
-from pandas.plotting import register_matplotlib_converters
 
-register_matplotlib_converters()
+pandas.plotting.register_matplotlib_converters()
 
 IMAGE_DPI = 100.0
 
@@ -41,7 +41,7 @@ def get_plot_font(config, font_type, size):
 
     logging.info("Load font: %s", font_path)
 
-    return mpl.font_manager.FontProperties(fname=font_path, size=size)
+    return matplotlib.font_manager.FontProperties(fname=font_path, size=size)
 
 
 def get_face_map(font_config):
@@ -79,10 +79,10 @@ def plot_item(ax, unit, data, ylim, fmt, face_map):  # noqa: PLR0913
 
     text = "?" if not data["valid"] else fmt.format(next((item for item in reversed(y) if item), None))
 
-    ax.xaxis.set_minor_locator(mdates.HourLocator(byhour=range(0, 24, 6)))
-    ax.xaxis.set_minor_formatter(mdates.DateFormatter("%-H"))
-    ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%-d日"))
+    ax.xaxis.set_minor_locator(matplotlib.dates.HourLocator(byhour=range(0, 24, 6)))
+    ax.xaxis.set_minor_formatter(matplotlib.dates.DateFormatter("%-H"))
+    ax.xaxis.set_major_locator(matplotlib.dates.DayLocator(interval=1))
+    ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%-d日"))
 
     for label in ax.get_xticklabels():
         label.set_fontproperties(face_map["axis_major"])
@@ -129,9 +129,9 @@ def create_power_graph_impl(panel_config, font_config, db_config):
     width = panel_config["panel"]["width"]
     height = panel_config["panel"]["height"]
 
-    plt.style.use("grayscale")
+    matplotlib.pyplot.style.use("grayscale")
 
-    fig = plt.figure(facecolor="azure", edgecolor="coral", linewidth=2)
+    fig = matplotlib.pyplot.figure(facecolor="azure", edgecolor="coral", linewidth=2)
 
     fig.set_size_inches(width / IMAGE_DPI, height / IMAGE_DPI)
 
@@ -161,11 +161,11 @@ def create_power_graph_impl(panel_config, font_config, db_config):
         face_map,
     )
 
-    plt.subplots_adjust(hspace=0, wspace=0)
+    matplotlib.pyplot.subplots_adjust(hspace=0, wspace=0)
     fig.tight_layout()
 
     buf = io.BytesIO()
-    plt.savefig(buf, format="png", dpi=IMAGE_DPI, transparent=True)
+    matplotlib.pyplot.savefig(buf, format="png", dpi=IMAGE_DPI, transparent=True)
 
     buf.seek(0)
 
@@ -173,8 +173,8 @@ def create_power_graph_impl(panel_config, font_config, db_config):
 
     buf.close()
 
-    plt.clf()
-    plt.close(fig)
+    matplotlib.pyplot.clf()
+    matplotlib.pyplot.close(fig)
 
     return img
 

@@ -28,7 +28,10 @@ import PIL.Image
 import PIL.ImageDraw
 import PIL.ImageEnhance
 import PIL.ImageFont
+import zoneinfo
 from my_lib.weather import get_clothing_yahoo, get_wbgt, get_weather_yahoo
+
+TIMEZONE = zoneinfo.ZoneInfo("Asia/Tokyo")
 
 # NOTE: 天気アイコンの周りにアイコンサイズの何倍の空きを確保するか
 ICON_MARGIN = 0.48
@@ -412,7 +415,7 @@ def draw_wind(img, wind, is_first, pos_x, pos_y, icon, face):  # noqa: PLR0913
 def draw_hour(img, hour, is_today, pos_x, pos_y, face_map):  # noqa: PLR0913
     face = face_map["hour"]
 
-    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+9), "JST"))
+    now = datetime.datetime.now(TIMEZONE)
     cur_hour = now.hour
 
     if is_today and (

@@ -11,19 +11,19 @@ Options:
   -D                : デバッグモードで動作します．
 """
 
+import concurrent
 import io
 import logging
 import pathlib
 import time
 import traceback
-from concurrent import futures
 
 import cv2
 import my_lib.notify.slack
 import my_lib.panel_util
 import my_lib.pil_util
 import my_lib.thread_util
-import numpy as np
+import numpy  # noqa: ICN001
 import PIL.Image
 import PIL.ImageDraw
 import selenium.webdriver.common.by
@@ -228,10 +228,10 @@ def fetch_cloud_image(driver, wait, url, width, height, is_future=False):  # noq
 def retouch_cloud_image(png_data, panel_config):
     logging.info("retouch image")
 
-    img_rgb = cv2.imdecode(np.asarray(bytearray(png_data), dtype=np.uint8), cv2.IMREAD_COLOR)
+    img_rgb = cv2.imdecode(numpy.asarray(bytearray(png_data), dtype=numpy.uint8), cv2.IMREAD_COLOR)
 
-    img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2HSV_FULL).astype(np.float32)
-    bar = np.zeros((1, len(RAINFALL_INTENSITY_LEVEL), 3))
+    img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2HSV_FULL).astype(numpy.float32)
+    bar = numpy.zeros((1, len(RAINFALL_INTENSITY_LEVEL), 3))
     h, s, v = cv2.split(img_hsv)
 
     # NOTE: 降雨強度の色をグレースケール用に変換
@@ -250,18 +250,18 @@ def retouch_cloud_image(png_data, panel_config):
         bar[0][i] = color
 
     # NOTE: 白地図の色をやや明るめにする
-    img_hsv[s < 30, 2] = np.clip(pow(v[(s < 30)], 1.35) * 0.3, 0, 255)
+    img_hsv[s < 30, 2] = numpy.clip(pow(v[(s < 30)], 1.35) * 0.3, 0, 255)
 
     return (
         PIL.Image.fromarray(
             cv2.cvtColor(
-                cv2.cvtColor(img_hsv.astype(np.uint8), cv2.COLOR_HSV2RGB_FULL),
+                cv2.cvtColor(img_hsv.astype(numpy.uint8), cv2.COLOR_HSV2RGB_FULL),
                 cv2.COLOR_RGB2RGBA,
             )
         ),
         PIL.Image.fromarray(
             cv2.cvtColor(
-                cv2.cvtColor(bar.astype(np.uint8), cv2.COLOR_HSV2RGB_FULL),
+                cv2.cvtColor(bar.astype(numpy.uint8), cv2.COLOR_HSV2RGB_FULL),
                 cv2.COLOR_RGB2RGBA,
             )
         ),
@@ -527,7 +527,7 @@ def create_rain_cloud_panel_impl(  # noqa: PLR0913
 
     task_list = []
     executor = (
-        futures.ThreadPoolExecutor(len(SUB_PANEL_CONFIG_LIST))
+        concurrent.futures.ThreadPoolExecutor(len(SUB_PANEL_CONFIG_LIST))
         if is_threaded
         else my_lib.thread_util.SingleThreadExecutor()
     )
