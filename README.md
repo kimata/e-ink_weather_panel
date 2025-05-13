@@ -28,6 +28,15 @@ https://weather-panel-webapp-demo.kubernetes.green-rabbit.net/weather_panel/
 -   夜間、照度に応じてライトのアイコンを描画
 -   Raspberry Pi にログインして、フレームバッファに描画
 
+
+## 動作環境
+
+基本的には，Python が動作する環境であれば動作します。
+下記の環境での動作を確認しています。
+
+- Linux (Ubuntu 24.04)
+- Kubernetes
+
 ## 設定
 
 同封されている `config.example.yaml` を `config.yaml` に名前変更して，お手元の環境に合わせて書き換えてください。
