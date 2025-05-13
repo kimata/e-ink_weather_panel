@@ -145,17 +145,17 @@ def gen_sensor_data(value=[30, 34, 25, 20], valid=True):  # noqa: B006
     return sensor_data
 
 
-# NOTE: テストを並列実行すると，この関数が結果を誤判定する可能性あり
+# NOTE: テストを並列実行すると、この関数が結果を誤判定する可能性あり
 def check_notify_slack(message, index=-1):
     import my_lib.notify.slack
 
     notify_hist = my_lib.notify.slack.hist_get()
 
     if message is None:
-        assert notify_hist == [], "正常なはずなのに，エラー通知がされています．"
+        assert notify_hist == [], "正常なはずなのに、エラー通知がされています。"
     else:
-        assert len(notify_hist) != 0, "異常が発生したはずなのに，エラー通知がされていません．"
-        assert notify_hist[index].find(message) != -1, f"「{message}」が Slack で通知されていません．"
+        assert len(notify_hist) != 0, "異常が発生したはずなのに、エラー通知がされていません。"
+        assert notify_hist[index].find(message) != -1, f"「{message}」が Slack で通知されていません。"
 
 
 def save_image(request, img, index):
@@ -169,10 +169,10 @@ def save_image(request, img, index):
 def check_image(request, img, size, index=None):
     save_image(request, img, index)
 
-    # NOTE: matplotlib で生成した画像の場合，期待値より 1pix 小さい場合がある
+    # NOTE: matplotlib で生成した画像の場合、期待値より 1pix 小さい場合がある
     assert abs(img.size[0] - size["width"]) < 2
     assert abs(img.size[1] - size["height"]) < 2, (
-        "画像サイズが期待値と一致しません．"
+        "画像サイズが期待値と一致しません。"
         f"""(期待値: {size["width"]} x {size["height"]}, 実際: {img.size[0]} x {img.size[1]})"""
     )
 
@@ -202,9 +202,9 @@ def check_liveness(config, is_should_healthy):
     )
 
     if is_should_healthy:
-        assert liveness, "Liveness が更新されていません．"
+        assert liveness, "Liveness が更新されていません。"
     else:
-        assert not liveness, "Liveness が更新されてしまっています．"
+        assert not liveness, "Liveness が更新されてしまっています。"
 
 
 ######################################################################
@@ -286,9 +286,9 @@ def test_create_image_influx_error(request, tmp_path, mocker):
         config["panel"]["device"],
     )
 
-    # NOTE: テスト結果を安定させるため，ウェイトを追加
-    # (本当はちゃんとマルチスレッド対応した方が良いけど，単純に multiprocessing.Queue に置き換える
-    # 方法を試したら何故かデッドロックが発生したので，お茶を濁す)
+    # NOTE: テスト結果を安定させるため、ウェイトを追加
+    # (本当はちゃんとマルチスレッド対応した方が良いけど、単純に multiprocessing.Queue に置き換える
+    # 方法を試したら何故かデッドロックが発生したので、お茶を濁す)
     time.sleep(1)
 
     # NOTE: sensor_graph と power_graph のそれぞれでエラーが発生
@@ -397,7 +397,7 @@ def test_wbgt_panel_var(mocker, request, tmp_path):
 def test_wbgt_panel_error_1(time_machine, mocker, request, tmp_path):
     import weather_display.wbgt_panel
 
-    # NOTE: 暑さ指数は夏のみ使うので，時期を変更
+    # NOTE: 暑さ指数は夏のみ使うので、時期を変更
     time_machine.move_to(datetime.datetime.now(TIMEZONE).replace(month=8))
 
     mocker.patch("my_lib.weather.fetch_page", side_effect=RuntimeError())
@@ -773,7 +773,7 @@ def test_create_rain_cloud_panel_selenium_error(mocker, request, tmp_path):
         config["rain_cloud"]["panel"],
     )
 
-    # NOTE: CONFIG_SMALL_FILE には Slack の設定がないので，None になる
+    # NOTE: CONFIG_SMALL_FILE には Slack の設定がないので、None になる
     check_notify_slack(None)
 
 
@@ -802,7 +802,7 @@ def test_create_rain_cloud_panel_xpath_error(mocker, request, tmp_path):
         config["rain_cloud"]["panel"],
     )
 
-    # NOTE: CONFIG_SMALL_FILE には Slack の設定がないので，None になる
+    # NOTE: CONFIG_SMALL_FILE には Slack の設定がないので、None になる
     check_notify_slack(None)
 
 
@@ -955,7 +955,7 @@ def test_api_run(client, mocker):
     )
     assert response.status_code == 200
     image_data = gzip.decompress(response.data)
-    # NOTE: サイズが適度にあり，PNG として解釈できれば OK とする
+    # NOTE: サイズが適度にあり、PNG として解釈できれば OK とする
     assert len(image_data) > 1024
     assert PIL.Image.open(io.BytesIO(image_data)).size == (3200, 1800)
 
@@ -1018,8 +1018,8 @@ def test_api_run_error(client, mocker):
 def test_api_run_normal(mocker):
     import inspect
 
-    # NOTE: fixture の方はダミーモード固定で動かしているので，
-    # ここではノーマルモードで webapp を動かしてテストする．
+    # NOTE: fixture の方はダミーモード固定で動かしているので、
+    # ここではノーマルモードで webapp を動かしてテストする。
     mocker.patch.dict("os.environ", {"WERKZEUG_RUN_MAIN": "true"})
     app = webapp.create_app(CONFIG_FILE, CONFIG_SMALL_FILE)
     client = app.test_client()
@@ -1047,7 +1047,7 @@ def test_api_run_normal(mocker):
     token = response.json["token"]
     response = client.post(f"{my_lib.webapp.config.URL_PREFIX}/api/log", data={"token": token})
     assert response.status_code == 200
-    # NOTE: ログを出し切るまで待つ．
+    # NOTE: ログを出し切るまで待つ。
     response.data.decode()
 
     # NOTE: 2回目
@@ -1235,7 +1235,7 @@ def test_display_image_error_major(mocker, tmp_path, request):
         prev_ssh=mocker.MagicMock(),
     )
 
-    # NOTE: 本来，create_image の中で通知されているので，上記の故障注入方法では通知はされない
+    # NOTE: 本来、create_image の中で通知されているので、上記の故障注入方法では通知はされない
     check_notify_slack(None)
     check_liveness(config, False)
 
@@ -1295,7 +1295,7 @@ def test_display_image_error_minor(mocker, tmp_path, request):
         prev_ssh=mocker.MagicMock(),
     )
 
-    # NOTE: 本来，create_image の中で通知されているので，上記の故障注入方法では通知はされない
+    # NOTE: 本来、create_image の中で通知されているので、上記の故障注入方法では通知はされない
     check_notify_slack(None)
     check_liveness(config, True)
 
@@ -1355,6 +1355,6 @@ def test_display_image_error_unknown(mocker, tmp_path, request):
             prev_ssh=mocker.MagicMock(),
         )
 
-    # NOTE: 本来，create_image の中で通知されているので，上記の故障注入方法では通知はされない
+    # NOTE: 本来、create_image の中で通知されているので、上記の故障注入方法では通知はされない
     check_notify_slack(None)
     check_liveness(config, False)

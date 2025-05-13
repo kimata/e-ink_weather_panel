@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# NOTE: 先に pandas を import しないと，下記のエラーがでる
+# NOTE: 先に pandas を import しないと、下記のエラーがでる
 # TypeError: type 'pandas._libs.tslibs.base.ABCTimestamp' is not dynamically allocated
 # but its base type 'FakeDatetime' is dynamically...
 import pandas as pd  # noqa: F401
