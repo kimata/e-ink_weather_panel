@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-消費電力グラフを生成します．
+消費電力グラフを生成します。
 
 Usage:
   power_graph.py [-c CONFIG] -o PNG_FILE [-D]
 
 Options:
-  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
-  -o PNG_FILE       : 生成した画像を指定されたパスに保存します．
-  -D                : デバッグモードで動作します．
+  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します。[default: config.yaml]
+  -o PNG_FILE       : 生成した画像を指定されたパスに保存します。
+  -D                : デバッグモードで動作します。
 """
 
 import datetime

@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-電子ペーパ表示用の画像を生成します．
+電子ペーパ表示用の画像を生成します。
 
 Usage:
   create_image.py [-c CONFIG] [-s] [-o PNG_FILE] [-t] [-D] [-d]
 
 Options:
-  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
-  -s                : 小型ディスプレイモードで実行します．
-  -o PNG_FILE       : 生成した画像を指定されたパスに保存します．
-  -t                : テストモードで実行します．
-  -d                : ダミーモードで実行します．
-  -D                : デバッグモードで動作します．
+  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します。[default: config.yaml]
+  -s                : 小型ディスプレイモードで実行します。
+  -o PNG_FILE       : 生成した画像を指定されたパスに保存します。
+  -t                : テストモードで実行します。
+  -d                : ダミーモードで実行します。
+  -D                : デバッグモードで動作します。
 """
 
 import logging
@@ -75,7 +75,7 @@ def draw_panel(config, img, is_small_mode=False):
 
     panel_map = {}
 
-    # NOTE: 並列処理 (matplotlib はマルチスレッド対応していないので，マルチプロセス処理する)
+    # NOTE: 並列処理 (matplotlib はマルチスレッド対応していないので、マルチプロセス処理する)
     start = time.perf_counter()
     pool = multiprocessing.Pool(processes=len(panel_list))
     for panel in panel_list:
@@ -130,7 +130,7 @@ def draw_panel(config, img, is_small_mode=False):
 
 
 def create_image(config, small_mode=False, dummy_mode=False, test_mode=False):
-    # NOTE: オプションでダミーモードが指定された場合，環境変数もそれに揃えておく
+    # NOTE: オプションでダミーモードが指定された場合、環境変数もそれに揃えておく
     if dummy_mode:
         logging.warning("Set dummy mode")
         os.environ["DUMMY_MODE"] = "true"

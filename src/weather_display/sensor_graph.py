@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-センサーグラフを生成します．
+センサーグラフを生成します。
 
 Usage:
   sensor_graph.py [-c CONFIG] -o PNG_FILE [-D]
 
 Options:
-  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
-  -o PNG_FILE       : 生成した画像を指定されたパスに保存します．
-  -D                : デバッグモードで動作します．
+  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します。[default: config.yaml]
+  -o PNG_FILE       : 生成した画像を指定されたパスに保存します。
+  -D                : デバッグモードで動作します。
 """
 
 import datetime
@@ -275,7 +275,7 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
             if max_val > param_max:
                 param_max = max_val
 
-        # NOTE: 見やすくなるように，ちょっと広げる
+        # NOTE: 見やすくなるように、ちょっと広げる
         range_map[param["name"]] = [
             max(0, param_min - (param_max - param_min) * 0.3),
             param_max + (param_max - param_min) * 0.05,

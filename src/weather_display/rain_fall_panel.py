@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-雨雲レーダー画像を生成します．
+雨雲レーダー画像を生成します。
 
 Usage:
   rain_cloud_panel.py [-c CONFIG] -o PNG_FILE [-D]
 
 Options:
-  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
-  -o PNG_FILE       : 生成した画像を指定されたパスに保存します．
-  -D                : デバッグモードで動作します．
+  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します。[default: config.yaml]
+  -o PNG_FILE       : 生成した画像を指定されたパスに保存します。
+  -D                : デバッグモードで動作します。
 """
 
 import datetime
@@ -58,7 +58,7 @@ def get_rainfall_status(panel_config, db_config):
     # NOTE:過去二分間の平均にする
     amount = (data["value"][-1] + data["value"][-2]) / 2.0 if len(data["value"]) > 1 else data["value"][-1]
 
-    # NOTE: 1分あたりの降水量なので，時間あたりに直す
+    # NOTE: 1分あたりの降水量なので、時間あたりに直す
     amount *= 60
 
     data = my_lib.sensor_data.fetch_data(

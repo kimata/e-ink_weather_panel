@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-天気予報画像を生成します．
+天気予報画像を生成します。
 
 Usage:
   weather_panel.py [-c CONFIG] -o PNG_FILE [-D]
 
 Options:
-  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
-  -o PNG_FILE       : 生成した画像を指定されたパスに保存します．
-  -D                : デバッグモードで動作します．
+  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します。[default: config.yaml]
+  -o PNG_FILE       : 生成した画像を指定されたパスに保存します。
+  -D                : デバッグモードで動作します。
 """
 
 import datetime
@@ -640,7 +640,7 @@ def draw_clothing(img, pos_x, pos_y, clothing_info, icon):
         else:
             draw_icon = shadow_icon
 
-        # NOTE: サイズ違いの場合，やや上寄りにする
+        # NOTE: サイズ違いの場合、やや上寄りにする
         icon_pos = (
             int(pos_x - icon_width / 2),
             int(pos_y + (icon_height_max - draw_icon.size[1]) / 3),

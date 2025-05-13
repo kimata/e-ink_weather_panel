@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-電子ペーパ表示用の画像を表示します．
+電子ペーパ表示用の画像を表示します。
 
 Usage:
   display_image.py [-c CONFIG] [-p HOSTNAME] [-s] [-t] [-O] [-D]
 
 Options:
-  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
-  -s                : 小型ディスプレイモードで実行します．
-  -t                : テストモードで実行します．
-  -p HOSTNAME       : 表示を行う Raspberry Pi のホスト名．
+  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します。[default: config.yaml]
+  -s                : 小型ディスプレイモードで実行します。
+  -t                : テストモードで実行します。
+  -p HOSTNAME       : 表示を行う Raspberry Pi のホスト名。
   -O                : 1回のみ表示
-  -D                : デバッグモードで動作します．
+  -D                : デバッグモードで動作します。
 """
 
 import datetime
@@ -118,7 +118,7 @@ def exec_display_image(ssh, config, config_file, small_mode, test_mode):
 
     fbi_status = ssh_stdout.channel.recv_exit_status()
 
-    # NOTE: -24 は create_image.py の異常時の終了コードに合わせる．
+    # NOTE: -24 は create_image.py の異常時の終了コードに合わせる。
     if (fbi_status == 0) and (proc.returncode == 0):
         logging.info("Succeeded.")
         my_lib.footprint.update(pathlib.Path(config["liveness"]["file"]["display"]))
@@ -170,7 +170,7 @@ def display_image(  # noqa: PLR0913
         if diff_sec > 3:
             logging.warning("Update timing gap is large: %d", diff_sec)
 
-        # NOTE: 更新されていることが直感的に理解しやすくなるように，
+        # NOTE: 更新されていることが直感的に理解しやすくなるように、
         # 更新完了タイミングを各分の 0 秒に合わせる
         elapsed = time.perf_counter() - start
 
@@ -246,7 +246,7 @@ if __name__ == "__main__":
             fail_count += 1
             if is_one_time or (fail_count >= NOTIFY_THRESHOLD):
                 my_lib.panel_util.notify_error(config, traceback.format_exc())
-                logging.error("エラーが続いたので終了します．")  # noqa: TRY400
+                logging.error("エラーが続いたので終了します。")  # noqa: TRY400
                 sys.stderr.flush()
                 time.sleep(1)
                 raise

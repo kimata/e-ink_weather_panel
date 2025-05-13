@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-雨雲レーダー画像を生成します．
+雨雲レーダー画像を生成します。
 
 Usage:
   rain_cloud_panel.py [-c CONFIG] -o PNG_FILE [-D]
 
 Options:
-  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します．[default: config.yaml]
-  -o PNG_FILE       : 生成した画像を指定されたパスに保存します．
-  -D                : デバッグモードで動作します．
+  -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します。[default: config.yaml]
+  -o PNG_FILE       : 生成した画像を指定されたパスに保存します。
+  -D                : デバッグモードで動作します。
 """
 
 import concurrent
@@ -140,7 +140,7 @@ def shape_cloud_display(driver, wait, width, height, is_future):  # noqa: ARG001
 
 
 def change_window_size(driver, width, height):
-    # NOTE: 雨雲画像がこのサイズになるように，ウィンドウサイズを調整する
+    # NOTE: 雨雲画像がこのサイズになるように、ウィンドウサイズを調整する
     logging.info("target: %d x %d", width, height)
 
     # NOTE: まずはサイズを大きめにしておく
@@ -543,8 +543,8 @@ def create_rain_cloud_panel_impl(  # noqa: PLR0913
                 trial,
             )
         )
-        # NOTE: タイミングをずらさないと，初回起動時 user-data-dir を生成しようとした
-        # タイミングでエラーになる．
+        # NOTE: タイミングをずらさないと、初回起動時 user-data-dir を生成しようとした
+        # タイミングでエラーになる。
         time.sleep(3)
 
     for i, sub_panel_config in enumerate(SUB_PANEL_CONFIG_LIST):

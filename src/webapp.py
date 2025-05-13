@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-電子ペーパ表示用の画像を表示する簡易的な Web サーバです．
+電子ペーパ表示用の画像を表示する簡易的な Web サーバです。
 
 Usage:
   webapp.py [-c CONFIG] [-s CONFIG] [-d] [-D]
 
 Options:
-  -c CONFIG         : 通常モードで使う設定ファイルを指定します．[default: config.yaml]
-  -s CONFIG         : 小型ディスプレイモード使う設定ファイルを指定します．[default: config-small.yaml]
-  -d                : ダミーモードで実行します．
-  -D                : デバッグモードで動作します．
+  -c CONFIG         : 通常モードで使う設定ファイルを指定します。[default: config.yaml]
+  -s CONFIG         : 小型ディスプレイモード使う設定ファイルを指定します。[default: config-small.yaml]
+  -d                : ダミーモードで実行します。
+  -D                : デバッグモードで動作します。
 """
 
 import atexit
@@ -31,7 +31,7 @@ def create_app(config_file_normal, config_file_small, dummy_mode=False):
     logging.getLogger("werkzeug").setLevel(logging.ERROR)
 
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-        # NOTE: オプションでダミーモードが指定された場合，環境変数もそれに揃えておく
+        # NOTE: オプションでダミーモードが指定された場合、環境変数もそれに揃えておく
         if dummy_mode:
             logging.warning("Set dummy mode")
             os.environ["DUMMY_MODE"] = "true"

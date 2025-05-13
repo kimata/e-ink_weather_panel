@@ -62,8 +62,8 @@ def generate_image_impl(config_file, is_small_mode, is_dummy_mode, is_test_mode,
 
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)  # noqa: S603
 
-    # NOTE: stdout も同時に読まないと，proc.poll の結果が None から
-    # 変化してくれないので注意．
+    # NOTE: stdout も同時に読まないと、proc.poll の結果が None から
+    # 変化してくれないので注意。
     thread = threading.Thread(target=image_reader, args=(proc, token))
     thread.start()
 
@@ -81,7 +81,7 @@ def generate_image_impl(config_file, is_small_mode, is_dummy_mode, is_test_mode,
 
     thread.join()
 
-    # NOTE: None を積むことで，実行完了を通知
+    # NOTE: None を積むことで、実行完了を通知
     panel_data["log"].put(None)
 
 
@@ -125,8 +125,8 @@ def generate_image(config_file, is_small_mode, is_dummy_mode, is_test_mode):
 def api_image():
     global panel_data_map
 
-    # NOTE: @gzipped をつけた場合，キャッシュ用のヘッダを付与しているので，
-    # 無効化する．
+    # NOTE: @gzipped をつけた場合、キャッシュ用のヘッダを付与しているので、
+    # 無効化する。
     flask.g.disable_cache = True
 
     token = flask.request.form.get("token", "")
