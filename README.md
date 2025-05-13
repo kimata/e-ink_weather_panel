@@ -40,7 +40,7 @@ https://weather-panel-webapp-demo.kubernetes.green-rabbit.net/weather_panel/
 -   `src/weather_display/power_graph.py`
 
 ## 準備
-nn
+
 ### Raspberry Pi
 
 ディプレイと接続する Rapsberry Pi では以下の準備を行なっておきます。
