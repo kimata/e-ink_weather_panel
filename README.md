@@ -33,8 +33,11 @@ https://weather-panel-webapp-demo.kubernetes.green-rabbit.net/weather_panel/
 同封されている `config.example.yaml` を `config.yaml` に名前変更して，お手元の環境に合わせて書き換えてください。
 また、表示に使う Raspberry Pi のホスト名を `compose.yaml` の RASP_HOSTNAME にて指定します。
 
-Influx DB からセンサー情報を取得する部分( `src/weather_display/sensor_graph.py` や `src/weather_display/power_graph.py` の `fetch_data` )は、
+下記に含まれる Influx DB からセンサー情報を取得する関数 `fetch_data` は、
 お手元の環境に合わせて修正が必要かもしれません。
+
+-   `src/weather_display/sensor_graph.py`
+-   `src/weather_display/power_graph.py`
 
 ## 準備
 nn
