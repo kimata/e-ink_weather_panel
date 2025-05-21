@@ -30,14 +30,11 @@ RUN --mount=type=cache,target=/tmp/rye-cache \
     fi && \
     RYE_NO_AUTO_INSTALL=1 RYE_INSTALL_OPTION="--yes" bash /tmp/rye-cache/rye-install.sh
 
-RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    --mount=type=bind,source=.python-version,target=.python-version \
-    --mount=type=bind,source=README.md,target=README.md \
-    rye lock
+COPY pyproject.toml .python-version README.md .
 
-RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    --mount=type=bind,source=README.md,target=README.md \
-    --mount=type=cache,target=/root/.cache/pip \
+RUN rye lock
+
+RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
     pip install --break-system-packages --no-cache-dir -r requirements.lock
 
 # Rye は requreiments.lock の生成のみに使うため，削除しておく．
