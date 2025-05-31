@@ -1114,6 +1114,7 @@ def test_display_image_onetime(mocker, config):
     check_liveness(config, True)
 
 
+@pytest.mark.xdist_group(name="Selenium")
 def test_display_image_error_major(mocker, config):
     import builtins
 
