@@ -2,19 +2,16 @@
 # ruff: noqa: S101
 import datetime
 import logging
-import os
 import pathlib
 import re
-import sys
 from unittest import mock
 
-import my_lib.config
+import my_lib.webapp.config
 import pytest
 import zoneinfo
 
-sys.path.append(str(pathlib.Path(__file__).parent.parent / "src"))
+my_lib.webapp.config.URL_PREFIX = "/weather_panel"
 
-import webapp
 
 logging.getLogger("selenium.webdriver.remote").setLevel(logging.WARNING)
 logging.getLogger("selenium.webdriver.common").setLevel(logging.DEBUG)
@@ -50,19 +47,30 @@ def slack_mock():
 
 @pytest.fixture(scope="session")
 def app():
+    import webapp
+
     with mock.patch.dict("os.environ", {"WERKZEUG_RUN_MAIN": "true"}):
         app = webapp.create_app(CONFIG_FILE, CONFIG_SMALL_FILE, dummy_mode=True)
 
         yield app
 
 
+@pytest.fixture()
+def config():
+    import my_lib.config
+
+    config_ = my_lib.config.load(CONFIG_FILE)
+    config_["panel"]["update"]["interval"] = 60
+
+    return config_
+
+
 @pytest.fixture(autouse=True)
-def _clear():
+def _clear(config):
+    import my_lib.footprint
     import my_lib.notify.slack
 
-    config = my_lib.config.load(CONFIG_FILE)
-
-    pathlib.Path(config["liveness"]["file"]["display"]).unlink(missing_ok=True)
+    my_lib.footprint.clear(config["liveness"]["file"]["display"])
 
     my_lib.notify.slack.interval_clear()
     my_lib.notify.slack.hist_clear()
@@ -177,16 +185,6 @@ def check_image(request, img, size, index=None):
     )
 
 
-def load_test_config(config_file, tmp_path, request):
-    config = my_lib.config.load(config_file)
-
-    config["liveness"]["file"]["display"] = f"{tmp_path}/healthz-{request.node.name}"
-    pathlib.Path(config["liveness"]["file"]["display"]).unlink(missing_ok=True)
-    config["panel"]["update"]["interval"] = 60
-
-    return config
-
-
 def check_liveness(config, is_should_healthy):
     import healthz
 
@@ -209,12 +207,10 @@ def check_liveness(config, is_should_healthy):
 
 ######################################################################
 @pytest.mark.xdist_group(name="Selenium")
-def test_create_image(request, mocker, tmp_path):
+def test_create_image(request, mocker, config):
     import create_image
 
     mock_sensor_fetch_data(mocker)
-
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
 
     check_image(
         request,
@@ -231,12 +227,10 @@ def test_create_image(request, mocker, tmp_path):
 
 
 @pytest.mark.xdist_group(name="Selenium")
-def test_create_image_small(request, tmp_path, mocker):
+def test_create_image_small(request, config, mocker):
     import create_image
 
     mock_sensor_fetch_data(mocker)
-
-    config = load_test_config(CONFIG_SMALL_FILE, tmp_path, request)
 
     check_image(
         request,
@@ -247,13 +241,11 @@ def test_create_image_small(request, tmp_path, mocker):
     check_notify_slack(None)
 
 
-def test_create_image_error(request, tmp_path, mocker):
+def test_create_image_error(request, config, mocker):
     import create_image
 
     mock_sensor_fetch_data(mocker)
     mocker.patch("create_image.draw_panel", side_effect=RuntimeError())
-
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
 
     check_image(
         request,
@@ -271,14 +263,12 @@ def test_create_image_error(request, tmp_path, mocker):
 
 
 # NOTE: テストの安定性に問題があるので複数リトライする
-def test_create_image_influx_error(request, tmp_path, mocker):
+def test_create_image_influx_error(request, config, mocker):
     import time
 
     import create_image
 
     mocker.patch("influxdb_client.InfluxDBClient.query_api", side_effect=RuntimeError())
-
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
 
     check_image(
         request,
@@ -297,10 +287,8 @@ def test_create_image_influx_error(request, tmp_path, mocker):
 
 
 ######################################################################
-def test_weather_panel(request, tmp_path):
+def test_weather_panel(request, config):
     import weather_display.weather_panel
-
-    config = load_test_config(CONFIG_SMALL_FILE, tmp_path, request)
 
     check_image(
         request,
@@ -311,7 +299,7 @@ def test_weather_panel(request, tmp_path):
     check_notify_slack(None)
 
 
-def test_weather_panel_dummy(mocker, request, tmp_path):
+def test_weather_panel_dummy(mocker, request, config):
     import copy
 
     import weather_display.weather_panel
@@ -349,8 +337,6 @@ def test_weather_panel_dummy(mocker, request, tmp_path):
     mocker.patch("weather_display.weather_panel.get_clothing_yahoo", return_value=clothing_info)
     mocker.patch("weather_display.weather_panel.get_wbgt", return_value=wbgt_info)
 
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
-
     check_image(
         request,
         weather_display.weather_panel.create(config)[0],
@@ -361,10 +347,8 @@ def test_weather_panel_dummy(mocker, request, tmp_path):
 
 
 ######################################################################
-def test_wbgt_panel(request, tmp_path):
+def test_wbgt_panel(request, config):
     import weather_display.wbgt_panel
-
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
 
     check_image(
         request,
@@ -375,10 +359,8 @@ def test_wbgt_panel(request, tmp_path):
     check_notify_slack(None)
 
 
-def test_wbgt_panel_var(mocker, request, tmp_path):
+def test_wbgt_panel_var(mocker, request, config):
     import weather_display.wbgt_panel
-
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
 
     wbgt_info = gen_wbgt_info()
     for i in range(20, 34, 2):
@@ -394,15 +376,13 @@ def test_wbgt_panel_var(mocker, request, tmp_path):
     check_notify_slack(None)
 
 
-def test_wbgt_panel_error_1(time_machine, mocker, request, tmp_path):
+def test_wbgt_panel_error_1(time_machine, mocker, request, config):
     import weather_display.wbgt_panel
 
     # NOTE: 暑さ指数は夏のみ使うので、時期を変更
     time_machine.move_to(datetime.datetime.now(TIMEZONE).replace(month=8))
 
     mocker.patch("my_lib.weather.fetch_page", side_effect=RuntimeError())
-
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
 
     ret = weather_display.wbgt_panel.create(config)
     check_image(request, ret[0], config["wbgt"]["panel"])
@@ -411,12 +391,10 @@ def test_wbgt_panel_error_1(time_machine, mocker, request, tmp_path):
     assert "Traceback" in ret[2]
 
 
-def test_wbgt_panel_error_2(mocker, request, tmp_path):
+def test_wbgt_panel_error_2(mocker, request, config):
     import weather_display.wbgt_panel
 
     mocker.patch("lxml.html.HtmlElement.xpath", return_value=[])
-
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
 
     ret = weather_display.wbgt_panel.create(config)
     check_image(request, ret[0], config["wbgt"]["panel"])
@@ -426,10 +404,8 @@ def test_wbgt_panel_error_2(mocker, request, tmp_path):
 
 
 ######################################################################
-def test_time_panel(request, tmp_path):
+def test_time_panel(request, config):
     import weather_display.time_panel
-
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
 
     check_image(
         request,
@@ -441,12 +417,10 @@ def test_time_panel(request, tmp_path):
 
 
 ######################################################################
-def test_create_power_graph(mocker, request, tmp_path):
+def test_create_power_graph(mocker, request, config):
     import weather_display.power_graph
 
     mock_sensor_fetch_data(mocker)
-
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
 
     check_image(
         request,
@@ -467,14 +441,12 @@ def test_create_power_graph(mocker, request, tmp_path):
     check_notify_slack(None)
 
 
-def test_create_power_graph_invalid(mocker, request, tmp_path):
+def test_create_power_graph_invalid(mocker, request, config):
     import weather_display.power_graph
 
     mocker.patch(
         "weather_display.power_graph.fetch_data", return_value=gen_sensor_data([1000, 500, 0], False)
     )
-
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
 
     check_image(
         request,
@@ -485,12 +457,10 @@ def test_create_power_graph_invalid(mocker, request, tmp_path):
     check_notify_slack(None)
 
 
-def test_create_power_graph_error(mocker, request, tmp_path):
+def test_create_power_graph_error(mocker, request, config):
     import weather_display.power_graph
 
     mocker.patch("weather_display.power_graph.create_power_graph_impl", side_effect=RuntimeError())
-
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
 
     check_image(
         request,
@@ -502,14 +472,12 @@ def test_create_power_graph_error(mocker, request, tmp_path):
 
 
 ######################################################################
-def test_create_sensor_graph_1(time_machine, mocker, request, tmp_path):
+def test_create_sensor_graph_1(time_machine, mocker, request, config):
     import weather_display.sensor_graph
 
     mock_sensor_fetch_data(mocker)
 
     time_machine.move_to(datetime.datetime.now(TIMEZONE).replace(hour=12))
-
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
 
     check_image(
         request,
@@ -530,7 +498,7 @@ def test_create_sensor_graph_1(time_machine, mocker, request, tmp_path):
     check_notify_slack(None)
 
 
-def test_create_sensor_graph_2(time_machine, mocker, request, tmp_path):
+def test_create_sensor_graph_2(time_machine, mocker, request, config):
     import weather_display.sensor_graph
 
     def value_mock():
@@ -565,8 +533,6 @@ def test_create_sensor_graph_2(time_machine, mocker, request, tmp_path):
 
     time_machine.move_to(datetime.datetime.now(TIMEZONE).replace(hour=12))
 
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
-
     check_image(
         request,
         weather_display.sensor_graph.create(config)[0],
@@ -576,7 +542,7 @@ def test_create_sensor_graph_2(time_machine, mocker, request, tmp_path):
     check_notify_slack(None)
 
 
-def test_create_sensor_graph_dummy(time_machine, mocker, request, tmp_path):
+def test_create_sensor_graph_dummy(time_machine, mocker, request, config):
     import weather_display.sensor_graph
 
     mocker.patch.dict("os.environ", {"DUMMY_MODE": "true"})
@@ -584,8 +550,6 @@ def test_create_sensor_graph_dummy(time_machine, mocker, request, tmp_path):
     mock_sensor_fetch_data(mocker)
 
     time_machine.move_to(datetime.datetime.now(TIMEZONE).replace(hour=12))
-
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
 
     check_image(
         request,
@@ -606,7 +570,7 @@ def test_create_sensor_graph_dummy(time_machine, mocker, request, tmp_path):
     check_notify_slack(None)
 
 
-def test_create_sensor_graph_invalid(mocker, request, tmp_path):
+def test_create_sensor_graph_invalid(mocker, request, config):
     import inspect
 
     import weather_display.sensor_graph
@@ -622,8 +586,6 @@ def test_create_sensor_graph_invalid(mocker, request, tmp_path):
 
     mocker.patch("weather_display.sensor_graph.fetch_data", side_effect=dummy_data)
 
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
-
     check_image(
         request,
         weather_display.sensor_graph.create(config)[0],
@@ -633,12 +595,10 @@ def test_create_sensor_graph_invalid(mocker, request, tmp_path):
     check_notify_slack(None)
 
 
-def test_create_sensor_graph_influx_error(mocker, request, tmp_path):
+def test_create_sensor_graph_influx_error(mocker, request, config):
     import weather_display.sensor_graph
 
     mocker.patch("influxdb_client.InfluxDBClient.query_api", side_effect=RuntimeError())
-
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
 
     ret = weather_display.sensor_graph.create(config)
 
@@ -650,12 +610,8 @@ def test_create_sensor_graph_influx_error(mocker, request, tmp_path):
 
 ######################################################################
 @pytest.mark.xdist_group(name="Selenium")
-def test_create_rain_cloud_panel(request, tmp_path):
+def test_create_rain_cloud_panel(request, config):
     import weather_display.rain_cloud_panel
-
-    weather_display.rain_cloud_panel.WINDOW_SIZE_CACHE.unlink(missing_ok=True)
-
-    config = load_test_config(CONFIG_SMALL_FILE, tmp_path, request)
 
     check_image(
         request,
@@ -675,7 +631,7 @@ def test_create_rain_cloud_panel(request, tmp_path):
 
 
 @pytest.mark.xdist_group(name="Selenium")
-def test_create_rain_cloud_panel_cache_and_error(mocker, request, tmp_path):
+def test_create_rain_cloud_panel_cache_and_error(mocker, request, config):
     import weather_display.rain_cloud_panel
     from my_lib.selenium_util import click_xpath as click_xpath_orig
 
@@ -690,15 +646,6 @@ def test_create_rain_cloud_panel_cache_and_error(mocker, request, tmp_path):
     click_xpath_mock.i = 0
 
     mocker.patch("weather_display.rain_cloud_panel.click_xpath", side_effect=click_xpath_mock)
-
-    month_ago = datetime.datetime.now(TIMEZONE) + datetime.timedelta(days=-1)
-    month_ago_epoch = month_ago.timestamp()
-
-    if weather_display.rain_cloud_panel.WINDOW_SIZE_CACHE.exists():
-        weather_display.rain_cloud_panel.WINDOW_SIZE_CACHE.touch()
-        os.utime(str(weather_display.rain_cloud_panel.WINDOW_SIZE_CACHE), (month_ago_epoch, month_ago_epoch))
-
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
 
     check_image(
         request,
@@ -720,7 +667,7 @@ def test_create_rain_cloud_panel_cache_and_error(mocker, request, tmp_path):
 
 
 @pytest.mark.xdist_group(name="Selenium")
-def test_create_rain_cloud_panel_xpath_fail(mocker, request, tmp_path):
+def test_create_rain_cloud_panel_xpath_fail(mocker, request, config):
     import weather_display.rain_cloud_panel
     from my_lib.selenium_util import xpath_exists
 
@@ -736,8 +683,6 @@ def test_create_rain_cloud_panel_xpath_fail(mocker, request, tmp_path):
 
     mocker.patch("my_lib.selenium_util.xpath_exists", side_effect=xpath_exists_mock)
 
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
-
     check_image(
         request,
         weather_display.rain_cloud_panel.create(config)[0],
@@ -749,7 +694,7 @@ def test_create_rain_cloud_panel_xpath_fail(mocker, request, tmp_path):
 
 
 @pytest.mark.xdist_group(name="Selenium")
-def test_create_rain_cloud_panel_selenium_error(mocker, request, tmp_path):
+def test_create_rain_cloud_panel_selenium_error(mocker, request, config):
     import weather_display.rain_cloud_panel
     from my_lib.selenium_util import create_driver_impl
 
@@ -765,8 +710,6 @@ def test_create_rain_cloud_panel_selenium_error(mocker, request, tmp_path):
 
     mocker.patch("my_lib.selenium_util.create_driver_impl", side_effect=create_driver_impl_mock)
 
-    config = load_test_config(CONFIG_SMALL_FILE, tmp_path, request)
-
     check_image(
         request,
         weather_display.rain_cloud_panel.create(config)[0],
@@ -778,7 +721,7 @@ def test_create_rain_cloud_panel_selenium_error(mocker, request, tmp_path):
 
 
 @pytest.mark.xdist_group(name="Selenium")
-def test_create_rain_cloud_panel_xpath_error(mocker, request, tmp_path):
+def test_create_rain_cloud_panel_xpath_error(mocker, request, config):
     import weather_display.rain_cloud_panel
     from my_lib.selenium_util import xpath_exists
 
@@ -794,8 +737,6 @@ def test_create_rain_cloud_panel_xpath_error(mocker, request, tmp_path):
 
     mocker.patch("my_lib.selenium_util.xpath_exists", side_effect=xpath_exists_mock)
 
-    config = load_test_config(CONFIG_SMALL_FILE, tmp_path, request)
-
     check_image(
         request,
         weather_display.rain_cloud_panel.create(config)[0],
@@ -807,7 +748,7 @@ def test_create_rain_cloud_panel_xpath_error(mocker, request, tmp_path):
 
 
 ######################################################################
-def test_slack_error(mocker, request, tmp_path):
+def test_slack_error(mocker, request, config):
     import create_image
     import slack_sdk
 
@@ -819,8 +760,6 @@ def test_slack_error(mocker, request, tmp_path):
     mocker.patch.object(slack_sdk.web.client.WebClient, "__init__", webclient_mock)
     mocker.patch("create_image.draw_panel", side_effect=RuntimeError())
 
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
-
     check_image(
         request,
         create_image.create_image(config, small_mode=True, dummy_mode=True)[0],
@@ -831,11 +770,11 @@ def test_slack_error(mocker, request, tmp_path):
 
 
 @pytest.mark.xdist_group(name="Selenium")
-def test_slack_error_with_image(mocker, request, tmp_path):
+def test_slack_error_with_image(mocker, request, config):
     import weather_display.rain_cloud_panel
     from weather_display.rain_cloud_panel import fetch_cloud_image
 
-    def fetch_cloud_image_mock(driver, url, width, height, is_future=False):
+    def fetch_cloud_image_mock(driver, wait, url, width, height, is_future=False):  # noqa: ARG001, PLR0913
         fetch_cloud_image_mock.i += 1
         if fetch_cloud_image_mock.i == 1:
             return fetch_cloud_image(driver, url, width, height, is_future)
@@ -845,8 +784,6 @@ def test_slack_error_with_image(mocker, request, tmp_path):
     fetch_cloud_image_mock.i = 0
 
     mocker.patch("weather_display.rain_cloud_panel.fetch_cloud_image", side_effect=fetch_cloud_image_mock)
-
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
 
     check_image(
         request,
@@ -1018,6 +955,8 @@ def test_api_run_error(client, mocker):
 def test_api_run_normal(mocker):
     import inspect
 
+    import webapp
+
     # NOTE: fixture の方はダミーモード固定で動かしているので、
     # ここではノーマルモードで webapp を動かしてテストする。
     mocker.patch.dict("os.environ", {"WERKZEUG_RUN_MAIN": "true"})
@@ -1074,7 +1013,7 @@ def test_api_run_normal(mocker):
 
 
 @pytest.mark.xdist_group(name="Selenium")
-def test_display_image(mocker, tmp_path, request):
+def test_display_image(mocker, config):
     import builtins
 
     import display_image
@@ -1109,8 +1048,6 @@ def test_display_image(mocker, tmp_path, request):
             return orig_open(file, mode, buffering, encoding, errors, newline, closefd, opener)
 
     mocker.patch("builtins.open", side_effect=open_mock)
-
-    config = load_test_config(CONFIG_SMALL_FILE, tmp_path, request)
 
     display_image.display_image(
         config,
@@ -1128,7 +1065,7 @@ def test_display_image(mocker, tmp_path, request):
 
 
 @pytest.mark.xdist_group(name="Selenium")
-def test_display_image_onetime(mocker, tmp_path, request):
+def test_display_image_onetime(mocker, config):
     import builtins
 
     import display_image
@@ -1164,8 +1101,6 @@ def test_display_image_onetime(mocker, tmp_path, request):
 
     mocker.patch("builtins.open", side_effect=open_mock)
 
-    config = load_test_config(CONFIG_FILE, tmp_path, request)
-
     display_image.display_image(
         config,
         "TEST",
@@ -1180,7 +1115,7 @@ def test_display_image_onetime(mocker, tmp_path, request):
     check_liveness(config, True)
 
 
-def test_display_image_error_major(mocker, tmp_path, request):
+def test_display_image_error_major(mocker, config):
     import builtins
 
     import create_image
@@ -1222,8 +1157,6 @@ def test_display_image_error_major(mocker, tmp_path, request):
 
     mocker.patch("builtins.open", side_effect=open_mock)
 
-    config = load_test_config(CONFIG_SMALL_FILE, tmp_path, request)
-
     display_image.display_image(
         config,
         "TEST",
@@ -1240,7 +1173,7 @@ def test_display_image_error_major(mocker, tmp_path, request):
     check_liveness(config, False)
 
 
-def test_display_image_error_minor(mocker, tmp_path, request):
+def test_display_image_error_minor(mocker, config):
     import builtins
 
     import create_image
@@ -1282,8 +1215,6 @@ def test_display_image_error_minor(mocker, tmp_path, request):
 
     mocker.patch("builtins.open", side_effect=open_mock)
 
-    config = load_test_config(CONFIG_SMALL_FILE, tmp_path, request)
-
     display_image.display_image(
         config,
         "TEST",
@@ -1300,7 +1231,7 @@ def test_display_image_error_minor(mocker, tmp_path, request):
     check_liveness(config, True)
 
 
-def test_display_image_error_unknown(mocker, tmp_path, request):
+def test_display_image_error_unknown(mocker, config):
     import builtins
 
     import display_image
@@ -1340,8 +1271,6 @@ def test_display_image_error_unknown(mocker, tmp_path, request):
             return orig_open(file, mode, buffering, encoding, errors, newline, closefd, opener)
 
     mocker.patch("builtins.open", side_effect=open_mock)
-
-    config = load_test_config(CONFIG_SMALL_FILE, tmp_path, request)
 
     with pytest.raises(SystemExit):
         display_image.display_image(

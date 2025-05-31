@@ -76,7 +76,7 @@ test-walk-through:
         - build-react
 
     script:
-        - rye run pytest tests/test_basic.py -n 2
+        - rye run pytest --timeout=240 -v -n auto tests/test_basic.py
 
     variables:
         RUST_LOG: trace
