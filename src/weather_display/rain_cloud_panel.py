@@ -32,8 +32,6 @@ import selenium.webdriver.support.wait
 from my_lib.selenium_util import click_xpath  # NOTE: テスト時に mock する
 
 DATA_PATH = pathlib.Path("data")
-WINDOW_SIZE_CACHE = DATA_PATH / "window_size.cache"
-CACHE_EXPIRE_HOUR = 1
 
 CLOUD_IMAGE_XPATH = '//div[contains(@id, "jmatile_map_")]'
 
