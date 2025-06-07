@@ -30,6 +30,7 @@ import selenium.webdriver.common.by
 import selenium.webdriver.support
 import selenium.webdriver.support.wait
 from my_lib.selenium_util import click_xpath  # NOTE: テスト時に mock する
+from selenium.webdriver.support import expected_conditions
 
 DATA_PATH = pathlib.Path("data")
 
@@ -137,18 +138,23 @@ def shape_cloud_display(driver, wait, width, height, is_future):  # noqa: ARG001
     hide_label_and_icon(driver, wait)
 
 
-def change_window_size(driver, width, height):
+def change_window_size(driver, wait, width, height):
     # NOTE: 雨雲画像がこのサイズになるように、ウィンドウサイズを調整する
     logging.info("target: %d x %d", width, height)
 
     # NOTE: まずはサイズを大きめにしておく
     driver.set_window_size(int(height * 2), int(height * 1.5))
 
-    time.sleep(1)
+    # NOTE: 要素が表示されるまで待機
+    element = wait.until(
+        expected_conditions.presence_of_element_located(
+            (selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH)
+        )
+    )
 
     # NOTE: 最初に横サイズを調整
     window_size = driver.get_window_size()
-    element_size = driver.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).size
+    element_size = element.size
     logging.info(
         "[actual] window: %d x %d, element: %d x %d",
         window_size["width"],
@@ -161,7 +167,13 @@ def change_window_size(driver, width, height):
         target_window_width = window_size["width"] + (width - element_size["width"])
         logging.info("[change] window: %d x %d", target_window_width, window_size["height"])
         driver.set_window_size(target_window_width, height)
-        time.sleep(1)
+        # NOTE: サイズ変更が反映されるまで待機
+        wait.until(
+            lambda d: abs(
+                d.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).size["width"] - width
+            )
+            < 5
+        )
 
     # NOTE: 次に縦サイズを調整
     window_size = driver.get_window_size()
@@ -180,7 +192,14 @@ def change_window_size(driver, width, height):
             window_size["width"],
             target_window_height,
         )
-        time.sleep(1)
+        # NOTE: サイズ変更が反映されるまで待機
+        wait.until(
+            lambda d: abs(
+                d.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).size["height"]
+                - height
+            )
+            < 5
+        )
 
     window_size = driver.get_window_size()
     element_size = driver.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).size
@@ -205,16 +224,21 @@ def fetch_cloud_image(driver, wait, url, width, height, is_future=False):  # noq
     driver.get(url)
 
     wait.until(
-        selenium.webdriver.support.expected_conditions.presence_of_element_located(
+        expected_conditions.presence_of_element_located(
             (selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH)
         )
     )
 
-    change_window_size(driver, width, height)
+    change_window_size(driver, wait, width, height)
     shape_cloud_display(driver, wait, width, height, is_future)
 
+    # NOTE: ページが完全に読み込まれ、タイルが表示されるまで待機
     wait.until(lambda driver: driver.execute_script("return document.readyState") == "complete")
-    time.sleep(0.5)
+    # NOTE: 地図タイルが完全に読み込まれるまで待機（画像要素の存在を確認）
+    wait.until(
+        lambda d: len(d.find_elements(selenium.webdriver.common.by.By.CSS_SELECTOR, ".leaflet-tile-loaded"))
+        > 0
+    )
 
     png_data = driver.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).screenshot_as_png
 
@@ -348,15 +372,12 @@ def draw_caption(img, title, face_map):
 
 def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config, trial):
     logging.info("create rain cloud image (%s)", "future" if sub_panel_config["is_future"] else "current")
-    # NOTE: 同時アクセスを避ける
-    if sub_panel_config["is_future"]:
-        time.sleep(2)
 
     driver = my_lib.selenium_util.create_driver(
         "rain_cloud" + ("_future" if sub_panel_config["is_future"] else ""), DATA_PATH
     )
 
-    wait = selenium.webdriver.support.wait.WebDriverWait(driver, 5)
+    wait = selenium.webdriver.support.wait.WebDriverWait(driver, 10)
 
     my_lib.selenium_util.clear_cache(driver)
 
@@ -387,7 +408,7 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
         driver.quit()
 
         # NOTE: リトライまでに時間を空けるようにする
-        time.sleep(10)
+        time.sleep(3)
 
         raise
 
@@ -543,7 +564,8 @@ def create_rain_cloud_panel_impl(  # noqa: PLR0913
         )
         # NOTE: タイミングをずらさないと、初回起動時 user-data-dir を生成しようとした
         # タイミングでエラーになる。
-        time.sleep(3)
+        if sub_panel_config["is_future"]:
+            time.sleep(0.5)
 
     for i, sub_panel_config in enumerate(SUB_PANEL_CONFIG_LIST):
         sub_img, bar = task_list[i].result()

@@ -11,6 +11,7 @@ Options:
   -D                : デバッグモードで動作します。
 """
 
+import concurrent.futures
 import datetime
 import locale
 import logging
@@ -755,10 +756,18 @@ def draw_panel_weather(  # noqa: PLR0913
 
 
 def create_weather_panel_impl(panel_config, font_config, slack_config, is_side_by_side, trial, opt_config):  # noqa: ARG001, PLR0913
-    weather_info = get_weather_yahoo(panel_config["data"]["yahoo"])
-    clothing_info = get_clothing_yahoo(panel_config["data"]["yahoo"])
-    sunset_info = my_lib.weather.get_sunset_nao(opt_config["sunset"])
-    wbgt_info = get_wbgt(opt_config["wbgt"])
+    # NOTE: APIコールを並列化して高速化
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        weather_future = executor.submit(get_weather_yahoo, panel_config["data"]["yahoo"])
+        clothing_future = executor.submit(get_clothing_yahoo, panel_config["data"]["yahoo"])
+        sunset_future = executor.submit(my_lib.weather.get_sunset_nao, opt_config["sunset"])
+        wbgt_future = executor.submit(get_wbgt, opt_config["wbgt"])
+
+        # すべての結果を取得
+        weather_info = weather_future.result()
+        clothing_info = clothing_future.result()
+        sunset_info = sunset_future.result()
+        wbgt_info = wbgt_future.result()
 
     img = PIL.Image.new(
         "RGBA",
