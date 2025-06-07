@@ -229,7 +229,7 @@ def sensor_data(db_config, host_specify_list, param):
     return data
 
 
-def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C901
+def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C901, PLR0912, PLR0915
     face_map = get_face_map(font_config)
 
     room_list = panel_config["room_list"]
@@ -242,14 +242,16 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
 
     fig.set_size_inches(width / IMAGE_DPI, height / IMAGE_DPI)
 
+    # NOTE: 全データを一度に取得してキャッシュ（最適化）
+    data_cache = {}
     cache = None
     range_map = {}
     time_begin = datetime.datetime.now(datetime.timezone.utc)
+
+    # 全データをまとめて取得
     for param in panel_config["param_list"]:
         logging.info("fetch %s data", param["name"])
-
-        param_min = float("inf")
-        param_max = -float("inf")
+        data_cache[param["name"]] = {}
 
         for col in range(len(room_list)):
             data = sensor_data(
@@ -257,16 +259,26 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
                 room_list[col]["sensor"],
                 param["name"],
             )
+            data_cache[param["name"]][col] = data
+            if data["valid"]:
+                if data["time"][0] < time_begin:
+                    time_begin = data["time"][0]
+                if cache is None:
+                    cache = {
+                        "time": data["time"],
+                        "value": [EMPTY_VALUE for x in range(len(data["time"]))],
+                        "valid": False,
+                    }
+
+    # キャッシュからレンジを計算
+    for param in panel_config["param_list"]:
+        param_min = float("inf")
+        param_max = -float("inf")
+
+        for col in range(len(room_list)):
+            data = data_cache[param["name"]][col]
             if not data["valid"]:
                 continue
-            if data["time"][0] < time_begin:
-                time_begin = data["time"][0]
-            if cache is None:
-                cache = {
-                    "time": data["time"],
-                    "value": [EMPTY_VALUE for x in range(len(data["time"]))],
-                    "valid": False,
-                }
 
             min_val = min([item for item in data["value"] if item is not None])
             max_val = max([item for item in data["value"] if item is not None])
@@ -285,11 +297,8 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
         logging.info("draw %s graph", param["name"])
 
         for col in range(len(room_list)):
-            data = sensor_data(
-                db_config,
-                room_list[col]["sensor"],
-                param["name"],
-            )
+            # キャッシュからデータを取得（最適化）
+            data = data_cache[param["name"]][col]
             if not data["valid"]:
                 data = cache
 

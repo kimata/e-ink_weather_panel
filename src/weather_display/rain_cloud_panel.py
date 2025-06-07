@@ -167,13 +167,7 @@ def change_window_size(driver, wait, width, height):
         target_window_width = window_size["width"] + (width - element_size["width"])
         logging.info("[change] window: %d x %d", target_window_width, window_size["height"])
         driver.set_window_size(target_window_width, height)
-        # NOTE: サイズ変更が反映されるまで待機
-        wait.until(
-            lambda d: abs(
-                d.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).size["width"] - width
-            )
-            < 5
-        )
+        time.sleep(1)
 
     # NOTE: 次に縦サイズを調整
     window_size = driver.get_window_size()
@@ -192,14 +186,7 @@ def change_window_size(driver, wait, width, height):
             window_size["width"],
             target_window_height,
         )
-        # NOTE: サイズ変更が反映されるまで待機
-        wait.until(
-            lambda d: abs(
-                d.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).size["height"]
-                - height
-            )
-            < 5
-        )
+        time.sleep(1)
 
     window_size = driver.get_window_size()
     element_size = driver.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).size
