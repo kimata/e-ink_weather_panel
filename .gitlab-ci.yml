@@ -150,6 +150,9 @@ test-integration-parallel:
     dependencies:
         - test-prepare
 
+    variables:
+        DUMMY: "value"
+
     parallel:
         matrix:
             - CONFIG: "config.example.yaml"
@@ -186,6 +189,9 @@ test-production-parallel:
     dependencies:
         - test-prepare
 
+    variables:
+        DUMMY: "value"
+
     parallel:
         matrix:
             - CONFIG: "config.yaml"
@@ -218,6 +224,9 @@ test-display-parallel:
 
     dependencies:
         - test-prepare
+
+    variables:
+        DUMMY: "value"
 
     parallel:
         matrix:
