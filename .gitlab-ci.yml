@@ -98,9 +98,6 @@ test-panels-parallel:
     dependencies:
         - test-prepare
 
-    variables:
-        DOCKER_DRIVER: overlay2
-
     parallel:
         matrix:
             - PANEL_TYPE: "sensor-graph"
@@ -112,10 +109,11 @@ test-panels-parallel:
             - PANEL_TYPE: "rain-cloud-panel"
               SCRIPT: "src/weather_display/rain_cloud_panel.py"
 
-    script:
-        # コンテナ名を定義
-        - CONTAINER_NAME=test-${PANEL_TYPE}-${CI_JOB_ID}
+    variables:
+        DOCKER_DRIVER: overlay2
+        CONTAINER_NAME: test-${PANEL_TYPE}-${CI_JOB_ID}
 
+    script:
         # コンテナクリーンアップ関数
         - |
           cleanup_containers() {
@@ -150,9 +148,6 @@ test-integration-parallel:
     dependencies:
         - test-prepare
 
-    variables:
-        DUMMY: "value"
-
     parallel:
         matrix:
             - CONFIG: "config.example.yaml"
@@ -165,9 +160,11 @@ test-integration-parallel:
               TEST_NAME: "demo"
               OPTIONS: ""
 
+    variables:
+        CONTAINER_NAME: test-${TEST_NAME}-${CI_JOB_ID}
+
     script:
         # 統合テスト実行（最適化されたDocker操作）
-        - CONTAINER_NAME=test-${TEST_NAME}-${CI_JOB_ID}
         - docker run --rm --name ${CONTAINER_NAME} --label job=${CI_JOB_NAME} --pull never ${CI_REGISTRY_IMAGE} src/create_image.py ${OPTIONS} -c ${CONFIG} -o ${TEST_NAME}.png || docker run --rm --name ${CONTAINER_NAME} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} src/create_image.py ${OPTIONS} -c ${CONFIG} -o ${TEST_NAME}.png
 
         # アーティファクト取得
@@ -189,9 +186,6 @@ test-production-parallel:
     dependencies:
         - test-prepare
 
-    variables:
-        DUMMY: "value"
-
     parallel:
         matrix:
             - CONFIG: "config.yaml"
@@ -201,9 +195,11 @@ test-production-parallel:
               TEST_NAME: "regular-small"
               OPTIONS: "-s"
 
+    variables:
+        CONTAINER_NAME: test-${TEST_NAME}-${CI_JOB_ID}
+
     script:
         # 本番設定テスト実行
-        - CONTAINER_NAME=test-${TEST_NAME}-${CI_JOB_ID}
         - docker run --rm --name ${CONTAINER_NAME} --label job=${CI_JOB_NAME} --pull never ${CI_REGISTRY_IMAGE} src/create_image.py ${OPTIONS} -c ${CONFIG} -o ${TEST_NAME}.png || docker run --rm --name ${CONTAINER_NAME} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} src/create_image.py ${OPTIONS} -c ${CONFIG} -o ${TEST_NAME}.png
 
         # アーティファクト取得
@@ -224,9 +220,6 @@ test-display-parallel:
 
     dependencies:
         - test-prepare
-
-    variables:
-        DUMMY: "value"
 
     parallel:
         matrix:
