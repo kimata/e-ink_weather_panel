@@ -34,6 +34,8 @@ COPY pyproject.toml .python-version README.md .
 
 RUN rye lock
 
+ENV CC=clang
+
 RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
     pip install --break-system-packages -r requirements.lock
 
