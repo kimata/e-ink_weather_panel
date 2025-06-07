@@ -148,9 +148,6 @@ test-integration-parallel:
     dependencies:
         - test-prepare
 
-    variables:
-        CONTAINER_NAME: test-${TEST_NAME}-${CI_JOB_ID}
-
     parallel:
         matrix:
             - CONFIG: "config.example.yaml"
@@ -165,6 +162,7 @@ test-integration-parallel:
 
     script:
         # 統合テスト実行（最適化されたDocker操作）
+        - CONTAINER_NAME=test-${TEST_NAME}-${CI_JOB_ID}
         - docker run --rm --name ${CONTAINER_NAME} --label job=${CI_JOB_NAME} --pull never ${CI_REGISTRY_IMAGE} src/create_image.py ${OPTIONS} -c ${CONFIG} -o ${TEST_NAME}.png || docker run --rm --name ${CONTAINER_NAME} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} src/create_image.py ${OPTIONS} -c ${CONFIG} -o ${TEST_NAME}.png
 
         # アーティファクト取得
@@ -186,9 +184,6 @@ test-production-parallel:
     dependencies:
         - test-prepare
 
-    variables:
-        CONTAINER_NAME: test-${TEST_NAME}-${CI_JOB_ID}
-
     parallel:
         matrix:
             - CONFIG: "config.yaml"
@@ -200,6 +195,7 @@ test-production-parallel:
 
     script:
         # 本番設定テスト実行
+        - CONTAINER_NAME=test-${TEST_NAME}-${CI_JOB_ID}
         - docker run --rm --name ${CONTAINER_NAME} --label job=${CI_JOB_NAME} --pull never ${CI_REGISTRY_IMAGE} src/create_image.py ${OPTIONS} -c ${CONFIG} -o ${TEST_NAME}.png || docker run --rm --name ${CONTAINER_NAME} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} src/create_image.py ${OPTIONS} -c ${CONFIG} -o ${TEST_NAME}.png
 
         # アーティファクト取得
