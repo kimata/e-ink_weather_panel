@@ -35,7 +35,7 @@ COPY pyproject.toml .python-version README.md .
 RUN rye lock
 
 RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
-    pip install --break-system-packages --no-cache-dir -r requirements.lock
+    pip install --break-system-packages -r requirements.lock
 
 # Rye は requreiments.lock の生成のみに使うため，削除しておく．
 RUN rm -rf /root/.rye/shims
