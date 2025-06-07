@@ -533,22 +533,22 @@
                         "sensor": {
                             "type": "object",
                             "properties": {
-                                "name": {
+                                "hostname": {
                                     "type": "string"
                                 },
-                                "type": {
+                                "measure": {
                                     "type": "string"
                                 }
                             },
                             "required": [
-                                "name",
-                                "type"
+                                "hostname",
+                                "measure"
                             ]
                         },
                         "param": {
                             "type": "object",
                             "properties": {
-                                "name": {
+                                "field": {
                                     "type": "string"
                                 },
                                 "format": {
@@ -565,8 +565,8 @@
                                 }
                             },
                             "required": [
+                                "field",
                                 "format",
-                                "name",
                                 "range",
                                 "unit"
                             ]
@@ -622,16 +622,16 @@
                                 "items": {
                                     "type": "object",
                                     "properties": {
-                                        "name": {
+                                        "hostname": {
                                             "type": "string"
                                         },
-                                        "type": {
+                                        "measure": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
-                                        "name",
-                                        "type"
+                                        "hostname",
+                                        "measure"
                                     ]
                                 }
                             },
@@ -641,16 +641,16 @@
                             "aircon": {
                                 "type": "object",
                                 "properties": {
-                                    "type": {
+                                    "measure": {
                                         "type": "string"
                                     },
-                                    "name": {
+                                    "hostname": {
                                         "type": "string"
                                     }
                                 },
                                 "required": [
-                                    "name",
-                                    "type"
+                                    "hostname",
+                                    "measure"
                                 ]
                             }
                         },
@@ -793,16 +793,16 @@
                 "sensor": {
                     "type": "object",
                     "properties": {
-                        "name": {
+                        "hostname": {
                             "type": "string"
                         },
-                        "type": {
+                        "measure": {
                             "type": "string"
                         }
                     },
                     "required": [
-                        "name",
-                        "type"
+                        "hostname",
+                        "measure"
                     ]
                 },
                 "icon": {
