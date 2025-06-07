@@ -40,6 +40,15 @@ EMPTY_VALUE = -100.0
 AIRCON_WORK_THRESHOLD = 30
 
 
+@functools.lru_cache(maxsize=8)
+def get_shared_axis_config():
+    """共通の軸設定を返す（キャッシュ付き）"""
+    return {
+        "major_locator": matplotlib.dates.DayLocator(interval=1),
+        "major_formatter": matplotlib.dates.DateFormatter("%-d"),
+    }
+
+
 @functools.lru_cache(maxsize=32)
 def _get_font_properties(font_path_str, size):
     """フォントプロパティをキャッシュ付きで取得"""
@@ -74,10 +83,11 @@ def get_face_map(font_config):
     }
 
 
-def plot_item(ax, title, unit, data, xbegin, ylim, fmt, scale, small, face_map):  # noqa: PLR0913
+def plot_item(ax, title, unit, data, xbegin_numeric, ylim, fmt, scale, small, face_map, axis_config):  # noqa: PLR0913
     logging.info("Plot %s", title)
 
-    x = data["time"]
+    # 事前に数値化された時間データを使用
+    x = data["time_numeric"] if "time_numeric" in data else data["time"]
     y = data["value"]
 
     if not data["valid"]:
@@ -94,7 +104,25 @@ def plot_item(ax, title, unit, data, xbegin, ylim, fmt, scale, small, face_map):
         ax.set_title(title, fontproperties=face_map["title"], color="#333333")
 
     ax.set_ylim(ylim)
-    ax.set_xlim([xbegin, x[-1] + datetime.timedelta(hours=3)])
+
+    # 数値化済みの時間範囲を設定
+    if "time_numeric" in data and len(data["time_numeric"]) > 0:
+        # 3時間分のマージンを数値で追加（3時間 = 3/24日）
+        ax.set_xlim([xbegin_numeric, data["time_numeric"][-1] + 3 / 24])
+    else:
+        # フォールバック：従来の方式
+        logging.warning("数値化済み時間データが利用できないため、フォールバック処理を実行します")
+        if isinstance(x, list) and len(x) > 0:
+            if isinstance(x[-1], datetime.datetime):
+                logging.warning("datetime型の時間データをその場で数値化して使用します")
+                ax.set_xlim([xbegin_numeric, matplotlib.dates.date2num(x[-1]) + 3 / 24])
+            else:
+                logging.warning("時間データを数値として直接使用します")
+                ax.set_xlim([xbegin_numeric, x[-1] + 3 / 24])
+        else:
+            # さらなるフォールバック
+            logging.warning("時間データが無効なため、固定の時間範囲を設定します")
+            ax.set_xlim([xbegin_numeric, xbegin_numeric + 3])
 
     ax.plot(
         x,
@@ -114,8 +142,9 @@ def plot_item(ax, title, unit, data, xbegin, ylim, fmt, scale, small, face_map):
 
     font = face_map["value_small"] if small else face_map["value"]
 
-    ax.xaxis.set_major_locator(matplotlib.dates.DayLocator(interval=1))
-    ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%-d"))
+    # 共有された軸設定を使用
+    ax.xaxis.set_major_locator(axis_config["major_locator"])
+    ax.xaxis.set_major_formatter(axis_config["major_formatter"])
     for label in ax.get_xticklabels():
         label.set_fontproperties(face_map["xaxis"])
 
@@ -357,11 +386,18 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
             data_cache[param["name"]][col] = data if data else {"valid": False, "time": [], "value": []}
 
             if data and data["valid"]:
+                # 日付を数値化（最適化）
+                if data["time"]:
+                    data["time_numeric"] = matplotlib.dates.date2num(data["time"])
+                else:
+                    data["time_numeric"] = []
+
                 if data["time"][0] < time_begin:
                     time_begin = data["time"][0]
                 if cache is None:
                     cache = {
                         "time": data["time"],
+                        "time_numeric": data.get("time_numeric", []),
                         "value": [EMPTY_VALUE for x in range(len(data["time"]))],
                         "valid": False,
                     }
@@ -389,6 +425,12 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
             param_max + (param_max - param_min) * 0.05,
         ]
 
+    # 共通の軸設定を取得（日付変換最適化）
+    axis_config = get_shared_axis_config()
+
+    # 開始時間を数値化
+    time_begin_numeric = matplotlib.dates.date2num(time_begin)
+
     for row, param in enumerate(panel_config["param_list"]):
         logging.info("draw %s graph", param["name"])
 
@@ -412,12 +454,13 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
                 title,
                 param["unit"],
                 data,
-                time_begin,
+                time_begin_numeric,
                 graph_range,
                 param["format"],
                 param["scale"],
                 param["size_small"],
                 face_map,
+                axis_config,
             )
 
             if (param["name"] == "temp") and ("aircon" in room_list[col]):
