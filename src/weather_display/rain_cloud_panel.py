@@ -293,72 +293,62 @@ def fetch_cloud_image(driver, wait, url, width, height, is_future=False):  # noq
 def retouch_cloud_image(png_data, panel_config):
     logging.info("retouch image")
 
-    img_rgb = cv2.imdecode(numpy.asarray(bytearray(png_data), dtype=numpy.uint8), cv2.IMREAD_COLOR)
+    # より効率的なデコード
+    img_array = numpy.frombuffer(png_data, dtype=numpy.uint8)
+    img_rgb = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
 
     img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2HSV_FULL).astype(numpy.float32)
-    bar = numpy.zeros((1, len(RAINFALL_INTENSITY_LEVEL), 3))
+    bar = numpy.zeros((1, len(RAINFALL_INTENSITY_LEVEL), 3), dtype=numpy.uint8)
     h, s, v = cv2.split(img_hsv)
+
+    # 事前計算で高速化
+    gamma = panel_config["legend"]["gamma"]
+    level_count = len(RAINFALL_INTENSITY_LEVEL)
 
     # NOTE: 降雨強度の色をグレースケール用に変換
     for i, level in enumerate(RAINFALL_INTENSITY_LEVEL):
-        color = (
-            0,
-            80,
-            255
-            * (
-                (float(len(RAINFALL_INTENSITY_LEVEL) - i) / len(RAINFALL_INTENSITY_LEVEL))
-                ** panel_config["legend"]["gamma"]
-            ),
-        )
+        intensity = (float(level_count - i) / level_count) ** gamma
+        color = (0, 80, int(255 * intensity))
 
-        img_hsv[level["func"](h, s)] = color
-        bar[0][i] = color
+        # マスクを事前計算して適用
+        mask = level["func"](h, s)
+        img_hsv[mask] = color
+        bar[0, i] = color
 
-    # NOTE: 白地図の色をやや明るめにする
-    img_hsv[s < 30, 2] = numpy.clip(pow(v[(s < 30)], 1.35) * 0.3, 0, 255)
+    # 白地図処理を最適化
+    white_mask = s < 30
+    if numpy.any(white_mask):
+        img_hsv[white_mask, 2] = numpy.clip(numpy.power(v[white_mask], 1.35) * 0.3, 0, 255)
+
+    # 色変換を1回に削減
+    img_rgb = cv2.cvtColor(img_hsv.astype(numpy.uint8), cv2.COLOR_HSV2RGB_FULL)
+    img_rgba = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2RGBA)
+    bar_rgb = cv2.cvtColor(bar, cv2.COLOR_HSV2RGB_FULL)
+    bar_rgba = cv2.cvtColor(bar_rgb, cv2.COLOR_RGB2RGBA)
 
     return (
-        PIL.Image.fromarray(
-            cv2.cvtColor(
-                cv2.cvtColor(img_hsv.astype(numpy.uint8), cv2.COLOR_HSV2RGB_FULL),
-                cv2.COLOR_RGB2RGBA,
-            )
-        ),
-        PIL.Image.fromarray(
-            cv2.cvtColor(
-                cv2.cvtColor(bar.astype(numpy.uint8), cv2.COLOR_HSV2RGB_FULL),
-                cv2.COLOR_RGB2RGBA,
-            )
-        ),
+        PIL.Image.fromarray(img_rgba),
+        PIL.Image.fromarray(bar_rgba),
     )
 
 
 def draw_equidistant_circle(img):
     logging.info("draw equidistant_circle")
     draw = PIL.ImageDraw.Draw(img)
-    x = img.size[0] / 2
-    y = img.size[1] / 2
+    center_x = img.size[0] // 2
+    center_y = img.size[1] // 2
 
-    size = 20
-    draw.ellipse(
-        (x - size / 2, y - size / 2, x + size / 2, y + size / 2),
-        fill=(255, 255, 255),
-        outline=(60, 60, 60),
-        width=5,
-    )
-    # 5km
-    size = 328
-    draw.ellipse(
-        (x - size / 2, y - size / 2, x + size / 2, y + size / 2),
-        outline=(255, 255, 255),
-        width=16,
-    )
-    size = 322
-    draw.ellipse(
-        (x - size / 2, y - size / 2, x + size / 2, y + size / 2),
-        outline=(180, 180, 180),
-        width=10,
-    )
+    # 一括で円を描画（定数を事前定義）
+    circles = [
+        (20, (255, 255, 255), (60, 60, 60), 5),  # 中心点（塗りつぶしあり）
+        (328, None, (255, 255, 255), 16),  # 5km 外側（輪郭のみ）
+        (322, None, (180, 180, 180), 10),  # 5km 内側（輪郭のみ）
+    ]
+
+    for size, fill, outline, width in circles:
+        half_size = size // 2
+        bbox = (center_x - half_size, center_y - half_size, center_x + half_size, center_y + half_size)
+        draw.ellipse(bbox, fill=fill, outline=outline, width=width)
 
     return img
 
@@ -368,43 +358,34 @@ def draw_caption(img, title, face_map):
     caption_size = my_lib.pil_util.text_size(img, face_map["title"], title)
     caption_size = (caption_size[0] + 5, caption_size[1])  # NOTE: 横方向を少し広げる
 
-    x = 12
-    y = 12
+    # 定数を事前定義
+    x, y = 12, 12
     padding = 10
     radius = 20
     alpha = 200
+    half_padding = padding // 2
 
-    overlay = PIL.Image.new("RGBA", img.size, (255, 255, 255, 0))
+    # オーバーレイサイズを最小限に
+    overlay_width = caption_size[0] + padding * 2
+    overlay_height = caption_size[1] + padding + half_padding
+    overlay = PIL.Image.new("RGBA", (overlay_width, overlay_height), (255, 255, 255, 0))
     draw = PIL.ImageDraw.Draw(overlay)
-    draw.rectangle(
-        (
-            x - padding,
-            y - padding,
-            x + caption_size[0] + padding - radius,
-            y + caption_size[1] + padding / 2,
-        ),
-        fill=(255, 255, 255, alpha),
-    )
-    draw.rectangle(
-        (x - padding, y - padding, x + caption_size[0] + padding, y + padding / 2),
-        fill=(255, 255, 255, alpha),
-    )
 
+    # 角丸長方形を一度で描画
     draw.rounded_rectangle(
-        (
-            x - padding,
-            y - padding,
-            x + caption_size[0] + padding,
-            y + caption_size[1] + padding / 2,
-        ),
+        (0, 0, overlay_width, overlay_height),
         fill=(255, 255, 255, alpha),
         radius=radius,
     )
-    img = PIL.Image.alpha_composite(img, overlay)
+
+    # オーバーレイを元画像に貼り付け
+    img.paste(overlay, (x - padding, y - padding), overlay)
+
+    # テキストを直接描画
     my_lib.pil_util.draw_text(
         img,
         title,
-        (10, 10),
+        (x, y),
         face_map["title"],
         "left",
         color="#000",
