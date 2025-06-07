@@ -492,11 +492,15 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
     # サブプロット一括生成時にgridspec_kwで設定済みのため、追加のレイアウト調整は不要
 
     buf = io.BytesIO()
-    matplotlib.pyplot.savefig(buf, format="png", dpi=IMAGE_DPI, transparent=True)
+    # グレースケール画像を直接生成（最適化）
+    matplotlib.pyplot.savefig(buf, format="png", dpi=IMAGE_DPI, facecolor="white", transparent=False)
 
     buf.seek(0)
 
     img = PIL.Image.open(buf).copy()
+    # 既にグレースケールカラーマップ使用中のため、Lモードに変換
+    if img.mode != "L":
+        img = img.convert("L")
 
     buf.close()
 
@@ -556,6 +560,7 @@ if __name__ == "__main__":
         logging.info("Elapsed time: %.2f seconds", elapsed_time)
 
     logging.info("Save %s.", out_file)
-    my_lib.pil_util.convert_to_gray(img).save(out_file, "PNG")
+    # グレースケール変換は既に実施済み（最適化）
+    img.save(out_file, "PNG")
 
     logging.info("Finish.")
