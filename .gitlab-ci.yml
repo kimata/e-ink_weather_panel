@@ -100,8 +100,14 @@ test-panels-parallel:
 
     parallel:
         matrix:
-            - PANEL_TYPE: ["sensor-graph", "power-graph", "weather-panel", "rain-cloud-panel"]
-              SCRIPT: ["src/weather_display/sensor_graph.py", "src/weather_display/power_graph.py", "src/weather_display/weather_panel.py", "src/weather_display/rain_cloud_panel.py"]
+            - PANEL_TYPE: "sensor-graph"
+              SCRIPT: "src/weather_display/sensor_graph.py"
+            - PANEL_TYPE: "power-graph"
+              SCRIPT: "src/weather_display/power_graph.py"
+            - PANEL_TYPE: "weather-panel"
+              SCRIPT: "src/weather_display/weather_panel.py"
+            - PANEL_TYPE: "rain-cloud-panel"
+              SCRIPT: "src/weather_display/rain_cloud_panel.py"
 
     variables:
         DOCKER_DRIVER: overlay2
@@ -144,9 +150,15 @@ test-integration-parallel:
 
     parallel:
         matrix:
-            - CONFIG: ["config.example.yaml", "config-small.example.yaml", "config-demo.yaml"]
-              TEST_NAME: ["sample", "sample-small", "demo"]
-              OPTIONS: ["", "-s", ""]
+            - CONFIG: "config.example.yaml"
+              TEST_NAME: "sample"
+              OPTIONS: ""
+            - CONFIG: "config-small.example.yaml"
+              TEST_NAME: "sample-small"
+              OPTIONS: "-s"
+            - CONFIG: "config-demo.yaml"
+              TEST_NAME: "demo"
+              OPTIONS: ""
 
     script:
         # 統合テスト実行（最適化されたDocker操作）
@@ -174,9 +186,12 @@ test-production-parallel:
 
     parallel:
         matrix:
-            - CONFIG: ["config.yaml", "config-small.yaml"]
-              TEST_NAME: ["regular", "regular-small"]
-              OPTIONS: ["", "-s"]
+            - CONFIG: "config.yaml"
+              TEST_NAME: "regular"
+              OPTIONS: ""
+            - CONFIG: "config-small.yaml"
+              TEST_NAME: "regular-small"
+              OPTIONS: "-s"
 
     script:
         # 本番設定テスト実行
@@ -204,9 +219,12 @@ test-display-parallel:
 
     parallel:
         matrix:
-            - CONFIG: ["config.yaml", "config-small.yaml"]
-              HOSTNAME: ["rasp-meter-1", "rasp-display-2"]
-              OPTIONS: ["", "-s"]
+            - CONFIG: "config.yaml"
+              HOSTNAME: "rasp-meter-1"
+              OPTIONS: ""
+            - CONFIG: "config-small.yaml"
+              HOSTNAME: "rasp-display-2"
+              OPTIONS: "-s"
 
     script:
         # ディスプレイテスト実行（pullの最適化）
