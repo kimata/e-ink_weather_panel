@@ -289,7 +289,6 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
 
                 fetch_requests.append(
                     {
-                        "db_config": db_config,
                         "measure": host_specify["measure"],
                         "hostname": host_specify["hostname"],
                         "field": param["name"],
@@ -300,9 +299,6 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
 
     # エアコン電力取得用のリクエストも追加
     aircon_requests, aircon_map = get_aircon_power_requests(room_list)
-    # db_configをエアコンリクエストにも追加
-    for req in aircon_requests:
-        req["db_config"] = db_config
 
     all_requests = fetch_requests + aircon_requests
     aircon_results_offset = len(fetch_requests)
@@ -312,7 +308,7 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
         "Fetching sensor data in parallel (%d requests, %d aircon)", len(fetch_requests), len(aircon_requests)
     )
     parallel_start = time.perf_counter()
-    all_results = asyncio.run(fetch_data_parallel(all_requests))
+    all_results = asyncio.run(fetch_data_parallel(db_config, all_requests))
     parallel_time = time.perf_counter() - parallel_start
     logging.info("Parallel fetch completed in %.2f seconds", parallel_time)
 
