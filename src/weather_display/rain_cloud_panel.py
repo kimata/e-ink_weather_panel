@@ -15,6 +15,7 @@ import concurrent
 import io
 import logging
 import pathlib
+import pickle
 import time
 import traceback
 
@@ -32,6 +33,7 @@ import selenium.webdriver.support.wait
 from my_lib.selenium_util import click_xpath  # NOTE: テスト時に mock する
 
 DATA_PATH = pathlib.Path("data")
+WINDOW_SIZE_CACHE_FILE = DATA_PATH / "window_size_cache.dat"
 
 CLOUD_IMAGE_XPATH = '//div[contains(@id, "jmatile_map_")]'
 
@@ -137,13 +139,33 @@ def shape_cloud_display(driver, wait, width, height, is_future):  # noqa: ARG001
     hide_label_and_icon(driver, wait)
 
 
-def change_window_size(driver, width, height):
-    # NOTE: 雨雲画像がこのサイズになるように、ウィンドウサイズを調整する
-    logging.info("target: %d x %d", width, height)
+def load_window_size_cache():
+    """ウィンドウサイズキャッシュを読み込む"""
+    try:
+        if WINDOW_SIZE_CACHE_FILE.exists():
+            with WINDOW_SIZE_CACHE_FILE.open("rb") as f:
+                return pickle.load(f)  # noqa: S301
+    except Exception:
+        logging.warning("Failed to load window size cache")
+    return {}
+
+
+def save_window_size_cache(cache):
+    """ウィンドウサイズキャッシュを保存する"""
+    try:
+        WINDOW_SIZE_CACHE_FILE.parent.mkdir(exist_ok=True)
+        with WINDOW_SIZE_CACHE_FILE.open("wb") as f:
+            pickle.dump(cache, f)
+    except Exception:
+        logging.warning("Failed to save window size cache")
+
+
+def change_window_size_fallback(driver, width, height):
+    """従来のウィンドウサイズ調整ロジック（フォールバック用）"""
+    logging.info("Using fallback window size adjustment")
 
     # NOTE: まずはサイズを大きめにしておく
     driver.set_window_size(int(height * 2), int(height * 1.5))
-
     time.sleep(1)
 
     # NOTE: 最初に横サイズを調整
@@ -182,21 +204,66 @@ def change_window_size(driver, width, height):
         )
         time.sleep(1)
 
-    window_size = driver.get_window_size()
+    final_window_size = driver.get_window_size()
     element_size = driver.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).size
     logging.info(
-        "[actual] window: %d x %d, element: %d x %d",
-        window_size["width"],
-        window_size["height"],
+        "[final] window: %d x %d, element: %d x %d",
+        final_window_size["width"],
+        final_window_size["height"],
         element_size["width"],
         element_size["height"],
     )
+
+    return final_window_size
+
+
+def change_window_size(driver, width, height):
+    """最適化されたウィンドウサイズ調整（キャッシュ使用+フォールバック）"""
+    logging.info("target: %d x %d", width, height)
+
+    cache_key = f"{width}x{height}"
+    cache = load_window_size_cache()
+
+    if cache_key in cache:
+        # キャッシュから最適なウィンドウサイズを取得して一発設定
+        cached_window_size = cache[cache_key]
+        logging.info(
+            "Using cached window size: %d x %d",
+            cached_window_size["width"],
+            cached_window_size["height"],
+        )
+        driver.set_window_size(cached_window_size["width"], cached_window_size["height"])
+        time.sleep(1)  # 短い待機時間
+
+        # 結果を確認
+        element_size = driver.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).size
+        tolerance = 5  # 許容誤差
+
+        if (
+            abs(element_size["width"] - width) <= tolerance
+            and abs(element_size["height"] - height) <= tolerance
+        ):
+            logging.info("Cached window size worked correctly")
+            return driver.get_window_size()
+        else:
+            logging.info("Cached window size failed, falling back to adjustment logic")
+
+    # キャッシュが無いか失敗した場合はフォールバック
+    final_window_size = change_window_size_fallback(driver, width, height)
+
+    # 成功した場合はキャッシュに保存
+    element_size = driver.find_element(selenium.webdriver.common.by.By.XPATH, CLOUD_IMAGE_XPATH).size
+    if (element_size["width"], element_size["height"]) == (width, height):
+        cache[cache_key] = final_window_size
+        save_window_size_cache(cache)
+        logging.info("Saved window size to cache: %s -> %s", cache_key, final_window_size)
+
     logging.info(
         "size is %s",
         "OK" if (element_size["width"], element_size["height"]) == (width, height) else "unmatch",
     )
 
-    return driver.get_window_size()
+    return final_window_size
 
 
 def fetch_cloud_image(driver, wait, url, width, height, is_future=False):  # noqa: PLR0913
