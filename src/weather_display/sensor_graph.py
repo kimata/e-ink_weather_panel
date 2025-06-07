@@ -23,6 +23,7 @@ import traceback
 
 import matplotlib  # noqa: ICN001
 import matplotlib.dates
+import matplotlib.gridspec
 import matplotlib.offsetbox
 import matplotlib.pyplot  # noqa: ICN001
 import my_lib.panel_util
@@ -431,6 +432,23 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
     # 開始時間を数値化
     time_begin_numeric = matplotlib.dates.date2num(time_begin)
 
+    # サブプロットを一括生成（最適化）
+    num_rows = len(panel_config["param_list"])
+    num_cols = len(room_list)
+
+    # 既存のfigを使って、gridspecでサブプロットを作成
+    gs = matplotlib.gridspec.GridSpec(
+        num_rows, num_cols, figure=fig, hspace=0.1, wspace=0, left=0.05, bottom=0.08, right=0.98, top=0.92
+    )
+    axes = []
+    for i in range(num_rows * num_cols):
+        row = i // num_cols
+        col = i % num_cols
+        ax = fig.add_subplot(gs[row, col])
+        axes.append(ax)
+
+    # axesはすでにリストとして作成済み
+
     for row, param in enumerate(panel_config["param_list"]):
         logging.info("draw %s graph", param["name"])
 
@@ -440,11 +458,9 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
             if not data["valid"]:
                 data = cache
 
-            ax = fig.add_subplot(
-                len(panel_config["param_list"]),
-                len(room_list),
-                1 + len(room_list) * row + col,
-            )
+            # 一括生成したaxesを使用
+            ax_index = row * num_cols + col
+            ax = axes[ax_index]
 
             title = room_list[col]["label"] if row == 0 else None
             graph_range = range_map[param["name"]] if param["range"] == "auto" else param["range"]
@@ -473,8 +489,7 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
             if (param["name"] == "lux") and room_list[col]["light_icon"]:
                 draw_light_icon(ax, data["value"], panel_config["icon"])
 
-    fig.tight_layout()
-    matplotlib.pyplot.subplots_adjust(hspace=0.1, wspace=0)
+    # サブプロット一括生成時にgridspec_kwで設定済みのため、追加のレイアウト調整は不要
 
     buf = io.BytesIO()
     matplotlib.pyplot.savefig(buf, format="png", dpi=IMAGE_DPI, transparent=True)
