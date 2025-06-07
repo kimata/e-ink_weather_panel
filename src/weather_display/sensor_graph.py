@@ -13,6 +13,7 @@ Options:
 
 import asyncio
 import datetime
+import functools
 import io
 import logging
 import os
@@ -39,12 +40,27 @@ EMPTY_VALUE = -100.0
 AIRCON_WORK_THRESHOLD = 30
 
 
+@functools.lru_cache(maxsize=32)
+def _get_font_properties(font_path_str, size):
+    """フォントプロパティをキャッシュ付きで取得"""
+    return matplotlib.font_manager.FontProperties(fname=font_path_str, size=size)
+
+
 def get_plot_font(config, font_type, size):
     font_path = pathlib.Path(config["path"]).resolve() / config["map"][font_type]
 
-    logging.info("Load font: %s", font_path)
+    # 初回アクセス時のみログ出力
+    cache_info = _get_font_properties.cache_info()
 
-    return matplotlib.font_manager.FontProperties(fname=font_path, size=size)
+    # キャッシュ統計を使って初回判定
+    result = _get_font_properties(str(font_path), size)
+    new_cache_info = _get_font_properties.cache_info()
+
+    # キャッシュミスが増えた場合は新しいフォントのロード
+    if new_cache_info.misses > cache_info.misses:
+        logging.info("Load font: %s (cached)", font_path)
+
+    return result
 
 
 def get_face_map(font_config):
