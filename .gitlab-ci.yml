@@ -148,6 +148,9 @@ test-integration-parallel:
     dependencies:
         - test-prepare
 
+    variables:
+        CONTAINER_NAME: test-${TEST_NAME}-${CI_JOB_ID}
+
     parallel:
         matrix:
             - CONFIG: "config.example.yaml"
@@ -159,9 +162,6 @@ test-integration-parallel:
             - CONFIG: "config-demo.yaml"
               TEST_NAME: "demo"
               OPTIONS: ""
-
-    variables:
-        CONTAINER_NAME: test-${TEST_NAME}-${CI_JOB_ID}
 
     script:
         # 統合テスト実行（最適化されたDocker操作）
@@ -186,6 +186,9 @@ test-production-parallel:
     dependencies:
         - test-prepare
 
+    variables:
+        CONTAINER_NAME: test-${TEST_NAME}-${CI_JOB_ID}
+
     parallel:
         matrix:
             - CONFIG: "config.yaml"
@@ -194,9 +197,6 @@ test-production-parallel:
             - CONFIG: "config-small.yaml"
               TEST_NAME: "regular-small"
               OPTIONS: "-s"
-
-    variables:
-        CONTAINER_NAME: test-${TEST_NAME}-${CI_JOB_ID}
 
     script:
         # 本番設定テスト実行
