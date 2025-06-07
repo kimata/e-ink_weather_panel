@@ -11,6 +11,7 @@ RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
     ca-certificates \
     git \
     clang \
+    python3-dev \
     python3-pip
 
 RUN curl -O https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
