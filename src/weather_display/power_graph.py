@@ -146,7 +146,7 @@ def create_power_graph_impl(panel_config, font_config, db_config):
         db_config,
         panel_config["data"]["sensor"]["measure"],
         panel_config["data"]["sensor"]["hostname"],
-        panel_config["data"]["param"]["name"],
+        panel_config["data"]["param"]["field"],
         period_start,
         period_stop,
     )
