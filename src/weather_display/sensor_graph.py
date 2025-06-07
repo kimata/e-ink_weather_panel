@@ -11,6 +11,7 @@ Options:
   -D                : デバッグモードで動作します。
 """
 
+import asyncio
 import datetime
 import io
 import logging
@@ -26,7 +27,7 @@ import matplotlib.pyplot  # noqa: ICN001
 import my_lib.panel_util
 import pandas.plotting
 import PIL.Image
-from my_lib.sensor_data import fetch_data
+from my_lib.sensor_data import fetch_data, fetch_data_parallel
 
 matplotlib.use("Agg")
 
@@ -131,7 +132,11 @@ def plot_item(ax, title, unit, data, xbegin, ylim, fmt, scale, small, face_map):
     ax.label_outer()
 
 
-def get_aircon_power(db_config, aircon):
+def get_aircon_power_requests(room_list):
+    """エアコン電力取得用のリクエストリストを生成"""
+    aircon_requests = []
+    aircon_map = {}
+
     if os.environ.get("DUMMY_MODE", "false") == "true":
         start = "-169h"
         stop = "-168h"
@@ -139,16 +144,30 @@ def get_aircon_power(db_config, aircon):
         start = "-1h"
         stop = "now()"
 
-    data = fetch_data(
-        db_config,
-        aircon["type"],
-        aircon["name"],
-        "power",
-        start,
-        stop,
-        last=True,
-    )
+    for col, room in enumerate(room_list):
+        if "aircon" in room:
+            request_index = len(aircon_requests)
+            aircon_map[col] = request_index
+            aircon_requests.append(
+                {
+                    "measure": room["aircon"]["type"],
+                    "hostname": room["aircon"]["name"],
+                    "field": "power",
+                    "start": start,
+                    "stop": stop,
+                    "last": True,
+                }
+            )
 
+    return aircon_requests, aircon_map
+
+
+def get_aircon_power_from_results(results, aircon_map, col):
+    """並列取得結果からエアコン電力を取得"""
+    if col not in aircon_map:
+        return None
+
+    data = results[aircon_map[col]]
     if data["valid"]:
         return data["value"][0]
     else:
@@ -242,25 +261,88 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
 
     fig.set_size_inches(width / IMAGE_DPI, height / IMAGE_DPI)
 
-    # NOTE: 全データを一度に取得してキャッシュ（最適化）
+    # NOTE: 全データを並列で一度に取得してキャッシュ（最適化）
     data_cache = {}
     cache = None
     range_map = {}
     time_begin = datetime.datetime.now(datetime.timezone.utc)
 
-    # 全データをまとめて取得
-    for param in panel_config["param_list"]:
-        logging.info("fetch %s data", param["name"])
-        data_cache[param["name"]] = {}
+    # 並列取得用のリクエストリストを準備
+    fetch_requests = []
+    request_map = {}  # (param_name, col) -> request_index のマッピング
 
+    for param in panel_config["param_list"]:
+        data_cache[param["name"]] = {}
         for col in range(len(room_list)):
-            data = sensor_data(
-                db_config,
-                room_list[col]["sensor"],
-                param["name"],
-            )
-            data_cache[param["name"]][col] = data
-            if data["valid"]:
+            for host_specify in room_list[col]["sensor"]:
+                request_index = len(fetch_requests)
+                request_map[(param["name"], col, host_specify["type"], host_specify["name"])] = request_index
+
+                if os.environ.get("DUMMY_MODE", "false") == "true":
+                    period_start = "-228h"
+                    period_stop = "-168h"
+                else:
+                    period_start = "-60h"
+                    period_stop = "now()"
+
+                fetch_requests.append(
+                    {
+                        "db_config": db_config,
+                        "measure": host_specify["type"],
+                        "hostname": host_specify["name"],
+                        "field": param["name"],
+                        "start": period_start,
+                        "stop": period_stop,
+                    }
+                )
+
+    # エアコン電力取得用のリクエストも追加
+    aircon_requests, aircon_map = get_aircon_power_requests(room_list)
+    # db_configをエアコンリクエストにも追加
+    for req in aircon_requests:
+        req["db_config"] = db_config
+
+    all_requests = fetch_requests + aircon_requests
+    aircon_results_offset = len(fetch_requests)
+
+    # 並列でデータを取得
+    logging.info(
+        "Fetching sensor data in parallel (%d requests, %d aircon)", len(fetch_requests), len(aircon_requests)
+    )
+    parallel_start = time.perf_counter()
+    all_results = asyncio.run(fetch_data_parallel(all_requests))
+    parallel_time = time.perf_counter() - parallel_start
+    logging.info("Parallel fetch completed in %.2f seconds", parallel_time)
+
+    # センサーデータとエアコンデータを分離
+    results = all_results[: len(fetch_requests)]
+    aircon_results = all_results[aircon_results_offset:] if aircon_requests else []
+
+    # 結果をキャッシュに格納（sensor_data関数のロジックを適用）
+    for param in panel_config["param_list"]:
+        for col in range(len(room_list)):
+            # 複数のセンサーから最初の有効なデータを選択
+            data = None
+            for host_specify in room_list[col]["sensor"]:
+                request_key = (param["name"], col, host_specify["type"], host_specify["name"])
+                if request_key in request_map:
+                    request_index = request_map[request_key]
+                    candidate_data = results[request_index]
+                    if candidate_data["valid"]:
+                        data = candidate_data
+                        break
+
+            # 有効なデータが見つからない場合は最後のデータを使用
+            if data is None and room_list[col]["sensor"]:
+                last_host = room_list[col]["sensor"][-1]
+                request_key = (param["name"], col, last_host["type"], last_host["name"])
+                if request_key in request_map:
+                    request_index = request_map[request_key]
+                    data = results[request_index]
+
+            data_cache[param["name"]][col] = data if data else {"valid": False, "time": [], "value": []}
+
+            if data and data["valid"]:
                 if data["time"][0] < time_begin:
                     time_begin = data["time"][0]
                 if cache is None:
@@ -327,7 +409,7 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
             if (param["name"] == "temp") and ("aircon" in room_list[col]):
                 draw_aircon_icon(
                     ax,
-                    get_aircon_power(db_config, room_list[col]["aircon"]),
+                    get_aircon_power_from_results(aircon_results, aircon_map, col),
                     panel_config["icon"],
                 )
 
@@ -389,7 +471,17 @@ if __name__ == "__main__":
     my_lib.logger.init("test", level=logging.DEBUG if debug_mode else logging.INFO)
 
     config = my_lib.config.load(config_file)
-    img = create(config)[0]
+    result = create(config)
+
+    if len(result) > 2:
+        # エラーが発生した場合
+        img, elapsed_time, error_message = result
+        logging.error("Error occurred: %s", error_message)
+        logging.info("Elapsed time: %.2f seconds", elapsed_time)
+    else:
+        # 正常な場合
+        img, elapsed_time = result
+        logging.info("Elapsed time: %.2f seconds", elapsed_time)
 
     logging.info("Save %s.", out_file)
     my_lib.pil_util.convert_to_gray(img).save(out_file, "PNG")
