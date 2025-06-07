@@ -45,8 +45,8 @@ def get_rainfall_status(panel_config, db_config):
 
     data = my_lib.sensor_data.fetch_data(
         db_config,
-        panel_config["sensor"]["type"],
-        panel_config["sensor"]["name"],
+        panel_config["sensor"]["measure"],
+        panel_config["sensor"]["hostname"],
         "rain",
         start=START,
         window_min=1,
@@ -63,8 +63,8 @@ def get_rainfall_status(panel_config, db_config):
 
     data = my_lib.sensor_data.fetch_data(
         db_config,
-        panel_config["sensor"]["type"],
-        panel_config["sensor"]["name"],
+        panel_config["sensor"]["measure"],
+        panel_config["sensor"]["hostname"],
         "raining",
         start=START,
         window_min=0,
@@ -75,7 +75,7 @@ def get_rainfall_status(panel_config, db_config):
 
     if raining_status:
         raining_start = my_lib.sensor_data.get_last_event(
-            db_config, panel_config["sensor"]["type"], panel_config["sensor"]["name"], "raining"
+            db_config, panel_config["sensor"]["measure"], panel_config["sensor"]["hostname"], "raining"
         )
     else:
         raining_start = None

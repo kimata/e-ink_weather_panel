@@ -116,10 +116,10 @@ power:
 
     data:
         sensor:
-            name: rasp-power
-            type: sensor.rasp
+            hostname: rasp-power
+            measure: sensor.rasp
         param:
-            name: power
+            field: power
             format: '{:,.0f}'
             unit: W
             range:
@@ -136,56 +136,56 @@ sensor:
     room_list:
         - label: 屋外
           sensor:
-            - name: ESP32-outdoor-1
-              type: sensor.esp32
-            - name: rasp-meter-8
-              type: sensor.rasp
+            - hostname: ESP32-outdoor-1
+              measure: sensor.esp32
+            - hostname: rasp-meter-8
+              measure: sensor.rasp
           light_icon: off
         - label: リビング
           sensor:
-            - name: rpi-cm4-sensor-6
-              type: sensor.rasp
+            - hostname: rpi-cm4-sensor-6
+              measure: sensor.rasp
           light_icon: on
           aircon:
-            type: hems.sharp
-            name: リビングエアコン
+            measure: hems.sharp
+            hostname: リビングエアコン
         - label: 和室
           type: rasp
           sensor:
-            - name: rasp-meter-2
-              type: sensor.rasp
+            - hostname: rasp-meter-2
+              measure: sensor.rasp
           light_icon: on
           aircon:
-            type: hems.sharp
-            name: 和室エアコン
+            measure: hems.sharp
+            hostname: 和室エアコン
         - label: 洋室A
           sensor:
-            - name: rpi-cm4-sensor-1
-              type: sensor.rasp
+            - hostname: rpi-cm4-sensor-1
+              measure: sensor.rasp
           light_icon: on
         - label: 洋室B
           sensor:
-            - name: rpi-cm4-sensor-2
-              type: sensor.rasp
+            - hostname: rpi-cm4-sensor-2
+              measure: sensor.rasp
           light_icon: on
         - label: 洋室C
           sensor:
-            - name: rpi-cm4-sensor-3
-              type: sensor.rasp
+            - hostname: rpi-cm4-sensor-3
+              measure: sensor.rasp
           light_icon: on
         - label: 家事室
           sensor:
-            - name: rpi-cm4-sensor-4
-              type: sensor.rasp
+            - hostname: rpi-cm4-sensor-4
+              measure: sensor.rasp
           light_icon: on
         - label: 書斎
           sensor:
-            - name: rasp-meter-3
-              type: sensor.rasp
+            - hostname: rasp-meter-3
+              measure: sensor.rasp
           light_icon: on
           aircon:
-            type: hems.sharp
-            name: 書斎エアコン
+            measure: hems.sharp
+            hostname: 書斎エアコン
 
     param_list:
         - name: temp
@@ -231,8 +231,8 @@ rain_fall:
         width: 1596
         height: 860
     sensor:
-        name: rasp-weather-1
-        type: sensor.rasp
+        hostname: rasp-weather-1
+        measure: sensor.rasp
 
     icon:
         path: img/rainfall.png

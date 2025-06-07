@@ -150,8 +150,8 @@ def get_aircon_power_requests(room_list):
             aircon_map[col] = request_index
             aircon_requests.append(
                 {
-                    "measure": room["aircon"]["type"],
-                    "hostname": room["aircon"]["name"],
+                    "measure": room["aircon"]["measure"],
+                    "hostname": room["aircon"]["hostname"],
                     "field": "power",
                     "start": start,
                     "stop": stop,
@@ -237,8 +237,8 @@ def sensor_data(db_config, host_specify_list, param):
     for host_specify in host_specify_list:
         data = fetch_data(
             db_config,
-            host_specify["type"],
-            host_specify["name"],
+            host_specify["measure"],
+            host_specify["hostname"],
             param,
             period_start,
             period_stop,
@@ -276,7 +276,9 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
         for col in range(len(room_list)):
             for host_specify in room_list[col]["sensor"]:
                 request_index = len(fetch_requests)
-                request_map[(param["name"], col, host_specify["type"], host_specify["name"])] = request_index
+                request_map[(param["name"], col, host_specify["measure"], host_specify["hostname"])] = (
+                    request_index
+                )
 
                 if os.environ.get("DUMMY_MODE", "false") == "true":
                     period_start = "-228h"
@@ -288,8 +290,8 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
                 fetch_requests.append(
                     {
                         "db_config": db_config,
-                        "measure": host_specify["type"],
-                        "hostname": host_specify["name"],
+                        "measure": host_specify["measure"],
+                        "hostname": host_specify["hostname"],
                         "field": param["name"],
                         "start": period_start,
                         "stop": period_stop,
@@ -324,7 +326,7 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
             # 複数のセンサーから最初の有効なデータを選択
             data = None
             for host_specify in room_list[col]["sensor"]:
-                request_key = (param["name"], col, host_specify["type"], host_specify["name"])
+                request_key = (param["name"], col, host_specify["measure"], host_specify["hostname"])
                 if request_key in request_map:
                     request_index = request_map[request_key]
                     candidate_data = results[request_index]
@@ -335,7 +337,7 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
             # 有効なデータが見つからない場合は最後のデータを使用
             if data is None and room_list[col]["sensor"]:
                 last_host = room_list[col]["sensor"][-1]
-                request_key = (param["name"], col, last_host["type"], last_host["name"])
+                request_key = (param["name"], col, last_host["measure"], last_host["hostname"])
                 if request_key in request_map:
                     request_index = request_map[request_key]
                     data = results[request_index]
