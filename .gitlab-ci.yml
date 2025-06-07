@@ -98,6 +98,9 @@ test-panels-parallel:
     dependencies:
         - test-prepare
 
+    variables:
+        DOCKER_DRIVER: overlay2
+
     parallel:
         matrix:
             - PANEL_TYPE: "sensor-graph"
@@ -109,11 +112,10 @@ test-panels-parallel:
             - PANEL_TYPE: "rain-cloud-panel"
               SCRIPT: "src/weather_display/rain_cloud_panel.py"
 
-    variables:
-        DOCKER_DRIVER: overlay2
-        CONTAINER_NAME: test-${PANEL_TYPE}-${CI_JOB_ID}
-
     script:
+        # コンテナ名を定義
+        - CONTAINER_NAME=test-${PANEL_TYPE}-${CI_JOB_ID}
+
         # コンテナクリーンアップ関数
         - |
           cleanup_containers() {
