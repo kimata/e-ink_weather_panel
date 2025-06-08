@@ -1,5 +1,5 @@
 {
-    "$schema": "http://json-schema.org/schema#",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "properties": {
         "liveness": {
@@ -537,22 +537,22 @@
                         "sensor": {
                             "type": "object",
                             "properties": {
-                                "name": {
+                                "hostname": {
                                     "type": "string"
                                 },
-                                "type": {
+                                "measure": {
                                     "type": "string"
                                 }
                             },
                             "required": [
-                                "name",
-                                "type"
+                                "hostname",
+                                "measure"
                             ]
                         },
                         "param": {
                             "type": "object",
                             "properties": {
-                                "name": {
+                                "field": {
                                     "type": "string"
                                 },
                                 "format": {
@@ -569,8 +569,8 @@
                                 }
                             },
                             "required": [
+                                "field",
                                 "format",
-                                "name",
                                 "range",
                                 "unit"
                             ]
