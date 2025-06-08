@@ -116,10 +116,10 @@ power:
         overlap: 380
     data:
         sensor:
-            name: rasp-power
-            type: sensor.rasp
+            hostname: rasp-power
+            measure: sensor.rasp
         param:
-            name: power
+            field: power
             format: '{:,.0f}'
             unit: W
             range:
