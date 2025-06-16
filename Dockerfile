@@ -22,21 +22,18 @@ RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PATH="/root/.local/bin/:$PATH"
 
-ENV UV_SYSTEM_PYTHON=1 \
-    UV_LINK_MODE=copy
+ENV UV_LINK_MODE=copy
 
 ADD https://astral.sh/uv/install.sh /uv-installer.sh
 
 RUN sh /uv-installer.sh && rm /uv-installer.sh
 
-# NOTE: システムにインストール
 RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     --mount=type=bind,source=.python-version,target=.python-version \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=README.md,target=README.md \
     --mount=type=cache,target=/root/.cache/uv \
-    uv export --frozen --no-dev --format requirements-txt > requirements.txt \
-    && uv pip install -r requirements.txt
+    uv sync --locked --no-install-project --no-editable
 
 RUN locale-gen en_US.UTF-8
 RUN locale-gen ja_JP.UTF-8
