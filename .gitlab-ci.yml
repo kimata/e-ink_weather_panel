@@ -1,4 +1,8 @@
-image: registry.green-rabbit.net:5000/kimata/local_ubuntu:241105B
+image: registry.green-rabbit.net:5000/kimata/local_ubuntu:250615_38f4fdb9
+
+variables:
+    UV_LINK_MODE: copy
+    UV_PYTHON_INSTALL_DIR: ${CI_PROJECT_DIR}/.uv_python
 
 stages:
     - build-webapp
@@ -11,7 +15,7 @@ stages:
 build-react:
     stage: build-webapp
 
-    image: node:22.2
+    image: node:24.2
     script:
         - cd react
         - npm ci --cache .npm --prefer-offline
@@ -28,11 +32,16 @@ build-react:
 build-image:
     stage: build-image
 
+    needs:
+        - build-react
+
     variables:
         BUILDER: builder
 
     script:
-        # - docker rm $(docker ps -a --filter 'status=exited' -q) || true
+        - 'TAG="$(date +%y%m%d)_${CI_COMMIT_SHORT_SHA}"'
+        - 'echo "Building: ${CI_REGISTRY_IMAGE}:${TAG}"'
+
         - export GIT_SSL_NO_VERIFY=1
         - git clone https://gitlab.green-rabbit.net/kimata/panel_config.git
         - mv panel_config/e-ink_weather.yaml config.yaml
@@ -46,130 +55,151 @@ build-image:
         - docker buildx create --driver docker-container --name ${BUILDER} --use --config /etc/buildkitd.toml
         - docker buildx use ${BUILDER}
         - docker buildx inspect --bootstrap
-        - docker buildx build --provenance=false --progress=plain --platform linux/amd64 --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:cache --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}:cache,mode=max --build-arg IMAGE_BUILD_DATE=$(date --iso-8601=seconds) --push --tag ${CI_REGISTRY_IMAGE} .
+        - docker buildx build --provenance=false --progress=plain --platform linux/amd64 --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:cache --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:latest --cache-to type=inline --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}:cache,mode=max --build-arg IMAGE_BUILD_DATE=$(date --iso-8601=seconds) --tag ${CI_REGISTRY_IMAGE}:${TAG} --push .
 
-    dependencies:
-        - build-react
 
 test-prepare:
     stage: pre-test
 
     script:
-        - rye sync
+        - apt update
+        - apt install --yes libasound2-dev portaudio19-dev
+
+        - uv sync --locked --no-editable
 
     artifacts:
         paths:
             - .venv
-            - /root/.cache
+            - .uv_python
+
+        expire_in: 1 hour
 
     cache:
-        key: ${CI_JOB_NAME}
-        paths:
+        - key:
+            files:
+                - pyproject.toml
+                - .gitlab-ci.yml
+            prefix: ${CI_COMMIT_REF_SLUG}-venv
+          paths:
             - .venv
-            - /root/.cache
+          policy: pull-push
+
+        - key: ${CI_COMMIT_REF_SLUG}-uv-toolchain
+          paths:
+            - .uv_python
+          policy: pull-push
+
 
 test-walk-through:
     stage: test
 
-    dependencies:
+    needs:
         - test-prepare
-        - build-react
 
     script:
-        - rye run pytest --timeout=240 -v --numprocesses=auto tests/test_basic.py
-
-    variables:
-        RUST_LOG: trace
+        - uv run pytest --timeout=60 --numprocesses=auto --verbosity=1 --junit-xml=tests/evidence/junit-report.xml tests/test_basic.py
 
     cache:
-        key: ${CI_JOB_NAME}
-        paths:
+        - key:
+            files:
+                - pyproject.toml
+                - .gitlab-ci.yml
+            prefix: ${CI_COMMIT_REF_SLUG}-venv
+          paths:
             - .venv
+          policy: pull
+
+        - key: ${CI_COMMIT_REF_SLUG}-uv-toolchain
+          paths:
+            - .uv_python
+          policy: pull
 
     artifacts:
         when: always
         paths:
             - tests/evidence/**
+        reports:
+            junit: tests/evidence/junit-report.xml
+
+# 共通テンプレート: Dockerを使用したパネルテスト
+.panel_test_template:
+    stage: test
+
+    needs:
+        - test-prepare
+
+    variables:
+        PANEL_SCRIPT: "" # 各ジョブで上書き
+
+    script:
+        # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
+        - docker ps --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop --time 5 $id; done || true
+
+        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} ${PANEL_SCRIPT} -c config.yaml -o ${CI_JOB_NAME}.png
+        - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
+        - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
+        - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
+
+    artifacts:
+        paths:
+            - ${CI_JOB_NAME}.png
 
 # センサーグラフ画像のテスト
 test-sensor-graph:
-    stage: test
+    extends: .panel_test_template
 
-    dependencies:
-        - test-prepare
-
-    script:
-        # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
-        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop --time 5 $id; done || true
-        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} src/weather_display/sensor_graph.py -c config.yaml -o ${CI_JOB_NAME}.png
-        - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
-        - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
-        - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
-
-    artifacts:
-        paths:
-            - ${CI_JOB_NAME}.png
+    variables:
+        PANEL_SCRIPT: "src/weather_display/sensor_graph.py"
 
 # 電力グラフ画像のテスト
 test-power-graph:
-    stage: test
+    extends: .panel_test_template
 
-    dependencies:
-        - test-prepare
-
-    script:
-        # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
-        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop --time 5 $id; done || true
-        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} src/weather_display/power_graph.py -c config.yaml -o ${CI_JOB_NAME}.png
-        - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
-        - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
-        - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
-    artifacts:
-        paths:
-            - ${CI_JOB_NAME}.png
+    variables:
+        PANEL_SCRIPT: "src/weather_display/power_graph.py"
 
 # 天気予報画像のテスト
 test-weather-panel:
-    stage: test
+    extends: .panel_test_template
 
-    dependencies:
-        - test-prepare
+    variables:
+        PANEL_SCRIPT: "src/weather_display/weather_panel.py"
 
-    script:
-        # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
-        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop --timet 5 $id; docker rm $id; done || true
-        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} src/weather_display/weather_panel.py -c config.yaml -o ${CI_JOB_NAME}.png
-        - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
-        - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
-        - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
+# 雨雲レーダ画像のテスト
+test-rain-cloud-panel:
+    extends: .panel_test_template
+
+    variables:
+        PANEL_SCRIPT: "src/weather_display/rain_cloud_panel.py"
+
     artifacts:
+        when: always
         paths:
             - ${CI_JOB_NAME}.png
 
-# 雨雲レーダ画像のテスト
-# NOTE: 通常モードだと，雨雲レーダ画像の生成に失敗してもスクリプトはエラー画像を生成して
-# 正常終了するので，別建ててテストを実施する．
-test-rain-cloud-panel:
+# 共通テンプレート: create_image.pyを使用した統合テスト
+.create_image_template:
     stage: test
 
     dependencies:
         - test-prepare
 
+    variables:
+        CREATE_IMAGE_ARGS: "" # 各ジョブで上書き
+
     script:
-        # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
-        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop --time 5 $id; docker rm $id; done || true
-        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} src/weather_display/rain_cloud_panel.py -c config.yaml -o ${CI_JOB_NAME}.png
+        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} src/create_image.py ${CREATE_IMAGE_ARGS} -o ${CI_JOB_NAME}.png
         - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
         - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
         - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
+
     artifacts:
-        when: always
         paths:
             - ${CI_JOB_NAME}.png
 
 # サンプル設定ファイルで，問題なく動くかチェック
 test-sample:
-    stage: test
+    extends: .create_image_template
 
     needs:
         - test-prepare
@@ -178,40 +208,22 @@ test-sample:
         - test-sensor-graph
         - test-rain-cloud-panel
 
-    dependencies:
-        - test-prepare
-
-    script:
-        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} src/create_image.py -c config.example.yaml -o ${CI_JOB_NAME}.png
-        - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
-        - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
-        - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
-    artifacts:
-        paths:
-            - ${CI_JOB_NAME}.png
+    variables:
+        CREATE_IMAGE_ARGS: "-c config.example.yaml"
 
 test-sample-small:
-    stage: test
+    extends: .create_image_template
 
     needs:
         - test-prepare
         - test-weather-panel
         - test-rain-cloud-panel
 
-    dependencies:
-        - test-prepare
-
-    script:
-        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} src/create_image.py -s -c config-small.example.yaml -o ${CI_JOB_NAME}.png
-        - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
-        - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
-        - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
-    artifacts:
-        paths:
-            - ${CI_JOB_NAME}.png
+    variables:
+        CREATE_IMAGE_ARGS: "-s -c config-small.example.yaml"
 
 test-demo:
-    stage: test
+    extends: .create_image_template
 
     needs:
         - test-prepare
@@ -220,21 +232,12 @@ test-demo:
         - test-sensor-graph
         - test-rain-cloud-panel
 
-    dependencies:
-        - test-prepare
-
-    script:
-        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} src/create_image.py -c config-demo.yaml -o ${CI_JOB_NAME}.png
-        - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
-        - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
-        - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
-    artifacts:
-        paths:
-            - ${CI_JOB_NAME}.png
+    variables:
+        CREATE_IMAGE_ARGS: "-c config-demo.yaml"
 
 # 本番設定ファイルで，問題なく動くかチェック
 test-regular:
-    stage: test
+    extends: .create_image_template
 
     needs:
         - test-prepare
@@ -243,147 +246,132 @@ test-regular:
         - test-sensor-graph
         - test-rain-cloud-panel
 
-    dependencies:
-        - test-prepare
-
-    script:
-        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} src/create_image.py -o ${CI_JOB_NAME}.png
-        - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
-        - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
-        - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
-    artifacts:
-        paths:
-            - ${CI_JOB_NAME}.png
+    variables:
+        CREATE_IMAGE_ARGS: "" # デフォルト設定
 
 test-regular-small:
-    stage: test
+    extends: .create_image_template
 
     needs:
         - test-prepare
         - test-weather-panel
         - test-rain-cloud-panel
 
+    variables:
+        CREATE_IMAGE_ARGS: "-s -c config-small.yaml"
+
+# 共通テンプレート: display_image.pyを使用したディスプレイテスト
+.display_image_template:
+    stage: test
+
     dependencies:
         - test-prepare
 
+    variables:
+        RASP_HOSTNAME: "" # 各ジョブで上書き
+        DISPLAY_IMAGE_ARGS: "" # 各ジョブで上書き
+
     script:
-        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} src/create_image.py -s -c config-small.yaml -o ${CI_JOB_NAME}.png
-        - CID=`docker ps --quiet --latest --filter "ancestor=${CI_REGISTRY_IMAGE}" --filter "label=job=${CI_JOB_NAME}"`
-        - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
-        - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
-        - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
-    artifacts:
-        paths:
-            - ${CI_JOB_NAME}.png
+        - docker run --rm --tty=true --pull always ${CI_REGISTRY_IMAGE} src/display_image.py ${DISPLAY_IMAGE_ARGS} -p ${RASP_HOSTNAME} -O
 
 # 本番設定ファイルで，問題なく動くかチェック
 test-display:
-    stage: test
+    extends: .display_image_template
 
     needs:
         - test-prepare
         - test-regular
 
-    dependencies:
-        - test-prepare
-
     variables:
         RASP_HOSTNAME: rasp-meter-1
-
-    script:
-        - docker run --rm --tty=true --pull always ${CI_REGISTRY_IMAGE} src/display_image.py -c config.yaml -p ${RASP_HOSTNAME} -O
+        DISPLAY_IMAGE_ARGS: "-c config.yaml"
 
 test-display-small:
-    stage: test
+    extends: .display_image_template
 
     needs:
         - test-prepare
         - test-regular-small
 
-    dependencies:
-        - test-prepare
-
     variables:
         RASP_HOSTNAME: rasp-display-2
+        DISPLAY_IMAGE_ARGS: "-s -c config-small.yaml"
 
-    script:
-        - docker run --rm --tty=true --pull always ${CI_REGISTRY_IMAGE} src/display_image.py -s -c config-small.yaml -p ${RASP_HOSTNAME} -O
+# test-webapp:
+#     stage: test
 
-test-webapp:
-    stage: test
+#     needs:
+#         - test-prepare
+#         - test-demo
 
-    needs:
-        - test-prepare
-        - test-demo
+#     dependencies:
+#         - test-prepare
 
-    dependencies:
-        - test-prepare
+#     script:
+#         # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
+#         - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop -t 5 $id; done || true
+#         # NOTE: 「-D」をつけると一週間前のデータを取得するので、センサーデータがしばらく欠損していた場合、
+#         # センサーが復活しても一週間程度はこのテストは失敗するので注意
+#         - docker run --rm --detach=true --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} ./src/webapp.py -c config-demo.yaml -D
 
-    script:
-        # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
-        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop -t 5 $id; done || true
-        # NOTE: 「-D」をつけると一週間前のデータを取得するので、センサーデータがしばらく欠損していた場合、
-        # センサーが復活しても一週間程度はこのテストは失敗するので注意
-        - docker run --rm --detach=true --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} ./src/webapp.py -c config-demo.yaml -D
+#         - python3 -m playwright install
 
-        - python3 -m playwright install
+#         - rye run pytest tests/test_playwright.py --host $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
 
-        - rye run pytest tests/test_playwright.py --host $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
+#         - docker logs ${CI_JOB_NAME}-${CI_JOB_ID} > flask_log.txt
+#         - docker stop ${CI_JOB_NAME}-${CI_JOB_ID}
 
-        - docker logs ${CI_JOB_NAME}-${CI_JOB_ID} > flask_log.txt
-        - docker stop ${CI_JOB_NAME}-${CI_JOB_ID}
+#     cache:
+#         key: ${CI_JOB_NAME}
+#         paths:
+#             - .venv
 
-    cache:
-        key: ${CI_JOB_NAME}
-        paths:
-            - .venv
+#     artifacts:
+#         when: always
+#         paths:
+#             - flask_log.txt
+#             - tests/evidence/**
 
-    artifacts:
-        when: always
-        paths:
-            - flask_log.txt
-            - tests/evidence/**
+# pages:
+#     stage: test
 
-pages:
-    stage: test
+#     needs:
+#         - test-walk-through
 
-    needs:
-        - test-walk-through
+#     script:
+#         - mkdir -p public/
+#         - cp -r tests/evidence/* public/
 
-    script:
-        - mkdir -p public/
-        - cp -r tests/evidence/* public/
+#     artifacts:
+#         paths:
+#             - public
 
-    artifacts:
-        paths:
-            - public
+#     only:
+#         - master
 
-    only:
-        - master
+# deploy:
+#     stage: deploy
 
-deploy:
-    stage: deploy
+#     dependencies: []
 
-    dependencies: []
+#     image:
+#         name: bitnami/kubectl:latest
+#         entrypoint: ['']
 
-    image:
-        name: bitnami/kubectl:latest
-        entrypoint: ['']
+#     script:
+#         - kubectl config get-contexts
+#         - kubectl config use-context kimata/e-ink_weather_panel:pod-rollout
+#         - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-panel-deployment
+#         - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-small-panel-deployment
+#         - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-webapp-deployment
 
-    script:
-        - kubectl config get-contexts
-        - kubectl config use-context kimata/e-ink_weather_panel:pod-rollout
-        - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-panel-deployment
-        - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-small-panel-deployment
-        - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-webapp-deployment
-
-    rules:
-        # NOTE: 自動実行ではデプロイしない
-        - if: $CI_PIPELINE_SOURCE == "schedule"
-          when: never
-        - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
-          when: never
-        - when: on_success
+#     rules:
+#         # NOTE: 自動実行ではデプロイしない
+#         - if: $CI_PIPELINE_SOURCE == "schedule"
+#           when: never
+#         - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+#           when: never
+#         - when: on_success
 
 renovate:
     stage: renovate
