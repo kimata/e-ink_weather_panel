@@ -62,7 +62,7 @@ test-prepare:
     stage: pre-test
 
     script:
-        - uv sync --locked --no-editable
+        - uv sync --locked --no-editable --dev
 
     artifacts:
         paths:
