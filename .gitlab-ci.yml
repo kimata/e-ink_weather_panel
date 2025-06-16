@@ -291,81 +291,79 @@ test-display-small:
         RASP_HOSTNAME: rasp-display-2
         DISPLAY_IMAGE_ARGS: "-s -c config-small.yaml"
 
-# test-webapp:
-#     stage: test
+test-webapp:
+    stage: test
 
-#     needs:
-#         - test-prepare
-#         - test-demo
+    needs:
+        - test-prepare
+        - test-demo
 
-#     dependencies:
-#         - test-prepare
+    script:
+        # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
+        - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop -t 5 $id; done || true
 
-#     script:
-#         # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
-#         - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop -t 5 $id; done || true
-#         # NOTE: 「-D」をつけると一週間前のデータを取得するので、センサーデータがしばらく欠損していた場合、
-#         # センサーが復活しても一週間程度はこのテストは失敗するので注意
-#         - docker run --rm --detach=true --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} ./src/webapp.py -c config-demo.yaml -D
+        # NOTE: 「-D」をつけると一週間前のデータを取得するので、センサーデータがしばらく欠損していた場合、
+        # センサーが復活しても一週間程度はこのテストは失敗するので注意
+        - docker run --rm --detach=true --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE} ./src/webapp.py -c config-demo.yaml -D
 
-#         - python3 -m playwright install
+        - uv run playwright install
 
-#         - rye run pytest tests/test_playwright.py --host $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
+        - uv run pytest tests/test_playwright.py --host $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
 
-#         - docker logs ${CI_JOB_NAME}-${CI_JOB_ID} > flask_log.txt
-#         - docker stop ${CI_JOB_NAME}-${CI_JOB_ID}
+        - docker logs ${CI_JOB_NAME}-${CI_JOB_ID} > flask_log.txt
+        - docker stop ${CI_JOB_NAME}-${CI_JOB_ID}
 
-#     cache:
-#         key: ${CI_JOB_NAME}
-#         paths:
-#             - .venv
+    cache:
+        key: ${CI_JOB_NAME}
+        paths:
+            - .venv
 
-#     artifacts:
-#         when: always
-#         paths:
-#             - flask_log.txt
-#             - tests/evidence/**
+    artifacts:
+        when: always
+        paths:
+            - flask_log.txt
+            - tests/evidence/**
 
-# pages:
-#     stage: test
+pages:
+    stage: test
 
-#     needs:
-#         - test-walk-through
+    needs:
+        - test-walk-through
 
-#     script:
-#         - mkdir -p public/
-#         - cp -r tests/evidence/* public/
+    script:
+        - mkdir -p public/
+        - cp -r tests/evidence/* public/
 
-#     artifacts:
-#         paths:
-#             - public
+    artifacts:
+        paths:
+            - public
 
-#     only:
-#         - master
+    only:
+        - master
 
-# deploy:
-#     stage: deploy
+deploy:
+    stage: deploy
 
-#     dependencies: []
+    dependencies: []
 
-#     image:
-#         name: bitnami/kubectl:latest
-#         entrypoint: ['']
+    image:
+        name: bitnami/kubectl:latest
+        entrypoint: ['']
 
-#     script:
-#         - kubectl config get-contexts
-#         - kubectl config use-context kimata/e-ink_weather_panel:pod-rollout
-#         - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-panel-deployment
-#         - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-small-panel-deployment
-#         - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-webapp-deployment
+    script:
+        - kubectl config get-contexts
+        - kubectl config use-context kimata/e-ink_weather_panel:pod-rollout
+        - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-panel-deployment
+        - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-small-panel-deployment
+        - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-webapp-deployment
 
-#     rules:
-#         # NOTE: 自動実行ではデプロイしない
-#         - if: $CI_PIPELINE_SOURCE == "schedule"
-#           when: never
-#         - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
-#           when: never
-#         - when: on_success
+    rules:
+        # NOTE: 自動実行ではデプロイしない
+        - if: $CI_PIPELINE_SOURCE == "schedule"
+          when: never
+        - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+          when: never
+        - when: on_success
 
 renovate:
     stage: renovate
