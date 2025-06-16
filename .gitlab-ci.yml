@@ -62,9 +62,6 @@ test-prepare:
     stage: pre-test
 
     script:
-        - apt update
-        - apt install --yes libasound2-dev portaudio19-dev
-
         - uv sync --locked --no-editable
 
     artifacts:
@@ -126,7 +123,7 @@ test-walk-through:
     stage: test
 
     needs:
-        - test-prepare
+        - build-image
 
     variables:
         PANEL_SCRIPT: "" # 各ジョブで上書き
@@ -181,9 +178,6 @@ test-rain-cloud-panel:
 .create_image_template:
     stage: test
 
-    dependencies:
-        - test-prepare
-
     variables:
         CREATE_IMAGE_ARGS: "" # 各ジョブで上書き
 
@@ -202,7 +196,7 @@ test-sample:
     extends: .create_image_template
 
     needs:
-        - test-prepare
+        - build-image
         - test-weather-panel
         - test-power-graph
         - test-sensor-graph
@@ -215,7 +209,7 @@ test-sample-small:
     extends: .create_image_template
 
     needs:
-        - test-prepare
+        - build-image
         - test-weather-panel
         - test-rain-cloud-panel
 
@@ -226,7 +220,7 @@ test-demo:
     extends: .create_image_template
 
     needs:
-        - test-prepare
+        - build-image
         - test-weather-panel
         - test-power-graph
         - test-sensor-graph
@@ -240,7 +234,7 @@ test-regular:
     extends: .create_image_template
 
     needs:
-        - test-prepare
+        - build-image
         - test-weather-panel
         - test-power-graph
         - test-sensor-graph
@@ -253,7 +247,7 @@ test-regular-small:
     extends: .create_image_template
 
     needs:
-        - test-prepare
+        - build-image
         - test-weather-panel
         - test-rain-cloud-panel
 
@@ -265,7 +259,7 @@ test-regular-small:
     stage: test
 
     dependencies:
-        - test-prepare
+        - build-image
 
     variables:
         RASP_HOSTNAME: "" # 各ジョブで上書き
@@ -279,7 +273,7 @@ test-display:
     extends: .display_image_template
 
     needs:
-        - test-prepare
+        - build-image
         - test-regular
 
     variables:
@@ -290,7 +284,7 @@ test-display-small:
     extends: .display_image_template
 
     needs:
-        - test-prepare
+        - build-image
         - test-regular-small
 
     variables:

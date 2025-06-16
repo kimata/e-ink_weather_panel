@@ -1,13 +1,58 @@
-chrome_data/
-log/
-debug/
-.DS_Store
-font/*.otf
-lib/img
-tests/evidence
-*/__pycache__/*
-.coverage
-poetry.lock
-config-demo.yaml
-config-small.yaml
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Configuration files with secrets
 config.yaml
+
+# Testing
+.coverage
+.pytest_cache/
+tests/evidence/
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+*.wav
+*.txt
+requirements*.lock
+config.yaml
+config-small.yaml
+config-demo.yaml
+/font
+/src/*/img
+
+# Logs
+*.log
