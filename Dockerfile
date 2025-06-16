@@ -9,7 +9,8 @@ RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && apt-get install --no-install-recommends --assume-yes \
     curl \
     ca-certificates \
-    build-essential
+    build-essential \
+    git
 
 RUN curl -O https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 
