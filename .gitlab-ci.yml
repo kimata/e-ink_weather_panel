@@ -94,6 +94,7 @@ test-walk-through:
     stage: test
 
     needs:
+        - build-react
         - test-prepare
 
     script:
