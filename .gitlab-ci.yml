@@ -397,9 +397,9 @@ deploy:
 
         # イメージの更新（rollout restartではなくset imageを使用）
         - 'echo "Updating deployment images to $TAG..."'
-        - kubectl --insecure-skip-tls-verify=true -n panel set image deployment/e-ink-weather-panel-deployment e-ink-weather-panel=$IMAGE --record
-        - kubectl --insecure-skip-tls-verify=true -n panel set image deployment/e-ink-weather-small-panel-deployment e-ink-weather-small-panel=$IMAGE --record
-        - kubectl --insecure-skip-tls-verify=true -n panel set image deployment/e-ink-weather-webapp-deployment e-ink-weather-webapp=$IMAGE --record
+        - kubectl --insecure-skip-tls-verify=true -n panel set image deployment/e-ink-weather-panel-deployment e-ink-weather-panel=${IMAGE} --record
+        - kubectl --insecure-skip-tls-verify=true -n panel set image deployment/e-ink-weather-small-panel-deployment e-ink-weather-small-panel=${IMAGE} --record
+        - kubectl --insecure-skip-tls-verify=true -n panel set image deployment/e-ink-weather-webapp-deployment e-ink-weather-webapp=${IMAGE} --record
 
         # ロールアウト状況の確認
         - 'echo "Waiting for deployments to complete..."'
