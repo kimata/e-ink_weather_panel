@@ -25,6 +25,9 @@ ENV PATH="/root/.local/bin/:$PATH"
 
 ENV UV_LINK_MODE=copy
 
+USER ubuntu
+WORKDIR /opt/e-ink_weather
+
 ADD https://astral.sh/uv/install.sh /uv-installer.sh
 
 RUN sh /uv-installer.sh && rm /uv-installer.sh
@@ -48,15 +51,11 @@ ENV TZ=Asia/Tokyo \
     LANGUAGE=ja_JP:ja \
     LC_ALL=ja_JP.UTF-8
 
-WORKDIR /opt/e-ink_weather
-
 COPY font /usr/share/fonts/
 
 COPY . .
 
 RUN mkdir -p data
 RUN chown -R ubuntu:ubuntu .
-
-USER ubuntu
 
 CMD ["./src/display_image.py"]
