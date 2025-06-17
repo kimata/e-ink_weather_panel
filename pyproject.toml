@@ -10,7 +10,7 @@ requires-python = ">= 3.10"
 
 dependencies = [
     "influxdb-client[ciso]>=1.44.0",
-    "my-lib @ git+https://github.com/kimata/my-py-lib@c7ee57e118866ad6cc0c0d680e99858b840ffe61",
+    "my-lib @ git+https://github.com/kimata/my-py-lib@e896940a2aa9b13a34a8e3d4a94791f0e5ab53e3",
     "opencv-contrib-python-headless>=4.10.0.84",
     "matplotlib>=3.9.2",
     "pandas>=2.2.2",
@@ -56,8 +56,8 @@ testpaths = [
     "tests",
 ]
 filterwarnings = [
-    "ignore:The hookimpl CovPlugin.pytest_configure_node uses",
-    "ignore:The hookimpl CovPlugin.pytest_testnodedown uses",
+    "ignore:datetime\\.datetime\\.utcfromtimestamp\\(\\) is deprecated:DeprecationWarning",
+    "ignore::DeprecationWarning:multiprocessing\\.popen_fork"
 ]
 
 [tool.coverage.run]
