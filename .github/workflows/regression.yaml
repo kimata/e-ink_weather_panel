@@ -82,32 +82,33 @@ jobs:
               run: |
                 sudo locale-gen ja_JP.UTF-8
 
-            - name: Install Rye
-              run: |
-                curl -sSf https://rye.astral.sh/get | RYE_NO_AUTO_INSTALL=1 RYE_INSTALL_OPTION="--yes" bash
-
-            - name: Add path of Rye
-              run: echo "$HOME/.rye/shims" >> $GITHUB_PATH
-
-            - name: Cache python modules
-              id: cache-python-modules
-              uses: actions/cache@v4
-              env:
-                cache-name: cache-python-modules
+            - name: Install uv
+              uses: astral-sh/setup-uv@v4
               with:
-                path: $HOME/.cache
-                key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('pyproject.toml') }}
+                version: "latest"
+
+            - name: Cache uv
+              uses: actions/cache@v4
+              with:
+                path: ~/.cache/uv
+                key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml') }}
                 restore-keys: |
-                    ${{ runner.os }}-build-${{ env.cache-name }}-
-                    ${{ runner.os }}-build-
-                    ${{ runner.os }}-
+                    ${{ runner.os }}-uv-
 
             - name: Install Dependencies
               run: |
-                rye sync
+                uv sync
 
             - name: Run Tests
-              run: rye run pytest --cov-report=html tests/test_basic.py
+              run: uv run pytest --numprocesses=auto --junit-xml=tests/evidence/junit.xml tests/test_basic.py
+
+            - name: Publish Test Results
+              uses: dorny/test-reporter@v1
+              if: success() || failure()
+              with:
+                name: Pytest Results
+                path: tests/evidence/junit.xml
+                reporter: java-junit
 
             - name: Upload coverage file
               uses: actions/upload-artifact@v4

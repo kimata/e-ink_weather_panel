@@ -107,7 +107,7 @@ test-walk-through:
         - test-prepare
 
     script:
-        - uv run pytest --numprocesses=auto --verbosity=1 --junit-xml=tests/evidence/junit-report.xml tests/test_basic.py
+        - uv run pytest --numprocesses=auto --junit-xml=tests/evidence/junit-report.xml tests/test_basic.py
 
     cache:
         - key:
