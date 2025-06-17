@@ -71,7 +71,6 @@ test-prepare:
         paths:
             - .venv
             - .uv_python
-
         expire_in: 1 hour
 
     cache:
@@ -138,7 +137,7 @@ test-walk-through:
         # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
         - docker ps --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop --time 5 $id; done || true
 
-        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} --pull always ${CI_REGISTRY_IMAGE}:${TAG} ${PANEL_SCRIPT} -c config.yaml -o ${CI_JOB_NAME}.png
+        - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE}:${TAG} ${PANEL_SCRIPT} -c config.yaml -o ${CI_JOB_NAME}.png
         - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
         - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
         - docker rm ${CI_JOB_NAME}-${CI_JOB_ID}
@@ -146,6 +145,7 @@ test-walk-through:
     artifacts:
         paths:
             - ${CI_JOB_NAME}.png
+
 
 # センサーグラフ画像のテスト
 test-sensor-graph:
@@ -203,11 +203,16 @@ test-sample:
     extends: .create_image_template
 
     needs:
-        - build-image
-        - test-weather-panel
-        - test-power-graph
-        - test-sensor-graph
-        - test-rain-cloud-panel
+        - job: build-image
+          artifacts: false
+        - job: test-weather-panel
+          artifacts: false
+        - job: test-power-graph
+          artifacts: false
+        - job: test-sensor-graph
+          artifacts: false
+        - job: test-rain-cloud-panel
+          artifacts: false
 
     variables:
         CREATE_IMAGE_ARGS: "-c config.example.yaml"
@@ -216,9 +221,12 @@ test-sample-small:
     extends: .create_image_template
 
     needs:
-        - build-image
-        - test-weather-panel
-        - test-rain-cloud-panel
+        - job: build-image
+          artifacts: false
+        - job: test-weather-panel
+          artifacts: false
+        - job: test-rain-cloud-panel
+          artifacts: false
 
     variables:
         CREATE_IMAGE_ARGS: "-s -c config-small.example.yaml"
@@ -227,11 +235,16 @@ test-demo:
     extends: .create_image_template
 
     needs:
-        - build-image
-        - test-weather-panel
-        - test-power-graph
-        - test-sensor-graph
-        - test-rain-cloud-panel
+        - job: build-image
+          artifacts: false
+        - job: test-weather-panel
+          artifacts: false
+        - job: test-power-graph
+          artifacts: false
+        - job: test-sensor-graph
+          artifacts: false
+        - job: test-rain-cloud-panel
+          artifacts: false
 
     variables:
         CREATE_IMAGE_ARGS: "-c config-demo.yaml"
@@ -241,11 +254,16 @@ test-regular:
     extends: .create_image_template
 
     needs:
-        - build-image
-        - test-weather-panel
-        - test-power-graph
-        - test-sensor-graph
-        - test-rain-cloud-panel
+        - job: build-image
+          artifacts: false
+        - job: test-weather-panel
+          artifacts: false
+        - job: test-power-graph
+          artifacts: false
+        - job: test-sensor-graph
+          artifacts: false
+        - job: test-rain-cloud-panel
+          artifacts: false
 
     variables:
         CREATE_IMAGE_ARGS: "" # デフォルト設定
@@ -254,9 +272,12 @@ test-regular-small:
     extends: .create_image_template
 
     needs:
-        - build-image
-        - test-weather-panel
-        - test-rain-cloud-panel
+        - job: build-image
+          artifacts: false
+        - job: test-weather-panel
+          artifacts: false
+        - job: test-rain-cloud-panel
+          artifacts: false
 
     variables:
         CREATE_IMAGE_ARGS: "-s -c config-small.yaml"
@@ -281,8 +302,10 @@ test-display:
     extends: .display_image_template
 
     needs:
-        - build-image
-        - test-regular
+        - job: build-image
+          artifacts: false
+        - job: test-regular
+          artifacts: false
 
     variables:
         RASP_HOSTNAME: rasp-meter-1
@@ -292,8 +315,10 @@ test-display-small:
     extends: .display_image_template
 
     needs:
-        - build-image
-        - test-regular-small
+        - job: build-image
+          artifacts: false
+        - job: test-regular-small
+          artifacts: false
 
     variables:
         RASP_HOSTNAME: rasp-display-2
@@ -304,7 +329,8 @@ test-webapp:
 
     needs:
         - test-prepare
-        - test-demo
+        - job: test-demo
+          artifacts: false
 
     script:
         - 'TAG="$(date +%y%m%d)_${CI_COMMIT_SHORT_SHA}"'
@@ -357,9 +383,12 @@ tag-latest:
     stage: tag-latest
 
     needs:
-        - test-display
-        - test-display-small
-        - test-webapp
+        - job: test-display
+          artifacts: false
+        - job: test-display-small
+          artifacts: false
+        - job: test-webapp
+          artifacts: false
 
     script:
         - 'TAG="$(date +%y%m%d)_${CI_COMMIT_SHORT_SHA}"'
@@ -377,16 +406,16 @@ deploy:
     stage: deploy
 
     needs:
-        - test-display
-        - test-display-small
-        - test-webapp
+        - job: test-display
+          artifacts: false
+        - job: test-display-small
+          artifacts: false
+        - job: test-webapp
+          artifacts: false
 
     image:
         name: bitnami/kubectl:latest
         entrypoint: ['']
-
-    variables:
-        DEPLOY_TAG: "" # 手動実行時にタグを指定可能
 
     script:
         - 'TAG="$(date +%y%m%d)_${CI_COMMIT_SHORT_SHA}"'
@@ -396,7 +425,7 @@ deploy:
         - kubectl config get-contexts
         - kubectl config use-context kimata/e-ink_weather_panel:pod-rollout
 
-        # イメージの更新（rollout restartではなくset imageを使用）
+        # イメージの更新
         - 'echo "Updating deployment images to $TAG..."'
         - kubectl --insecure-skip-tls-verify=true -n panel set image deployment/e-ink-weather-panel-deployment e-ink-weather-panel=${IMAGE} --record
         - kubectl --insecure-skip-tls-verify=true -n panel set image deployment/e-ink-weather-small-panel-deployment e-ink-weather-small-panel=${IMAGE} --record
