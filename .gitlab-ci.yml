@@ -5,6 +5,7 @@ variables:
     UV_PYTHON_INSTALL_DIR: ${CI_PROJECT_DIR}/.uv_python
 
 stages:
+    - generate-tag
     - build-webapp
     - build-image
     - pre-test
@@ -12,6 +13,15 @@ stages:
     - tag-latest
     - deploy
     - renovate
+
+generate-tag:
+    stage: generate-tag
+    script:
+        - echo "TAG=$(date +%y%m%d)_${CI_COMMIT_SHORT_SHA}" > tag.env
+    artifacts:
+        reports:
+            dotenv: tag.env
+        expire_in: 1 hour
 
 build-react:
     stage: build-webapp
@@ -34,13 +44,13 @@ build-image:
     stage: build-image
 
     needs:
+        - generate-tag
         - build-react
 
     variables:
         BUILDER: builder
 
     script:
-        - 'TAG="$(date +%y%m%d)_${CI_COMMIT_SHORT_SHA}"'
         - 'echo "Building: ${CI_REGISTRY_IMAGE}:${TAG}"'
 
         - export GIT_SSL_NO_VERIFY=1
@@ -126,14 +136,13 @@ test-walk-through:
     stage: test
 
     needs:
+        - generate-tag
         - build-image
 
     variables:
         PANEL_SCRIPT: "" # 各ジョブで上書き
 
     script:
-        - 'TAG="$(date +%y%m%d)_${CI_COMMIT_SHORT_SHA}"'
-
         # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
         - docker ps --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop --time 5 $id; done || true
 
@@ -188,7 +197,6 @@ test-rain-cloud-panel:
         CREATE_IMAGE_ARGS: "" # 各ジョブで上書き
 
     script:
-        - 'TAG="$(date +%y%m%d)_${CI_COMMIT_SHORT_SHA}"'
         - docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME} ${CI_REGISTRY_IMAGE}:${TAG} src/create_image.py ${CREATE_IMAGE_ARGS} -o ${CI_JOB_NAME}.png
         - docker wait ${CI_JOB_NAME}-${CI_JOB_ID}
         - docker cp ${CI_JOB_NAME}-${CI_JOB_ID}:/opt/e-ink_weather/${CI_JOB_NAME}.png .
@@ -203,6 +211,7 @@ test-sample:
     extends: .create_image_template
 
     needs:
+        - generate-tag
         - job: build-image
           artifacts: false
         - job: test-weather-panel
@@ -221,6 +230,7 @@ test-sample-small:
     extends: .create_image_template
 
     needs:
+        - generate-tag
         - job: build-image
           artifacts: false
         - job: test-weather-panel
@@ -235,6 +245,7 @@ test-demo:
     extends: .create_image_template
 
     needs:
+        - generate-tag
         - job: build-image
           artifacts: false
         - job: test-weather-panel
@@ -254,6 +265,7 @@ test-regular:
     extends: .create_image_template
 
     needs:
+        - generate-tag
         - job: build-image
           artifacts: false
         - job: test-weather-panel
@@ -272,6 +284,7 @@ test-regular-small:
     extends: .create_image_template
 
     needs:
+        - generate-tag
         - job: build-image
           artifacts: false
         - job: test-weather-panel
@@ -287,6 +300,7 @@ test-regular-small:
     stage: test
 
     dependencies:
+        - generate-tag
         - build-image
 
     variables:
@@ -294,7 +308,6 @@ test-regular-small:
         DISPLAY_IMAGE_ARGS: "" # 各ジョブで上書き
 
     script:
-        - 'TAG="$(date +%y%m%d)_${CI_COMMIT_SHORT_SHA}"'
         - docker run --rm --tty=true  ${CI_REGISTRY_IMAGE}:${TAG} src/display_image.py ${DISPLAY_IMAGE_ARGS} -p ${RASP_HOSTNAME} -O
 
 # 本番設定ファイルで，問題なく動くかチェック
@@ -302,6 +315,7 @@ test-display:
     extends: .display_image_template
 
     needs:
+        - generate-tag
         - job: build-image
           artifacts: false
         - job: test-regular
@@ -315,6 +329,7 @@ test-display-small:
     extends: .display_image_template
 
     needs:
+        - generate-tag
         - job: build-image
           artifacts: false
         - job: test-regular-small
@@ -328,13 +343,12 @@ test-webapp:
     stage: test
 
     needs:
+        - generate-tag
         - test-prepare
         - job: test-demo
           artifacts: false
 
     script:
-        - 'TAG="$(date +%y%m%d)_${CI_COMMIT_SHORT_SHA}"'
-
         # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
         - docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours | cut -d " " -f1 | while read id; do docker stop -t 5 $id; done || true
 
@@ -383,6 +397,7 @@ tag-latest:
     stage: tag-latest
 
     needs:
+        - generate-tag
         - job: test-display
           artifacts: false
         - job: test-display-small
@@ -391,7 +406,6 @@ tag-latest:
           artifacts: false
 
     script:
-        - 'TAG="$(date +%y%m%d)_${CI_COMMIT_SHORT_SHA}"'
         - 'echo "Tagging ${CI_REGISTRY_IMAGE}:${TAG} as latest"'
         - docker pull ${CI_REGISTRY_IMAGE}:${TAG}
         - docker tag ${CI_REGISTRY_IMAGE}:${TAG} ${CI_REGISTRY_IMAGE}:latest
@@ -406,6 +420,7 @@ deploy:
     stage: deploy
 
     needs:
+        - generate-tag
         - job: test-display
           artifacts: false
         - job: test-display-small
@@ -418,7 +433,6 @@ deploy:
         entrypoint: ['']
 
     script:
-        - 'TAG="$(date +%y%m%d)_${CI_COMMIT_SHORT_SHA}"'
         - 'IMAGE="${CI_REGISTRY_IMAGE}:${TAG}"'
         - 'echo "Deploying image: $IMAGE"'
 
