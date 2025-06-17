@@ -9,6 +9,7 @@ stages:
     - build-image
     - pre-test
     - test
+    - tag-latest
     - deploy
     - renovate
 
@@ -345,6 +346,26 @@ pages:
     only:
         - master
 
+tag-latest:
+    stage: tag-latest
+
+    needs:
+        - test-display
+        - test-display-small
+        - test-webapp
+
+    script:
+        - 'TAG="$(date +%y%m%d)_${CI_COMMIT_SHORT_SHA}"'
+        - 'echo "Tagging ${CI_REGISTRY_IMAGE}:${TAG} as latest"'
+        - docker pull ${CI_REGISTRY_IMAGE}:${TAG}
+        - docker tag ${CI_REGISTRY_IMAGE}:${TAG} ${CI_REGISTRY_IMAGE}:latest
+        - docker push ${CI_REGISTRY_IMAGE}:latest
+
+    rules:
+        - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+          when: never
+        - when: on_success
+
 deploy:
     stage: deploy
 
@@ -357,12 +378,35 @@ deploy:
         name: bitnami/kubectl:latest
         entrypoint: ['']
 
+    variables:
+        DEPLOY_TAG: "" # 手動実行時にタグを指定可能
+
     script:
+        - 'TAG="$(date +%y%m%d)_${CI_COMMIT_SHORT_SHA}"'
+        - 'IMAGE="${CI_REGISTRY_IMAGE}:${TAG}"'
+        - 'echo "Deploying image: $IMAGE"'
+
+        # イメージの存在確認
+        - 'echo "Checking if image exists..."'
+        - 'docker manifest inspect $IMAGE >/dev/null || (echo "Error: Image $IMAGE not found" && exit 1)'
+        - 'echo "✓ Image $IMAGE found"'
+
         - kubectl config get-contexts
         - kubectl config use-context kimata/e-ink_weather_panel:pod-rollout
-        - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-panel-deployment
-        - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-small-panel-deployment
-        - kubectl --insecure-skip-tls-verify=true rollout restart -n panel deployment e-ink-weather-webapp-deployment
+
+        # イメージの更新（rollout restartではなくset imageを使用）
+        - 'echo "Updating deployment images to $TAG..."'
+        - kubectl --insecure-skip-tls-verify=true -n panel set image deployment/e-ink-weather-panel-deployment e-ink-weather-panel=$IMAGE --record
+        - kubectl --insecure-skip-tls-verify=true -n panel set image deployment/e-ink-weather-small-panel-deployment e-ink-weather-small-panel=$IMAGE --record
+        - kubectl --insecure-skip-tls-verify=true -n panel set image deployment/e-ink-weather-webapp-deployment e-ink-weather-webapp=$IMAGE --record
+
+        # ロールアウト状況の確認
+        - 'echo "Waiting for deployments to complete..."'
+        - kubectl --insecure-skip-tls-verify=true -n panel rollout status deployment/e-ink-weather-panel-deployment --timeout=120s
+        - kubectl --insecure-skip-tls-verify=true -n panel rollout status deployment/e-ink-weather-small-panel-deployment --timeout=120s
+        - kubectl --insecure-skip-tls-verify=true -n panel rollout status deployment/e-ink-weather-webapp-deployment --timeout=120s
+
+        - 'echo "✓ All deployments updated successfully to $TAG"'
 
     rules:
         # NOTE: 自動実行ではデプロイしない
