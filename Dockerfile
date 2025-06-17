@@ -10,52 +10,52 @@ RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
     curl \
     ca-certificates \
     build-essential \
-    git
-
-RUN curl -O https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-
-RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    apt-get update && apt-get install --no-install-recommends --assume-yes \
-    language-pack-ja \
-    ./google-chrome-stable_current_amd64.deb
-
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PATH="/root/.local/bin/:$PATH"
-
-ENV UV_LINK_MODE=copy
-
-USER ubuntu
-WORKDIR /opt/e-ink_weather
-
-ADD https://astral.sh/uv/install.sh /uv-installer.sh
-
-RUN sh /uv-installer.sh && rm /uv-installer.sh
-
-# NOTE: uv で Python をインストールする
-RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    --mount=type=bind,source=.python-version,target=.python-version \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=README.md,target=README.md \
-    --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-install-project --no-editable
-
-RUN locale-gen en_US.UTF-8
-RUN locale-gen ja_JP.UTF-8
-
-ARG IMAGE_BUILD_DATE
-ENV IMAGE_BUILD_DATE=${IMAGE_BUILD_DATE}
+    git \
+    language-pack-ja
 
 ENV TZ=Asia/Tokyo \
     LANG=ja_JP.UTF-8 \
     LANGUAGE=ja_JP:ja \
     LC_ALL=ja_JP.UTF-8
 
+RUN locale-gen en_US.UTF-8
+RUN locale-gen ja_JP.UTF-8
+
+RUN curl -O https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+
+RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    apt-get update && apt-get install --no-install-recommends --assume-yes \
+    ./google-chrome-stable_current_amd64.deb
+
+
 COPY font /usr/share/fonts/
 
-COPY . .
+USER ubuntu
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PATH="/home/ubuntu/.local/bin:$PATH"
+ENV UV_LINK_MODE=copy
+
+# ubuntu ユーザーで uv をインストール
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+WORKDIR /opt/e-ink_weather
+
+RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    --mount=type=bind,source=.python-version,target=.python-version \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=README.md,target=README.md \
+    --mount=type=cache,target=/home/ubuntu/.cache/uv,uid=1000,gid=1000 \
+    uv sync --locked --no-install-project --no-editable
+
+ARG IMAGE_BUILD_DATE
+ENV IMAGE_BUILD_DATE=${IMAGE_BUILD_DATE}
+
+COPY --chown=ubuntu:ubuntu . .
 
 RUN mkdir -p data
-RUN chown -R ubuntu:ubuntu .
+RUN chmod +x src/display_image.py
 
-CMD ["./src/display_image.py"]
+ENTRYPOINT ["uv", "run"]
+CMD ["src/display_image.py"]
