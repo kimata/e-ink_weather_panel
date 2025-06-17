@@ -37,7 +37,7 @@ jobs:
                     ${{ runner.os }}-
 
             - name: Install Dependencies
-              if: steps.cache-nodemodules.outputs.cache-hit != 'true'
+              if: steps.cache-node-modules.outputs.cache-hit != 'true'
               run: |
                 npm ci
               working-directory: ./react
@@ -60,10 +60,9 @@ jobs:
         env:
             TZ: Asia/Tokyo
 
-
         strategy:
             matrix:
-                python-version: ['3.10']
+                python-version: ['3.12']
 
         steps:
             - uses: actions/checkout@v4
