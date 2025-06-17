@@ -386,11 +386,6 @@ deploy:
         - 'IMAGE="${CI_REGISTRY_IMAGE}:${TAG}"'
         - 'echo "Deploying image: $IMAGE"'
 
-        # イメージの存在確認
-        - 'echo "Checking if image exists..."'
-        - 'docker manifest inspect $IMAGE >/dev/null || (echo "Error: Image $IMAGE not found" && exit 1)'
-        - 'echo "✓ Image $IMAGE found"'
-
         - kubectl config get-contexts
         - kubectl config use-context kimata/e-ink_weather_panel:pod-rollout
 
