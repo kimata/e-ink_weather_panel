@@ -62,8 +62,8 @@ def create_app(config_file_normal, config_file_small, dummy_mode=False):
     app.config["CONFIG_FILE_SMALL"] = config_file_small
     app.config["DUMMY_MODE"] = dummy_mode
 
-    app.register_blueprint(my_lib.webapp.base.get_blueprint())
-    app.register_blueprint(my_lib.webapp.base.get_blueprint_default())
+    app.register_blueprint(my_lib.webapp.base.blueprint)
+    app.register_blueprint(my_lib.webapp.base.blueprint_default)
     app.register_blueprint(weather_display.generator.blueprint)
 
     return app
