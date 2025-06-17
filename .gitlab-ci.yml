@@ -61,6 +61,8 @@ build-image:
 test-prepare:
     stage: pre-test
 
+    needs: []
+
     script:
         - uv sync --locked --no-editable
 
