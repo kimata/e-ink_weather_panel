@@ -648,6 +648,7 @@ def test_create_rain_cloud_panel_cache_and_error(mocker, request, config):
     click_xpath_mock.i = 0
 
     mocker.patch("weather_display.rain_cloud_panel.click_xpath", side_effect=click_xpath_mock)
+    mocker.patch("weather_display.rain_cloud_panel.time.sleep")  # Mock time.sleep to prevent timeout
 
     check_image(
         request,
