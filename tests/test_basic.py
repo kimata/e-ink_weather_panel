@@ -6,8 +6,11 @@ import pathlib
 import re
 from unittest import mock
 
+import my_lib.webapp.config
 import pytest
 import zoneinfo
+
+my_lib.webapp.config.URL_PREFIX = "/weather_panel"
 
 logging.getLogger("selenium.webdriver.remote").setLevel(logging.WARNING)
 logging.getLogger("selenium.webdriver.common").setLevel(logging.DEBUG)
@@ -793,16 +796,12 @@ def test_slack_error_with_image(mocker, request, config):
 
 ######################################################################
 def test_redirect(client):
-    import my_lib.webapp.config
-
     response = client.get("/")
     assert response.status_code == 302
     assert re.search(rf"{my_lib.webapp.config.URL_PREFIX}/$", response.location)
 
 
 def test_index(client):
-    import my_lib.webapp.config
-
     response = client.get(f"{my_lib.webapp.config.URL_PREFIX}/")
     assert response.status_code == 200
     assert "気象パネル画像" in response.data.decode("utf-8")
@@ -812,8 +811,6 @@ def test_index(client):
 
 
 def test_index_with_other_status(client, mocker):
-    import my_lib.webapp.config
-
     mocker.patch(
         "flask.wrappers.Response.status_code",
         return_value=301,
@@ -829,7 +826,6 @@ def test_api_run(client, mocker):
     import inspect
     import io
 
-    import my_lib.webapp.config
     import PIL.Image
 
     def dummy_time():
@@ -905,8 +901,6 @@ def test_api_run_small(client, mocker):
     import inspect
     import json
 
-    import my_lib.webapp.config
-
     CALLBACK = "TEST"
 
     def dummy_time():
@@ -943,8 +937,6 @@ def test_api_run_small(client, mocker):
 
 
 def test_api_run_error(client, mocker):
-    import my_lib.webapp.config
-
     mocker.patch("weather_display.generator.generate_image", side_effect=RuntimeError())
 
     response = client.get(
@@ -963,7 +955,6 @@ def test_api_run_error(client, mocker):
 def test_api_run_normal(mocker):
     import inspect
 
-    import my_lib.webapp.config
     import webapp
 
     # NOTE: fixture の方はダミーモード固定で動かしているので、
