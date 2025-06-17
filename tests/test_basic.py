@@ -40,7 +40,13 @@ def env_mock():
 def slack_mock():
     with mock.patch(
         "my_lib.notify.slack.slack_sdk.web.client.WebClient.chat_postMessage",
-        retunr_value=True,
+        return_value=True,
+    ), mock.patch(
+        "my_lib.notify.slack.slack_sdk.web.client.WebClient.files_upload_v2",
+        return_value={"ok": True, "files": [{"id": "test_file_id"}]},
+    ), mock.patch(
+        "my_lib.notify.slack.slack_sdk.web.client.WebClient.files_getUploadURLExternal",
+        return_value={"ok": True, "upload_url": "https://example.com"},
     ) as fixture:
         yield fixture
 
@@ -764,18 +770,20 @@ def test_slack_error(mocker, request, config):
 
 def test_slack_error_with_image(mocker, request, config):
     import weather_display.rain_cloud_panel
-    from weather_display.rain_cloud_panel import fetch_cloud_image
+    from my_lib.selenium_util import click_xpath as click_xpath_orig
 
-    def fetch_cloud_image_mock(driver, wait, url, width, height, is_future=False):  # noqa: ARG001, PLR0913
-        fetch_cloud_image_mock.i += 1
-        if fetch_cloud_image_mock.i == 1:
-            return fetch_cloud_image(driver, url, width, height, is_future)
-        else:
-            raise RuntimeError
+    # NOTE: 6回だけエラーにする（test_create_rain_cloud_panel_cache_and_errorと同じアプローチ）
+    def click_xpath_mock(driver, xpath, wait=None, is_warn=True):
+        click_xpath_mock.i += 1
+        if click_xpath_mock.i <= 6:
+            raise RuntimeError("Test error for Slack image notification")  # noqa: EM101, TRY003
 
-    fetch_cloud_image_mock.i = 0
+        return click_xpath_orig(driver, xpath, wait, is_warn)
 
-    mocker.patch("weather_display.rain_cloud_panel.fetch_cloud_image", side_effect=fetch_cloud_image_mock)
+    click_xpath_mock.i = 0
+
+    mocker.patch("weather_display.rain_cloud_panel.click_xpath", side_effect=click_xpath_mock)
+    mocker.patch("weather_display.rain_cloud_panel.time.sleep")  # Mock time.sleep to prevent timeout
 
     check_image(
         request,
