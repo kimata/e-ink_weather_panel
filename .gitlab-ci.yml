@@ -348,7 +348,10 @@ pages:
 deploy:
     stage: deploy
 
-    dependencies: []
+    needs:
+        - test-display
+        - test-display-small
+        - test-webapp
 
     image:
         name: bitnami/kubectl:latest
