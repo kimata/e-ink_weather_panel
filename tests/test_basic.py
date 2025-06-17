@@ -49,10 +49,6 @@ def slack_mock():
 
 @pytest.fixture(scope="session")
 def app():
-    import my_lib.webapp.config
-
-    my_lib.webapp.config.URL_PREFIX = "/weather_panel"
-
     import webapp
 
     with mock.patch.dict("os.environ", {"WERKZEUG_RUN_MAIN": "true"}):
