@@ -143,7 +143,27 @@ def mock_sensor_fetch_data(mocker):  # noqa: C901
 
     fetch_data_mock.count = {}
 
+    # Mock for parallel fetch
+    async def fetch_data_parallel_mock(db_config, requests):
+        results = []
+        for request in requests:
+            result = fetch_data_mock(
+                db_config,
+                request.get("measure"),
+                request.get("hostname"),
+                request.get("field"),
+                request.get("start", "-30h"),
+                request.get("stop", "now()"),
+                request.get("every_min", 1),
+                request.get("window_min", 3),
+                request.get("create_empty", True),
+                request.get("last", False),
+            )
+            results.append(result)
+        return results
+
     mocker.patch("weather_display.sensor_graph.fetch_data", side_effect=fetch_data_mock)
+    mocker.patch("weather_display.sensor_graph.fetch_data_parallel", side_effect=fetch_data_parallel_mock)
     mocker.patch("weather_display.power_graph.fetch_data", side_effect=fetch_data_mock)
 
 
