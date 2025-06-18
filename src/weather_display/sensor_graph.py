@@ -88,10 +88,10 @@ def plot_item(ax, title, unit, data, xbegin_numeric, ylim, fmt, scale, small, fa
     logging.info("Plot %s", title)
 
     # 事前に数値化された時間データを使用
-    x = data["time_numeric"] if "time_numeric" in data else data["time"]
-    y = data["value"]
+    x = data["time_numeric"] if "time_numeric" in data else data.get("time", [])
+    y = data.get("value", [])
 
-    if not data["valid"]:
+    if not data.get("valid", False):
         text = "?"
     else:
         # NOTE: 下記の next の記法だとカバレッジが正しく取れない
@@ -309,7 +309,12 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
 
     # NOTE: 全データを並列で一度に取得してキャッシュ（最適化）
     data_cache = {}
-    cache = None
+    cache = {
+        "time": [],
+        "time_numeric": [],
+        "value": [],
+        "valid": False,
+    }
     range_map = {}
     time_begin = datetime.datetime.now(datetime.timezone.utc)
 
@@ -372,6 +377,7 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
                 if request_key in request_map:
                     request_index = request_map[request_key]
                     candidate_data = results[request_index]
+
                     if candidate_data["valid"]:
                         data = candidate_data
                         break
@@ -395,7 +401,8 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
 
                 if data["time"][0] < time_begin:
                     time_begin = data["time"][0]
-                if cache is None:
+
+                if not cache["time"]:
                     cache = {
                         "time": data["time"],
                         "time_numeric": data.get("time_numeric", []),
