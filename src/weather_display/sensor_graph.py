@@ -87,6 +87,11 @@ def get_face_map(font_config):
 def plot_item(ax, title, unit, data, xbegin_numeric, ylim, fmt, scale, small, face_map, axis_config):  # noqa: PLR0913
     logging.info("Plot %s", title)
 
+    # データがNoneの場合のフォールバック
+    if data is None:
+        logging.warning("plot_item received invalid data: %s", type(data))
+        data = {"time": [], "time_numeric": [], "value": [], "valid": False}
+
     # 事前に数値化された時間データを使用
     x = data["time_numeric"] if "time_numeric" in data else data.get("time", [])
     y = data.get("value", [])
