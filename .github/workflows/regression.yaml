@@ -108,7 +108,7 @@ jobs:
               uses: dorny/test-reporter@v1
               if: success() || failure()
               with:
-                name: Pytest Results
+                name: test results
                 path: tests/evidence/junit.xml
                 reporter: java-junit
 
