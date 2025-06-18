@@ -1,7 +1,6 @@
 # E-Ink Weather Panel
 
 [![Test Status](https://github.com/kimata/e-ink_weather_panel/actions/workflows/regression.yaml/badge.svg)](https://github.com/kimata/e-ink_weather_panel/actions/workflows/regression.yaml)
-[![Coverage](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fkimata.github.io%2Fe-ink_weather_panel%2Fcoverage%2Fcoverage.json&query=%24.totals.percent_covered_display&suffix=%25&label=coverage&color=brightgreen)](https://kimata.github.io/e-ink_weather_panel/coverage/)
 
 > **総合気象パネル for E-Ink Display**
 > Raspberry Pi と E-Ink ディスプレイで構築する、包括的な気象情報表示システム
@@ -95,7 +94,7 @@ docker compose up --build
 #### 🔧 ローカル開発
 
 ```bash
-# 画像生成のみ
+# 画像生成と表示
 env RASP_HOSTNAME="your-raspi-hostname" uv run python src/display_image.py
 
 # Web サーバー起動
@@ -141,7 +140,7 @@ InfluxDBスキーマに合わせて調整が必要な場合：
 | モデル | 解像度 | 設定済み | 備考 |
 |--------|--------|---------|------|
 | **BOOX Mira Pro** | 3200×1800 | ✅ | 大型・高解像度 |
-| **BOOX Mira 33** | 2200×1650 | ✅ | 中型・省スペース |
+| **BOOX Mira** | 2200×1650 | ✅ | 中型・省スペース |
 
 ### 基本セットアップ
 
@@ -166,7 +165,7 @@ InfluxDBスキーマに合わせて調整が必要な場合：
    hdmi_timings=3200 1 48 32 80 1800 1 3 5 54 0 0 0 10 0 183422400 3
    ```
 
-   **BOOX Mira 33 (2200×1650)**
+   **BOOX Mira (2200×1650)**
    ```ini
    framebuffer_width=2200
    framebuffer_height=1650
@@ -215,7 +214,7 @@ kubectl apply -f kubernetes/e-ink_weather_panel.yaml
 kubectl create configmap weather-config --from-file=config.yaml
 ```
 
-## 📊 監視・テスト
+## 📊 テスト
 
 ### テスト実行
 
