@@ -57,5 +57,5 @@ COPY --chown=ubuntu:ubuntu . .
 
 RUN mkdir -p data
 
-ENTRYPOINT ["uv", "run"]
+ENTRYPOINT ["uv", "run", "--no-install"]
 CMD ["src/display_image.py"]
