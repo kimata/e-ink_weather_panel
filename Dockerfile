@@ -11,7 +11,8 @@ RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
     ca-certificates \
     build-essential \
     git \
-    language-pack-ja
+    language-pack-ja \
+    tzdata
 
 ENV TZ=Asia/Tokyo \
     LANG=ja_JP.UTF-8 \
@@ -55,7 +56,6 @@ ENV IMAGE_BUILD_DATE=${IMAGE_BUILD_DATE}
 COPY --chown=ubuntu:ubuntu . .
 
 RUN mkdir -p data
-RUN chmod +x src/display_image.py
 
 ENTRYPOINT ["uv", "run"]
 CMD ["src/display_image.py"]

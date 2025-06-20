@@ -26,6 +26,8 @@ generate-tag:
 build-react:
     stage: build-webapp
 
+    needs: []
+
     image: node:24.2
     script:
         - cd react
@@ -441,9 +443,9 @@ deploy:
 
         # イメージの更新
         - 'echo "Updating deployment images to $TAG..."'
-        - kubectl --insecure-skip-tls-verify=true -n panel set image deployment/e-ink-weather-panel-deployment e-ink-weather-panel=${IMAGE} --record
-        - kubectl --insecure-skip-tls-verify=true -n panel set image deployment/e-ink-weather-small-panel-deployment e-ink-weather-small-panel=${IMAGE} --record
-        - kubectl --insecure-skip-tls-verify=true -n panel set image deployment/e-ink-weather-webapp-deployment e-ink-weather-webapp=${IMAGE} --record
+        - kubectl --insecure-skip-tls-verify=true -n panel set image deployment/e-ink-weather-panel-deployment e-ink-weather-panel=${IMAGE}
+        - kubectl --insecure-skip-tls-verify=true -n panel set image deployment/e-ink-weather-small-panel-deployment e-ink-weather-small-panel=${IMAGE}
+        - kubectl --insecure-skip-tls-verify=true -n panel set image deployment/e-ink-weather-webapp-deployment e-ink-weather-webapp=${IMAGE}
 
         # ロールアウト状況の確認
         - 'echo "Waiting for deployments to complete..."'
