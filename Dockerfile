@@ -48,7 +48,7 @@ RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=README.md,target=README.md \
     --mount=type=cache,target=/home/ubuntu/.cache/uv,uid=1000,gid=1000 \
-    uv sync --locked --no-install-project --no-editable --no-group dev
+    uv sync --no-install-project --no-editable --no-group dev
 
 ARG IMAGE_BUILD_DATE
 ENV IMAGE_BUILD_DATE=${IMAGE_BUILD_DATE}
@@ -57,5 +57,5 @@ COPY --chown=ubuntu:ubuntu . .
 
 RUN mkdir -p data
 
-ENTRYPOINT ["uv", "run", "--no-install"]
+ENTRYPOINT ["uv", "run"]
 CMD ["src/display_image.py"]
