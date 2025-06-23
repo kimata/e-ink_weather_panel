@@ -66,6 +66,8 @@ def create_app(config_file_normal, config_file_small, dummy_mode=False):
     app.register_blueprint(my_lib.webapp.base.blueprint_default)
     app.register_blueprint(weather_display.generator.blueprint)
 
+    my_lib.webapp.config.show_handler_list(app)
+
     return app
 
 
