@@ -2,8 +2,8 @@
 
 import io
 import logging
-import multiprocessing
 import multiprocessing.pool
+import queue
 import subprocess
 import threading
 import time
@@ -42,10 +42,21 @@ def image_reader(proc, token):
     try:
         while True:
             state = proc.poll()
-            buf = proc.stdout.read()
             if state is not None:
+                # プロセス終了後の残りデータを読み取り
+                remaining = proc.stdout.read()
+                if remaining:
+                    img_stream.write(remaining)
                 break
-            img_stream.write(buf)
+            try:
+                buf = proc.stdout.read(8192)
+                if buf:
+                    img_stream.write(buf)
+                else:
+                    time.sleep(0.1)
+            except OSError:
+                # パイプが閉じられた場合
+                break
         panel_data["image"] = img_stream.getvalue()
     except Exception:
         logging.exception("Failed to generate image")
@@ -63,29 +74,40 @@ def generate_image_impl(config_file, is_small_mode, is_dummy_mode, is_test_mode,
     if is_test_mode:
         cmd.append("-t")
 
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)  # noqa: S603
+    try:
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)  # noqa: S603
 
-    # NOTE: stdout も同時に読まないと、proc.poll の結果が None から
-    # 変化してくれないので注意。
-    thread = threading.Thread(target=image_reader, args=(proc, token))
-    thread.start()
+        # NOTE: stdout も同時に読まないと、proc.poll の結果が None から
+        # 変化してくれないので注意。
+        thread = threading.Thread(target=image_reader, args=(proc, token))
+        thread.start()
 
-    while True:
-        state = proc.poll()
-        line = proc.stderr.readline()
-        if line == b"":
-            if state is not None:
+        while True:
+            state = proc.poll()
+            try:
+                line = proc.stderr.readline()
+            except OSError:
+                # パイプが閉じられた場合
                 break
-            time.sleep(0.5)
-            continue
 
-        panel_data["log"].put(line)
-        time.sleep(0.1)
+            if line == b"":
+                if state is not None:
+                    break
+                time.sleep(0.5)
+                continue
 
-    thread.join()
+            panel_data["log"].put(line)
+            time.sleep(0.1)
 
-    # NOTE: None を積むことで、実行完了を通知
-    panel_data["log"].put(None)
+        # プロセス終了を待機
+        proc.wait()
+        thread.join(timeout=120)
+
+        # NOTE: None を積むことで、実行完了を通知
+        panel_data["log"].put(None)
+    except Exception:
+        logging.exception("Failed to execute subprocess")
+        panel_data["log"].put(None)
 
 
 def clean_map():
@@ -107,7 +129,7 @@ def generate_image(config_file, is_small_mode, is_dummy_mode, is_test_mode):
     clean_map()
 
     token = str(uuid.uuid4())
-    log_queue = multiprocessing.Queue()
+    log_queue = queue.Queue()
 
     panel_data_map[token] = {
         "lock": threading.Lock(),
