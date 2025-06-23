@@ -20,6 +20,7 @@ import time
 import traceback
 
 import cv2
+import my_lib.chrome_util
 import my_lib.notify.slack
 import my_lib.panel_util
 import my_lib.pil_util
@@ -397,16 +398,17 @@ def draw_caption(img, title, face_map):
 def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config, trial):
     logging.info("create rain cloud image (%s)", "future" if sub_panel_config["is_future"] else "current")
 
-    driver = my_lib.selenium_util.create_driver(
-        "rain_cloud" + ("_future" if sub_panel_config["is_future"] else ""), DATA_PATH
-    )
-
-    wait = selenium.webdriver.support.wait.WebDriverWait(driver, 5)
-
-    my_lib.selenium_util.clear_cache(driver)
-
+    driver = None
     img = None
+
     try:
+        driver = my_lib.selenium_util.create_driver(
+            "rain_cloud" + ("_future" if sub_panel_config["is_future"] else ""), DATA_PATH
+        )
+
+        wait = selenium.webdriver.support.wait.WebDriverWait(driver, 5)
+        my_lib.selenium_util.clear_cache(driver)
+
         img = fetch_cloud_image(
             driver,
             wait,
@@ -416,27 +418,33 @@ def create_rain_cloud_img(panel_config, sub_panel_config, face_map, slack_config
             sub_panel_config["is_future"],
         )
     except Exception:
-        if (trial >= 3) and (slack_config is not None):
-            my_lib.notify.slack.error_with_image(
-                slack_config["bot_token"],
-                slack_config["error"]["channel"]["name"],
-                slack_config["error"]["channel"]["id"],
-                slack_config["from"],
-                traceback.format_exc(),
-                {
-                    "data": PIL.Image.open(io.BytesIO(driver.get_screenshot_as_png())),
-                    "text": "エラー時のスクリーンショット",
-                },
-                interval_min=slack_config["error"]["interval_min"],
-            )
-        driver.quit()
+        if driver and (trial >= 3) and (slack_config is not None):
+            try:
+                my_lib.notify.slack.error_with_image(
+                    slack_config["bot_token"],
+                    slack_config["error"]["channel"]["name"],
+                    slack_config["error"]["channel"]["id"],
+                    slack_config["from"],
+                    traceback.format_exc(),
+                    {
+                        "data": PIL.Image.open(io.BytesIO(driver.get_screenshot_as_png())),
+                        "text": "エラー時のスクリーンショット",
+                    },
+                    interval_min=slack_config["error"]["interval_min"],
+                )
+            except Exception as screenshot_error:
+                logging.warning("Failed to capture screenshot: %s", screenshot_error)
 
         # NOTE: リトライまでに時間を空けるようにする
         time.sleep(10)
-
         raise
-
-    driver.quit()
+    finally:
+        # 必ずdriverをクリーンアップ
+        if driver:
+            try:
+                driver.quit()
+            except Exception as cleanup_error:
+                logging.warning("Failed to cleanup driver: %s", cleanup_error)
 
     img, bar = retouch_cloud_image(img, panel_config)
     img = draw_equidistant_circle(img)
@@ -597,6 +605,18 @@ def create_rain_cloud_panel_impl(  # noqa: PLR0913
 
 def create(config, is_side_by_side=True, is_threaded=True):
     logging.info("draw rain cloud panel")
+
+    # Chrome プロファイルのクリーンアップを実行
+    try:
+        removed_profiles = my_lib.chrome_util.cleanup_old_chrome_profiles(
+            DATA_PATH, max_age_hours=12, keep_count=2
+        )
+        if removed_profiles:
+            logging.info("Cleaned up %d old Chrome profiles", len(removed_profiles))
+
+        my_lib.chrome_util.cleanup_orphaned_chrome_processes()
+    except Exception as cleanup_error:
+        logging.warning("Chrome cleanup failed: %s", cleanup_error)
 
     return my_lib.panel_util.draw_panel_patiently(
         create_rain_cloud_panel_impl,

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
+import concurrent.futures
 import io
 import logging
-import multiprocessing.pool
 import queue
 import subprocess
 import threading
@@ -24,14 +24,16 @@ def init(create_image_path_):
     global thread_pool  # noqa: PLW0603
     global create_image_path  # noqa: PLW0603
 
-    thread_pool = multiprocessing.pool.ThreadPool(processes=3)
+    # ThreadPoolExecutorに変更してより効率的な非同期処理を実現
+    thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=3, thread_name_prefix="image_gen")
     create_image_path = create_image_path_
 
 
 def term():
     global thread_pool
 
-    thread_pool.close()
+    if thread_pool:
+        thread_pool.shutdown(wait=True)
 
 
 def image_reader(proc, token):
@@ -62,6 +64,21 @@ def image_reader(proc, token):
         logging.exception("Failed to generate image")
 
 
+def log_reader(proc, token):
+    global panel_data_map
+
+    panel_data = panel_data_map[token]
+
+    try:
+        while True:
+            line = proc.stderr.readline()
+            if not line:
+                break
+            panel_data["log"].put(line)
+    except Exception:
+        logging.exception("Failed to read log")
+
+
 def generate_image_impl(config_file, is_small_mode, is_dummy_mode, is_test_mode, token):
     global panel_data_map
 
@@ -77,31 +94,31 @@ def generate_image_impl(config_file, is_small_mode, is_dummy_mode, is_test_mode,
     try:
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)  # noqa: S603
 
-        # NOTE: stdout も同時に読まないと、proc.poll の結果が None から
-        # 変化してくれないので注意。
-        thread = threading.Thread(target=image_reader, args=(proc, token))
-        thread.start()
+        # 非同期でstdoutとstderrを読み取り
+        stdout_thread = threading.Thread(target=image_reader, args=(proc, token))
+        stderr_thread = threading.Thread(target=log_reader, args=(proc, token))
 
-        while True:
-            state = proc.poll()
-            try:
-                line = proc.stderr.readline()
-            except OSError:
-                # パイプが閉じられた場合
-                break
+        stdout_thread.start()
+        stderr_thread.start()
 
-            if line == b"":
-                if state is not None:
-                    break
-                time.sleep(0.5)
-                continue
-
-            panel_data["log"].put(line)
+        # プロセス終了を非ブロッキングで監視
+        while proc.poll() is None:
             time.sleep(0.1)
 
-        # プロセス終了を待機
-        proc.wait()
-        thread.join(timeout=120)
+        # プロセス終了を待機（タイムアウト付き）
+        try:
+            proc.wait(timeout=120)
+        except subprocess.TimeoutExpired:
+            logging.warning("Subprocess timed out, terminating")
+            proc.terminate()
+            try:
+                proc.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+
+        # スレッドの終了を待機（タイムアウト付き）
+        stdout_thread.join(timeout=30)
+        stderr_thread.join(timeout=30)
 
         # NOTE: None を積むことで、実行完了を通知
         panel_data["log"].put(None)
@@ -136,11 +153,14 @@ def generate_image(config_file, is_small_mode, is_dummy_mode, is_test_mode):
         "log": log_queue,
         "image": None,
         "time": time.time(),
+        "future": None,
     }
-    thread_pool.apply_async(
-        generate_image_impl,
-        (config_file, is_small_mode, is_dummy_mode, is_test_mode, token),
+
+    # ThreadPoolExecutorのsubmitを使用して非同期実行
+    future = thread_pool.submit(
+        generate_image_impl, config_file, is_small_mode, is_dummy_mode, is_test_mode, token
     )
+    panel_data_map[token]["future"] = future
 
     return token
 
