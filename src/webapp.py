@@ -27,8 +27,8 @@ SCHEMA_CONFIG = "config.schema"
 
 
 def create_app(config_file_normal, config_file_small, dummy_mode=False):
-    # NOTE: アクセスログは無効にする
-    logging.getLogger("werkzeug").setLevel(logging.ERROR)
+    # # NOTE: アクセスログは無効にする
+    # logging.getLogger("werkzeug").setLevel(logging.ERROR)
 
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
         # NOTE: オプションでダミーモードが指定された場合、環境変数もそれに揃えておく
