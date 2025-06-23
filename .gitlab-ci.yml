@@ -408,10 +408,8 @@ tag-latest:
           artifacts: false
 
     script:
-        - 'echo "Tagging ${CI_REGISTRY_IMAGE}:${TAG} as latest"'
-        - docker pull ${CI_REGISTRY_IMAGE}:${TAG}
-        - docker tag ${CI_REGISTRY_IMAGE}:${TAG} ${CI_REGISTRY_IMAGE}:latest
-        - docker push ${CI_REGISTRY_IMAGE}:latest
+        - 'echo "Tagging multi-arch image ${CI_REGISTRY_IMAGE}:${TAG} as latest"'
+        - docker buildx imagetools create -t ${CI_REGISTRY_IMAGE}:latest ${CI_REGISTRY_IMAGE}:${TAG}
 
     rules:
         - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH

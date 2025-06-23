@@ -34,7 +34,6 @@ COPY font /usr/share/fonts/
 
 USER ubuntu
 
-ENV PYTHONDONTWRITEBYTECODE=1
 ENV PATH="/home/ubuntu/.local/bin:$PATH"
 ENV UV_LINK_MODE=copy
 
@@ -48,7 +47,7 @@ RUN --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=README.md,target=README.md \
     --mount=type=cache,target=/home/ubuntu/.cache/uv,uid=1000,gid=1000 \
-    uv sync --no-install-project --no-editable --no-group dev
+    uv sync --no-install-project --no-editable --no-group dev --compile-bytecode
 
 ARG IMAGE_BUILD_DATE
 ENV IMAGE_BUILD_DATE=${IMAGE_BUILD_DATE}
