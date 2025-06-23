@@ -52,10 +52,10 @@ def slack_mock():
 
 @pytest.fixture(scope="session")
 def app():
-    import webapp
+    import webui
 
     with mock.patch.dict("os.environ", {"WERKZEUG_RUN_MAIN": "true"}):
-        app = webapp.create_app(CONFIG_FILE, CONFIG_SMALL_FILE, dummy_mode=True)
+        app = webui.create_app(CONFIG_FILE, CONFIG_SMALL_FILE, dummy_mode=True)
 
         yield app
 
