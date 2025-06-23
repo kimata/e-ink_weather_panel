@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import io
+import logging
 import multiprocessing
 import multiprocessing.pool
 import subprocess
@@ -38,14 +39,16 @@ def image_reader(proc, token):
     panel_data = panel_data_map[token]
     img_stream = io.BytesIO()
 
-    while True:
-        state = proc.poll()
-        buf = proc.stdout.read()
-        if state is not None:
-            break
-        img_stream.write(buf)
-
-    panel_data["image"] = img_stream.getvalue()
+    try:
+        while True:
+            state = proc.poll()
+            buf = proc.stdout.read()
+            if state is not None:
+                break
+            img_stream.write(buf)
+        panel_data["image"] = img_stream.getvalue()
+    except Exception:
+        logging.exception("Failed to generate image")
 
 
 def generate_image_impl(config_file, is_small_mode, is_dummy_mode, is_test_mode, token):
@@ -151,17 +154,20 @@ def api_log():
     log_queue = panel_data_map[token]["log"]
 
     def generate():
-        while True:
-            while not log_queue.empty():
-                log = log_queue.get()
-                if log is None:
-                    break
-                log = log.decode("utf-8")
-                yield log
-            else:
-                time.sleep(0.2)
-                continue
-            break
+        try:
+            while True:
+                while not log_queue.empty():
+                    log = log_queue.get()
+                    if log is None:
+                        break
+                    log = log.decode("utf-8")
+                    yield log
+                else:
+                    time.sleep(0.2)
+                    continue
+                break
+        except Exception:
+            logging.exception("Failed to read log")
 
     res = flask.Response(flask.stream_with_context(generate()), mimetype="text/plain")
     res.headers.add("Access-Control-Allow-Origin", "*")
