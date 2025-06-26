@@ -23,13 +23,14 @@ import subprocess
 import sys
 import time
 import traceback
+import zoneinfo
 
-import create_image
 import my_lib.footprint
 import my_lib.panel_util
 import my_lib.proc
 import paramiko
-import zoneinfo
+
+import create_image
 
 TIMEZONE = zoneinfo.ZoneInfo("Asia/Tokyo")
 
@@ -45,7 +46,7 @@ elapsed_list = []
 
 
 def exec_patiently(func, args):
-    for i in range(RETRY_COUNT):  # noqa: RET503
+    for i in range(RETRY_COUNT):
         try:
             return func(*args)
         except Exception:  # noqa: PERF203
@@ -53,6 +54,7 @@ def exec_patiently(func, args):
                 raise
             logging.warning(traceback.format_exc())
             time.sleep(RETRY_WAIT)
+    return None
 
 
 def ssh_connect(hostname, key_filename):

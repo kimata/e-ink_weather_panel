@@ -404,8 +404,7 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
                 else:
                     data["time_numeric"] = []
 
-                if data["time"][0] < time_begin:
-                    time_begin = data["time"][0]
+                time_begin = min(time_begin, data["time"][0])
 
                 if not cache["time"]:
                     cache = {
@@ -427,10 +426,8 @@ def create_sensor_graph_impl(panel_config, font_config, db_config):  # noqa: C90
 
             min_val = min([item for item in data["value"] if item is not None])
             max_val = max([item for item in data["value"] if item is not None])
-            if min_val < param_min:
-                param_min = min_val
-            if max_val > param_max:
-                param_max = max_val
+            param_min = min(param_min, min_val)
+            param_max = max(param_max, max_val)
 
         # NOTE: 見やすくなるように、ちょっと広げる
         range_map[param["name"]] = [

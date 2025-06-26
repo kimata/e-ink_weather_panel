@@ -4,11 +4,11 @@ import datetime
 import logging
 import pathlib
 import re
+import zoneinfo
 from unittest import mock
 
 import my_lib.webapp.config
 import pytest
-import zoneinfo
 
 my_lib.webapp.config.URL_PREFIX = "/weather_panel"
 
@@ -37,16 +37,20 @@ def env_mock():
 
 @pytest.fixture(scope="session", autouse=True)
 def slack_mock():
-    with mock.patch(
-        "my_lib.notify.slack.slack_sdk.web.client.WebClient.chat_postMessage",
-        return_value=True,
-    ), mock.patch(
-        "my_lib.notify.slack.slack_sdk.web.client.WebClient.files_upload_v2",
-        return_value={"ok": True, "files": [{"id": "test_file_id"}]},
-    ), mock.patch(
-        "my_lib.notify.slack.slack_sdk.web.client.WebClient.files_getUploadURLExternal",
-        return_value={"ok": True, "upload_url": "https://example.com"},
-    ) as fixture:
+    with (
+        mock.patch(
+            "my_lib.notify.slack.slack_sdk.web.client.WebClient.chat_postMessage",
+            return_value=True,
+        ),
+        mock.patch(
+            "my_lib.notify.slack.slack_sdk.web.client.WebClient.files_upload_v2",
+            return_value={"ok": True, "files": [{"id": "test_file_id"}]},
+        ),
+        mock.patch(
+            "my_lib.notify.slack.slack_sdk.web.client.WebClient.files_getUploadURLExternal",
+            return_value={"ok": True, "upload_url": "https://example.com"},
+        ) as fixture,
+    ):
         yield fixture
 
 
@@ -60,7 +64,7 @@ def app():
         yield app
 
 
-@pytest.fixture()
+@pytest.fixture
 def config():
     import my_lib.config
 
@@ -81,7 +85,7 @@ def _clear(config):
     my_lib.notify.slack.hist_clear()
 
 
-@pytest.fixture()
+@pytest.fixture
 def client(app):
     test_client = app.test_client()
 
@@ -653,8 +657,9 @@ def test_create_rain_cloud_panel(request, config):
 
 
 def test_create_rain_cloud_panel_cache_and_error(mocker, request, config):
-    import weather_display.rain_cloud_panel
     from my_lib.selenium_util import click_xpath as click_xpath_orig
+
+    import weather_display.rain_cloud_panel
 
     # NOTE: 6回だけエラーにする
     def click_xpath_mock(driver, xpath, wait=None, is_warn=True):
@@ -689,8 +694,9 @@ def test_create_rain_cloud_panel_cache_and_error(mocker, request, config):
 
 
 def test_create_rain_cloud_panel_xpath_fail(mocker, request, config):
-    import weather_display.rain_cloud_panel
     from my_lib.selenium_util import xpath_exists
+
+    import weather_display.rain_cloud_panel
 
     # NOTE: 一回だけエラーにする
     def xpath_exists_mock(driver, xpath):
@@ -715,8 +721,9 @@ def test_create_rain_cloud_panel_xpath_fail(mocker, request, config):
 
 
 def test_create_rain_cloud_panel_selenium_error(mocker, request, config):
-    import weather_display.rain_cloud_panel
     from my_lib.selenium_util import create_driver_impl
+
+    import weather_display.rain_cloud_panel
 
     # NOTE: 一回だけエラーにする
     def create_driver_impl_mock(profile_name, data_path):
@@ -741,8 +748,9 @@ def test_create_rain_cloud_panel_selenium_error(mocker, request, config):
 
 
 def test_create_rain_cloud_panel_xpath_error(mocker, request, config):
-    import weather_display.rain_cloud_panel
     from my_lib.selenium_util import xpath_exists
+
+    import weather_display.rain_cloud_panel
 
     # NOTE: 一回だけエラーにする
     def xpath_exists_mock(driver, xpath):
@@ -768,8 +776,9 @@ def test_create_rain_cloud_panel_xpath_error(mocker, request, config):
 
 ######################################################################
 def test_slack_error(mocker, request, config):
-    import create_image
     import slack_sdk
+
+    import create_image
 
     mock_sensor_fetch_data(mocker)
 
@@ -789,8 +798,9 @@ def test_slack_error(mocker, request, config):
 
 
 def test_slack_error_with_image(mocker, request, config):
-    import weather_display.rain_cloud_panel
     from my_lib.selenium_util import click_xpath as click_xpath_orig
+
+    import weather_display.rain_cloud_panel
 
     # NOTE: 6回だけエラーにする（test_create_rain_cloud_panel_cache_and_errorと同じアプローチ）
     def click_xpath_mock(driver, xpath, wait=None, is_warn=True):

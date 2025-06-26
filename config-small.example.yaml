@@ -1,27 +1,23 @@
 liveness:
     file:
         display: data/liveness/display
-
 panel:
     device:
         width: 2200
         height: 1650
     update:
         interval: 120
-
 influxdb:
     url: http://proxy.green-rabbit.net:8086
     org: home
     token: strBCB9segqccgxsR5Xe_9RnCqkBFYX9aOKvxVR4lr3iLEb7HXuGqsN40YU6DIb6TZm9bvKLW5OWQS7sB8AQbQ==
     bucket: sensor
-
 # wall:
 #   image:
 #     - path: img/mascot.png
 #       brightness: 2
 #       offset_x: 1550
 #       offset_y: 565
-
 time:
     panel:
         width: 400
@@ -29,7 +25,6 @@ time:
         offset_x: 1995
         offset_y: 740
         scale: 0.5
-
 weather:
     panel:
         width: 2200
@@ -40,7 +35,6 @@ weather:
     data:
         yahoo:
             url: https://weather.yahoo.co.jp/weather/jp/13/4410/13113.html
-
     icon:
         sunset:
             path: img/sunset.png
@@ -108,7 +102,6 @@ weather:
             path: img/wind.png
             brightness: 1.3
             scale: 0.7
-
 power:
     panel:
         width: 1600
@@ -120,12 +113,11 @@ power:
             measure: sensor.rasp
         param:
             field: power
-            format: '{:,.0f}'
+            format: "{:,.0f}"
             unit: W
             range:
                 - 0
                 - 5000
-
 rain_cloud:
     panel:
         offset_x: 1340
@@ -139,20 +131,19 @@ rain_cloud:
         gamma: 0.5
     data:
         jma:
-            url: https://www.jma.go.jp/bosai/nowc/#zoom:12/lat:35.682677/lon:139.762230/colordepth:deep/elements:hrpns&slmcs
-
+            url: >
+                https://www.jma.go.jp/bosai/nowc/#zoom:12/lat:35.682677/
+                lon:139.762230/colordepth:deep/elements:hrpns&slmcs
 sunset:
     data:
         nao:
             pref: 13
-
 wbgt:
     panel:
         offset_x: 1340
         offset_y: 0
         width: 860
         height: 300
-
     data:
         env_go:
             url: https://www.wbgt.env.go.jp/graph_ref_td.php?region=03&prefecture=44&point=44132
@@ -168,36 +159,29 @@ wbgt:
               brightness: 1.5
             - path: img/face_5.png
               brightness: 1.5
-
 font:
     path: font
     map:
         jp_regular: migmix-1p-regular.ttf
         jp_medium: migmix-1p-regular.ttf
         jp_bold: migmix-1p-bold.ttf
-
         en_cond_bold: Antonio-Bold.ttf
         en_cond: Antonio-Regular.ttf
-
         en_medium: migmix-1p-regular.ttf
         en_bold: migmix-1p-bold.ttf
-
         # jp_regular: A-OTF-UDShinGoPr6N-Regular.otf
         # jp_medium: A-OTF-UDShinGoPr6N-Medium.otf
         # jp_bold: A-OTF-UDShinGoPr6N-Bold.otf
+# en_cond_bold: FuturaStd-CondensedBold.otf
+# en_cond: FuturaStd-Condensed.otf
 
-        # en_cond_bold: FuturaStd-CondensedBold.otf
-        # en_cond: FuturaStd-Condensed.otf
-
-        # en_medium: FrutigerNeueLTW1G-Medium.otf
-        # en_bold: FrutigerNeueLTW1G-Bold.otf
-
+# en_medium: FrutigerNeueLTW1G-Medium.otf
+# en_bold: FrutigerNeueLTW1G-Bold.otf
 webapp:
     timezone:
-        offset: '+9'
+        offset: "+9"
         name: JST
         zone: Asia/Tokyo
-
     static_dir_path: react/dist
 # slack:
 #   from: E-Ink Weather Panel

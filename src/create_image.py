@@ -26,6 +26,7 @@ import traceback
 import my_lib.panel_util
 import my_lib.pil_util
 import PIL.Image
+
 import weather_display.power_graph
 import weather_display.rain_cloud_panel
 import weather_display.rain_fall_panel

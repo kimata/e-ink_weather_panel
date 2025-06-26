@@ -89,6 +89,7 @@ docker compose run --build --rm weather_panel
 ## Testing Strategy
 
 Tests are organized by component with specific focus areas:
+
 - `test_basic.py` - Core functionality walkthrough
 - `test_playwright.py` - Web interface testing
 - Component-specific tests for each weather panel type

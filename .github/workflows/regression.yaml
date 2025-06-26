@@ -1,129 +1,105 @@
 name: Regression
-on:
+"on":
     push:
-
 permissions:
     contents: read
     pages: write
     id-token: write
     checks: write
     pull-requests: write
-
 jobs:
     build:
         runs-on: ubuntu-latest
-
         strategy:
             matrix:
                 node-version: [22.x]
-
         steps:
             - uses: actions/checkout@v4
-
             - name: Use Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v4
               with:
-                node-version: ${{ matrix.node-version }}
-
+                  node-version: ${{ matrix.node-version }}
             - name: Cache node modules
               id: cache-node-modules
               uses: actions/cache@v4
               env:
-                cache-name: cache-node-modules
+                  cache-name: cache-node-modules
               with:
-                path: node_modules
-                key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-                restore-keys: |
-                    ${{ runner.os }}-build-${{ env.cache-name }}-
-                    ${{ runner.os }}-build-
-                    ${{ runner.os }}-
-
+                  path: node_modules
+                  key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-build-${{ env.cache-name }}-
+                      ${{ runner.os }}-build-
+                      ${{ runner.os }}-
             - name: Install Dependencies
               if: steps.cache-node-modules.outputs.cache-hit != 'true'
               run: |
-                npm ci
+                  npm ci
               working-directory: ./react
-
             - name: Build
               run: |
-                npm run build
+                  npm run build
               working-directory: ./react
-
             - name: Upload built file
               uses: actions/upload-artifact@v4
               with:
-                name: react-dist
-                path: react/dist
-
+                  name: react-dist
+                  path: react/dist
     test:
         needs: build
         runs-on: ubuntu-latest
-
         env:
             TZ: Asia/Tokyo
-
         strategy:
             matrix:
-                python-version: ['3.12']
-
+                python-version: ["3.12"]
         steps:
             - uses: actions/checkout@v4
-
             - name: Set up Python ${{ matrix.python-version }}
               uses: actions/setup-python@v5
               with:
-                python-version: ${{ matrix.python-version }}
-
+                  python-version: ${{ matrix.python-version }}
             - name: Download react built files
               uses: actions/download-artifact@v4
               with:
-                name: react-dist
-                path: react/dist
-
+                  name: react-dist
+                  path: react/dist
             - name: Set locale
               run: |
-                sudo locale-gen ja_JP.UTF-8
-
+                  sudo locale-gen ja_JP.UTF-8
             - name: Install uv
               uses: astral-sh/setup-uv@v4
               with:
-                version: "latest"
-
+                  version: "latest"
             - name: Cache uv
               uses: actions/cache@v4
               with:
-                path: ~/.cache/uv
-                key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml') }}
-                restore-keys: |
-                    ${{ runner.os }}-uv-
-
+                  path: ~/.cache/uv
+                  key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-uv-
             - name: Install Dependencies
               run: |
-                uv sync
-
+                  uv sync
             - name: Run Tests
               run: uv run pytest --numprocesses=auto --junit-xml=tests/evidence/junit.xml tests/test_basic.py
-
             - name: Publish Test Results
               uses: dorny/test-reporter@v1
               if: success() || failure()
               with:
-                name: test results
-                path: tests/evidence/junit.xml
-                reporter: java-junit
-
+                  name: test results
+                  path: tests/evidence/junit.xml
+                  reporter: java-junit
             - name: Upload coverage file
               uses: actions/upload-artifact@v4
               if: always()
               with:
-                name: pytest
-                path: tests/evidence
-
+                  name: pytest
+                  path: tests/evidence
             - name: Upload artifact
               uses: actions/upload-pages-artifact@v3
               with:
-                path: tests/evidence
-
+                  path: tests/evidence
     deploy:
         environment:
             name: github-pages

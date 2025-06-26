@@ -20,36 +20,36 @@ spec:
                   image: registry.green-rabbit.net:5000/kimata/e-ink_weather_panel:latest
                   imagePullPolicy: Always
                   env:
-                    - name: RASP_HOSTNAME
-                      value: rasp-meter-1
-                    - name: INFLUXDB_TOKEN
-                      valueFrom:
-                        secretKeyRef:
-                            name: influxdb-token
-                            key: password
+                      - name: RASP_HOSTNAME
+                        value: rasp-meter-1
+                      - name: INFLUXDB_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: influxdb-token
+                                key: password
                   resources:
-                    requests:
-                        memory: 512Mi
-                        ephemeral-storage: 256Mi
-                    limits:
-                        memory: 2Gi
-                        ephemeral-storage: 1Gi
+                      requests:
+                          memory: 512Mi
+                          ephemeral-storage: 256Mi
+                      limits:
+                          memory: 2Gi
+                          ephemeral-storage: 1Gi
                   livenessProbe:
-                    exec:
-                        command:
-                            - /opt/e-ink_weather/src/healthz.py
-                    initialDelaySeconds: 120
-                    periodSeconds: 60
-                    timeoutSeconds: 1
-                    successThreshold: 1
-                    failureThreshold: 2
+                      exec:
+                          command:
+                              - /opt/e-ink_weather/src/healthz.py
+                      initialDelaySeconds: 120
+                      periodSeconds: 60
+                      timeoutSeconds: 1
+                      successThreshold: 1
+                      failureThreshold: 2
             dnsPolicy: Default
             affinity:
                 nodeAffinity:
                     requiredDuringSchedulingIgnoredDuringExecution:
                         nodeSelectorTerms:
                             - matchExpressions:
-                                - key: node-role.kubernetes.io/server
-                                  operator: In
-                                  values:
-                                    - large
+                                  - key: node-role.kubernetes.io/server
+                                    operator: In
+                                    values:
+                                        - large

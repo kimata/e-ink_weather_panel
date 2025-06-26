@@ -19,6 +19,7 @@ import math
 import pathlib
 import urllib
 import urllib.parse
+import zoneinfo
 
 import cv2
 import my_lib.panel_util
@@ -29,7 +30,6 @@ import PIL.Image
 import PIL.ImageDraw
 import PIL.ImageEnhance
 import PIL.ImageFont
-import zoneinfo
 from my_lib.weather import get_clothing_yahoo, get_wbgt, get_weather_yahoo
 
 TIMEZONE = zoneinfo.ZoneInfo("Asia/Tokyo")

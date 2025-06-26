@@ -21,6 +21,7 @@ import flask
 import flask_cors
 import my_lib.config
 import my_lib.logger
+
 import weather_display.generator
 
 SCHEMA_CONFIG = "config.schema"

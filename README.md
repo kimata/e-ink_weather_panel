@@ -16,9 +16,11 @@
 ## 🎯 デモ
 
 ### 表示サンプル
+
 ![表示サンプル](img/example.png)
 
 ### ライブデモ
+
 リアルタイム画像生成を体験できます:
 https://weather-panel-webapp-demo.kubernetes.green-rabbit.net/weather_panel/
 
@@ -37,47 +39,48 @@ graph TB
 
 ### 主要コンポーネント
 
-| 機能 | 説明 | 実装 |
-|------|------|------|
-| **天気予報** | Yahoo Weather APIから詳細な気象予報を取得 | `weather_panel.py` |
-| **雨雲レーダー** | 気象庁から最新の降水レーダー画像を取得 | `rain_cloud_panel.py` |
-| **センサーグラフ** | InfluxDBから温度・湿度・照度データを可視化 | `sensor_graph.py` |
-| **電力監視** | 消費電力の履歴とトレンド分析 | `power_graph.py` |
-| **WBGT指数** | 熱中症警戒レベルの算出と表示 | `wbgt_panel.py` |
-| **Web API** | React フロントエンドとの連携 | `webapp.py` |
-
+| 機能               | 説明                                       | 実装                  |
+| ------------------ | ------------------------------------------ | --------------------- |
+| **天気予報**       | Yahoo Weather APIから詳細な気象予報を取得  | `weather_panel.py`    |
+| **雨雲レーダー**   | 気象庁から最新の降水レーダー画像を取得     | `rain_cloud_panel.py` |
+| **センサーグラフ** | InfluxDBから温度・湿度・照度データを可視化 | `sensor_graph.py`     |
+| **電力監視**       | 消費電力の履歴とトレンド分析               | `power_graph.py`      |
+| **WBGT指数**       | 熱中症警戒レベルの算出と表示               | `wbgt_panel.py`       |
+| **Web API**        | React フロントエンドとの連携               | `webapp.py`           |
 
 ## 🚀 クイックスタート
 
 ### 必要要件
 
-| 項目 | 最小要件 | 推奨 |
-|------|----------|------|
-| **Python** | 3.12+ | 3.13+ |
-| **OS** | Linux | Ubuntu 24.04 |
-| **メモリ** | 1GB | 2GB+ |
-| **ディスク** | 500MB | 1GB+ |
+| 項目         | 最小要件 | 推奨         |
+| ------------ | -------- | ------------ |
+| **Python**   | 3.12+    | 3.13+        |
+| **OS**       | Linux    | Ubuntu 24.04 |
+| **メモリ**   | 1GB      | 2GB+         |
+| **ディスク** | 500MB    | 1GB+         |
 
 ### インストール
 
 1. **リポジトリのクローン**
-   ```bash
-   git clone https://github.com/kimata/e-ink_weather_panel.git
-   cd e-ink_weather_panel
-   ```
+
+    ```bash
+    git clone https://github.com/kimata/e-ink_weather_panel.git
+    cd e-ink_weather_panel
+    ```
 
 2. **設定ファイルの準備**
-   ```bash
-   cp config.example.yaml config.yaml
-   cp config-small.example.yaml config-small.yaml
-   # お手元の環境に合わせて編集
-   ```
+
+    ```bash
+    cp config.example.yaml config.yaml
+    cp config-small.example.yaml config-small.yaml
+    # お手元の環境に合わせて編集
+    ```
 
 3. **依存関係のインストール**
-   ```bash
-   # UV使用
-   uv sync
-   ```
+    ```bash
+    # UV使用
+    uv sync
+    ```
 
 ### 実行方法
 
@@ -112,24 +115,25 @@ uv run pytest tests/test_basic.py
 
 ```yaml
 panel:
-  device:
-    width: 3200    # ディスプレイ幅
-    height: 1800   # ディスプレイ高さ
+    device:
+        width: 3200 # ディスプレイ幅
+        height: 1800 # ディスプレイ高さ
 
 influxdb:
-  url: "http://your-influxdb:8086"
-  org: "your-org"
-  bucket: "sensor-data"
-  token: "your-token"
+    url: "http://your-influxdb:8086"
+    org: "your-org"
+    bucket: "sensor-data"
+    token: "your-token"
 
 weather:
-  location: "東京都"
-  yahoo_app_id: "your-yahoo-app-id"
+    location: "東京都"
+    yahoo_app_id: "your-yahoo-app-id"
 ```
 
 ### センサーデータのカスタマイズ
 
 InfluxDBスキーマに合わせて調整が必要な場合：
+
 - `src/weather_display/sensor_graph.py` - センサーデータ取得ロジック
 - `src/weather_display/power_graph.py` - 電力データ処理
 
@@ -137,56 +141,60 @@ InfluxDBスキーマに合わせて調整が必要な場合：
 
 ### 対応E-Inkディスプレイ
 
-| モデル | 解像度 | 設定値 | 備考 |
-|--------|--------|---------|------|
-| **BOOX Mira Pro** | 3200×1800 | ✅ | 大型・高解像度 |
-| **BOOX Mira** | 2200×1650 | ✅ | 中型・省スペース |
+| モデル            | 解像度    | 設定値 | 備考             |
+| ----------------- | --------- | ------ | ---------------- |
+| **BOOX Mira Pro** | 3200×1800 | ✅     | 大型・高解像度   |
+| **BOOX Mira**     | 2200×1650 | ✅     | 中型・省スペース |
 
 ### 基本セットアップ
 
 1. **必要パッケージのインストール**
-   ```bash
-   sudo apt-get update
-   sudo apt-get install -y fbi
-   ```
+
+    ```bash
+    sudo apt-get update
+    sudo apt-get install -y fbi
+    ```
 
 2. **ディスプレイ解像度設定**
 
-   `/boot/firmware/config.txt` に追加：
+    `/boot/firmware/config.txt` に追加：
 
-   **BOOX Mira Pro (3200×1800)**
-   ```ini
-   framebuffer_width=3200
-   framebuffer_height=1800
-   max_framebuffer_width=3200
-   max_framebuffer_height=1800
-   hdmi_group=2
-   hdmi_mode=87
-   hdmi_timings=3200 1 48 32 80 1800 1 3 5 54 0 0 0 10 0 183422400 3
-   ```
+    **BOOX Mira Pro (3200×1800)**
 
-   **BOOX Mira (2200×1650)**
-   ```ini
-   framebuffer_width=2200
-   framebuffer_height=1650
-   max_framebuffer_width=2200
-   max_framebuffer_height=1650
-   hdmi_group=2
-   hdmi_mode=87
-   hdmi_timings=2200 1 48 32 80 1650 1 3 5 54 0 0 0 10 0 160000000 1
-   ```
+    ```ini
+    framebuffer_width=3200
+    framebuffer_height=1800
+    max_framebuffer_width=3200
+    max_framebuffer_height=1800
+    hdmi_group=2
+    hdmi_mode=87
+    hdmi_timings=3200 1 48 32 80 1800 1 3 5 54 0 0 0 10 0 183422400 3
+    ```
+
+    **BOOX Mira (2200×1650)**
+
+    ```ini
+    framebuffer_width=2200
+    framebuffer_height=1650
+    max_framebuffer_width=2200
+    max_framebuffer_height=1650
+    hdmi_group=2
+    hdmi_mode=87
+    hdmi_timings=2200 1 48 32 80 1650 1 3 5 54 0 0 0 10 0 160000000 1
+    ```
 
 3. **画面の消灯防止**
-   ```bash
-   # /boot/firmware/cmdline.txtに追加
-   echo "consoleblank=0" | sudo tee -a /boot/firmware/cmdline.txt
-   ```
+
+    ```bash
+    # /boot/firmware/cmdline.txtに追加
+    echo "consoleblank=0" | sudo tee -a /boot/firmware/cmdline.txt
+    ```
 
 4. **SSH認証設定**
-   ```bash
-   # SSH公開鍵をコピー
-   ssh-copy-id -i key/panel.id_rsa.pub ubuntu@"your-raspi-hostname"
-   ```
+    ```bash
+    # SSH公開鍵をコピー
+    ssh-copy-id -i key/panel.id_rsa.pub ubuntu@"your-raspi-hostname"
+    ```
 
 ## ☁️ デプロイメント
 
@@ -195,13 +203,13 @@ InfluxDBスキーマに合わせて調整が必要な場合：
 ```yaml
 # compose.yaml の例
 services:
-  weather_panel:
-    build: .
-    environment:
-      - RASP_HOSTNAME=your-raspi-hostname
-    volumes:
-      - ./config.yaml:/app/config.yaml
-      - ./key:/app/key
+    weather_panel:
+        build: .
+        environment:
+            - RASP_HOSTNAME=your-raspi-hostname
+        volumes:
+            - ./config.yaml:/app/config.yaml
+            - ./key:/app/key
 ```
 
 ### Kubernetes

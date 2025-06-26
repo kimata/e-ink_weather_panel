@@ -1,34 +1,29 @@
 liveness:
     file:
         display: data/liveness/display
-
 panel:
     device:
         width: 3200
         height: 1800
     update:
         interval: 120
-
 influxdb:
     url: http://proxy.green-rabbit.net:8086
     org: home
     token: strBCB9segqccgxsR5Xe_9RnCqkBFYX9aOKvxVR4lr3iLEb7HXuGqsN40YU6DIb6TZm9bvKLW5OWQS7sB8AQbQ==
     bucket: sensor
-
 wall:
     image:
         - path: img/mascot.png
           brightness: 2
           offset_x: 1540
           offset_y: 565
-
 time:
     panel:
         width: 400
         height: 160
         offset_x: 2782
         offset_y: 1630
-
 weather:
     panel:
         width: 3200
@@ -38,7 +33,6 @@ weather:
     data:
         yahoo:
             url: https://weather.yahoo.co.jp/weather/jp/13/4410/13113.html
-
     icon:
         sunset:
             path: img/sunset.png
@@ -106,124 +100,118 @@ weather:
             path: img/wind.png
             brightness: 1.3
             scale: 0.7
-
 power:
     panel:
         width: 1600
         height: 510
         offset_x: 0
         offset_y: 620
-
     data:
         sensor:
             hostname: rasp-power
             measure: sensor.rasp
         param:
             field: power
-            format: '{:,.0f}'
+            format: "{:,.0f}"
             unit: W
             range:
                 - 0
                 - 5000
-
 sensor:
     panel:
         width: 1600
         height: 690
         offset_x: 0
         offset_y: 1120
-
     room_list:
         - label: 屋外
           sensor:
-            - hostname: ESP32-outdoor-1
-              measure: sensor.esp32
-            - hostname: rasp-meter-8
-              measure: sensor.rasp
-          light_icon: off
+              - hostname: ESP32-outdoor-1
+                measure: sensor.esp32
+              - hostname: rasp-meter-8
+                measure: sensor.rasp
+          light_icon: false
         - label: リビング
           sensor:
-            - hostname: rpi-cm4-sensor-6
-              measure: sensor.rasp
-          light_icon: on
+              - hostname: rpi-cm4-sensor-6
+                measure: sensor.rasp
+          light_icon: true
           aircon:
-            measure: hems.sharp
-            hostname: リビングエアコン
+              measure: hems.sharp
+              hostname: リビングエアコン
         - label: 和室
           type: rasp
           sensor:
-            - hostname: rasp-meter-2
-              measure: sensor.rasp
-          light_icon: on
+              - hostname: rasp-meter-2
+                measure: sensor.rasp
+          light_icon: true
           aircon:
-            measure: hems.sharp
-            hostname: 和室エアコン
+              measure: hems.sharp
+              hostname: 和室エアコン
         - label: 洋室A
           sensor:
-            - hostname: rpi-cm4-sensor-1
-              measure: sensor.rasp
-          light_icon: on
+              - hostname: rpi-cm4-sensor-1
+                measure: sensor.rasp
+          light_icon: true
         - label: 洋室B
           sensor:
-            - hostname: rpi-cm4-sensor-2
-              measure: sensor.rasp
-          light_icon: on
+              - hostname: rpi-cm4-sensor-2
+                measure: sensor.rasp
+          light_icon: true
         - label: 洋室C
           sensor:
-            - hostname: rpi-cm4-sensor-3
-              measure: sensor.rasp
-          light_icon: on
+              - hostname: rpi-cm4-sensor-3
+                measure: sensor.rasp
+          light_icon: true
         - label: 家事室
           sensor:
-            - hostname: rpi-cm4-sensor-4
-              measure: sensor.rasp
-          light_icon: on
+              - hostname: rpi-cm4-sensor-4
+                measure: sensor.rasp
+          light_icon: true
         - label: 書斎
           sensor:
-            - hostname: rasp-meter-3
-              measure: sensor.rasp
-          light_icon: on
+              - hostname: rasp-meter-3
+                measure: sensor.rasp
+          light_icon: true
           aircon:
-            measure: hems.sharp
-            hostname: 書斎エアコン
-
+              measure: hems.sharp
+              hostname: 書斎エアコン
     param_list:
         - name: temp
-          format: '{:.1f}'
+          format: "{:.1f}"
           unit: ℃
           range: auto
           scale: linear
           size_small: false
         - name: humi
-          format: '{:.1f}'
-          unit: '%'
+          format: "{:.1f}"
+          unit: "%"
           range: auto
           scale: linear
           size_small: false
         - name: co2
-          format: '{:,.0f}'
+          format: "{:,.0f}"
           unit: ppm
           range: auto
           scale: linear
           size_small: true
         - name: lux
-          format: '{:,.0f}'
+          format: "{:,.0f}"
           unit: LUX
           range:
-            - 1
-            - 40000
+              - 1
+              - 40000
           scale: log
           size_small: true
     icon:
         light:
             # NOTE: on/off は「'」で囲わないと文字列以外に変換されてしまうので注意
-            'on':
+            "on":
                 path: img/light-on.png
-            'off':
+            "off":
                 path: img/light-off.png
         aircon:
             path: img/aircon.png
-
 rain_fall:
     panel:
         offset_x: 1604
@@ -233,11 +221,9 @@ rain_fall:
     sensor:
         hostname: rasp-weather-1
         measure: sensor.rasp
-
     icon:
         path: img/rainfall.png
         scale: 0.3
-
 rain_cloud:
     panel:
         offset_x: 1604
@@ -251,20 +237,19 @@ rain_cloud:
         gamma: 0.6
     data:
         jma:
-            url: https://www.jma.go.jp/bosai/nowc/#zoom:12/lat:35.682677/lon:139.762230/colordepth:deep/elements:hrpns&slmcs
-
+            url: >
+                https://www.jma.go.jp/bosai/nowc/#zoom:12/lat:35.682677/
+                lon:139.762230/colordepth:deep/elements:hrpns&slmcs
 sunset:
     data:
         nao:
             pref: 13
-
 wbgt:
     panel:
         offset_x: 1604
         offset_y: 960
         width: 798
         height: 300
-
     data:
         env_go:
             url: https://www.wbgt.env.go.jp/graph_ref_td.php?region=03&prefecture=44&point=44132
@@ -280,45 +265,35 @@ wbgt:
               brightness: 1.5
             - path: img/face_5.png
               brightness: 1.5
-
 font:
     path: font/
     map:
         jp_regular: migmix-1p-regular.ttf
         jp_medium: migmix-1p-regular.ttf
         jp_bold: migmix-1p-bold.ttf
-
         en_cond_bold: Antonio-Bold.ttf
         en_cond: Antonio-Regular.ttf
-
         en_medium: migmix-1p-regular.ttf
         en_bold: migmix-1p-bold.ttf
-
         # jp_regular: A-OTF-UDShinGoPr6N-Regular.otf
         # jp_medium: A-OTF-UDShinGoPr6N-Medium.otf
         # jp_bold: A-OTF-UDShinGoPr6N-Bold.otf
+# en_cond_bold: FuturaStd-CondensedBold.otf
+# en_cond: FuturaStd-Condensed.otf
 
-        # en_cond_bold: FuturaStd-CondensedBold.otf
-        # en_cond: FuturaStd-Condensed.otf
-
-        # en_medium: FrutigerNeueLTW1G-Medium.otf
-        # en_bold: FrutigerNeueLTW1G-Bold.otf
-
+# en_medium: FrutigerNeueLTW1G-Medium.otf
+# en_bold: FrutigerNeueLTW1G-Bold.otf
 webapp:
     timezone:
-        offset: '+9'
+        offset: "+9"
         name: JST
         zone: Asia/Tokyo
-
     static_dir_path: react/dist
-
 slack:
     from: E-Ink Weather Panel
-
     bot_token: xoxb-XXXXXXXXXXXX-XXXXXXXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXX
-
     error:
         channel:
-            name: '#error'
+            name: "#error"
             id: XXXXXXXXXXX
         interval_min: 180
