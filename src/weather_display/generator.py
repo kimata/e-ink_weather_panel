@@ -205,7 +205,7 @@ def api_log():
                     log = log.decode("utf-8")
                     yield log
                 else:
-                    time.sleep(0.2)
+                    time.sleep(0.1)
                     continue
                 break
         except Exception:
