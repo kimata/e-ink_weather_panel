@@ -10,7 +10,7 @@ requires-python = ">= 3.10"
 
 dependencies = [
     "influxdb-client[ciso]>=1.44.0",
-    "my-lib @ git+https://github.com/kimata/my-py-lib@8d62ee7f13ee0c744a8a451a7ee9abf21339b1aa",
+    "my-lib @ git+https://github.com/kimata/my-py-lib@bea787ba98bc65093d6dce2e8c1750bb8324aefe",
     "opencv-contrib-python-headless>=4.10.0.84",
     "matplotlib>=3.9.2",
     "pandas>=2.2.2",
@@ -52,7 +52,7 @@ allow-direct-references = true
 [tool.pytest.ini_options]
 minversion = "6.0"
 
-addopts = "--verbose --timeout=120 --log-file-level=DEBUG --log-format=\"%(asctime)s %(levelname)s %(message)s\" --log-format=\"%(asctime)s %(levelname)s [%(filename)s:%(lineno)s %(funcName)s] %(message)s\" --capture=sys --html=tests/evidence/index.htm --self-contained-html --cov=src --cov-report=html"
+addopts = "--verbose --timeout=120 --durations=10 --log-file-level=DEBUG --log-format=\"%(asctime)s %(levelname)s %(message)s\" --log-format=\"%(asctime)s %(levelname)s [%(filename)s:%(lineno)s %(funcName)s] %(message)s\" --capture=sys --html=tests/evidence/index.htm --self-contained-html --cov=src --cov-report=html"
 
 testpaths = [
     "tests",

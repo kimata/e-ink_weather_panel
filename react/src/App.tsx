@@ -78,10 +78,15 @@ function App() {
     };
 
     useEffect(() => {
-        scroller.scrollTo("logEnd", {
-            smooth: true,
-            containerId: "log",
-        });
+        const timeoutId = setTimeout(() => {
+            scroller.scrollTo("logEnd", {
+                smooth: true,
+                containerId: "log",
+                duration: 300,
+            });
+        }, 100);
+
+        return () => clearTimeout(timeoutId);
     }, [log, scroller]);
 
     const readLog = async (token: string) => {

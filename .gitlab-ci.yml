@@ -4,9 +4,7 @@ variables:
     UV_PYTHON_INSTALL_DIR: ${CI_PROJECT_DIR}/.uv_python
 stages:
     - generate-tag
-    - build-webapp
-    - build-image
-    - pre-test
+    - build
     - test
     - tag-latest
     - deploy
@@ -20,7 +18,7 @@ generate-tag:
             dotenv: tag.env
         expire_in: 1 hour
 build-react:
-    stage: build-webapp
+    stage: build
     needs: []
     image: node:24.2
     script:
@@ -35,7 +33,7 @@ build-react:
         paths:
             - .npm/
 build-image:
-    stage: build-image
+    stage: build
     needs:
         - generate-tag
         - build-react
@@ -65,7 +63,7 @@ build-image:
             --build-arg IMAGE_BUILD_DATE=$(date --iso-8601=seconds)
             --tag ${CI_REGISTRY_IMAGE}:${TAG} --push .
 test-prepare:
-    stage: pre-test
+    stage: build
     needs: []
     script:
         - uv sync --locked --no-editable
