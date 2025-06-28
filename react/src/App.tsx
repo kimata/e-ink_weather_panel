@@ -82,7 +82,7 @@ function App() {
             scroller.scrollTo("logEnd", {
                 smooth: true,
                 containerId: "log",
-                duration: 800,
+                duration: 1500,
             });
         }, 100);
 
