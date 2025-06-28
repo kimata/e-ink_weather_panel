@@ -74,6 +74,34 @@ def plot_item(ax, unit, data, ylim, fmt, face_map):  # noqa: PLR0913
     x = data["time"]
     y = data["value"]
 
+    # デバッグログ: データの状態を確認
+    logging.info(
+        "plot_item debug: x length=%d, y length=%d, data_valid=%s",
+        len(x),
+        len(y),
+        data.get("valid", "unknown"),
+    )
+
+    # 空リストチェック
+    if not x or not y:
+        logging.warning("Empty data detected in plot_item: x=%d, y=%d", len(x), len(y))
+        # 空データの場合は何も描画せずに戻る
+        ax.text(
+            0.5,
+            0.5,
+            "No Data Available",
+            transform=ax.transAxes,
+            ha="center",
+            va="center",
+            fontsize=12,
+            color="red",
+        )
+        return
+
+    if len(x) != len(y):
+        logging.error("Mismatched data lengths: x=%d, y=%d", len(x), len(y))
+        return
+
     ax.set_ylim(ylim)
     ax.set_xlim([x[0], x[-1] + datetime.timedelta(minutes=15)])
 
@@ -158,6 +186,16 @@ def create_power_graph_impl(panel_config, font_config, db_config):
         period_start = "-60h"
         period_stop = "now()"
 
+    # デバッグログ: fetch_data呼び出し前
+    logging.info(
+        "Fetching power data: measure=%s, hostname=%s, field=%s, period=%s to %s",
+        panel_config["data"]["sensor"]["measure"],
+        panel_config["data"]["sensor"]["hostname"],
+        panel_config["data"]["param"]["field"],
+        period_start,
+        period_stop,
+    )
+
     data = fetch_data(
         db_config,
         panel_config["data"]["sensor"]["measure"],
@@ -166,6 +204,22 @@ def create_power_graph_impl(panel_config, font_config, db_config):
         period_start,
         period_stop,
     )
+
+    # デバッグログ: fetch_data結果
+    logging.info(
+        "Power data fetched: valid=%s, time_length=%d, value_length=%d",
+        data.get("valid", False),
+        len(data.get("time", [])),
+        len(data.get("value", [])),
+    )
+
+    # データが無効な場合の詳細ログ
+    if not data.get("valid", False) or not data.get("time", []) or not data.get("value", []):
+        logging.warning("Invalid or empty power data: %s", data)
+        if not data.get("time", []):
+            logging.warning("time data is empty")
+        if not data.get("value", []):
+            logging.warning("value data is empty")
 
     ax = fig.add_subplot()
     plot_item(
