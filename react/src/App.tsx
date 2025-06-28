@@ -79,11 +79,27 @@ function App() {
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            scroller.scrollTo("logEnd", {
-                smooth: true,
-                containerId: "log",
-                duration: 1200,
-            });
+            // ログコンテナのスクロール位置を取得
+            const logContainer = document.getElementById("log");
+            if (logContainer) {
+                const currentScrollTop = logContainer.scrollTop;
+                const targetScrollTop = logContainer.scrollHeight - logContainer.clientHeight;
+                const scrollDistance = targetScrollTop - currentScrollTop;
+
+                // 1行の高さを推定（約20px）
+                const lineHeight = 20;
+                const linesToScroll = Math.ceil(scrollDistance / lineHeight);
+
+                // 一定の速度でスクロール（例: 3行/秒）
+                const linesPerSecond = 3;
+                const scrollDuration = Math.max(300, (linesToScroll / linesPerSecond) * 1000);
+
+                scroller.scrollTo("logEnd", {
+                    smooth: true,
+                    containerId: "log",
+                    duration: scrollDuration,
+                });
+            }
         }, 300);
 
         return () => clearTimeout(timeoutId);
