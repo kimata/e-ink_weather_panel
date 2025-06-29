@@ -31,6 +31,7 @@ import my_lib.proc_util
 import paramiko
 
 import create_image
+import weather_display.metrics
 
 TIMEZONE = zoneinfo.ZoneInfo("Asia/Tokyo")
 
@@ -154,43 +155,70 @@ def display_image(  # noqa: PLR0913
     is_one_time,
     prev_ssh=None,
 ):
+    start_time = datetime.datetime.now(TIMEZONE)
     start = time.perf_counter()
+    success = True
+    error_message = None
 
-    exec_patiently(ssh_kill_and_close, (prev_ssh, "fbi"))
+    try:
+        exec_patiently(ssh_kill_and_close, (prev_ssh, "fbi"))
 
-    ssh = exec_patiently(ssh_connect, (rasp_hostname, key_file_path))
+        ssh = exec_patiently(ssh_connect, (rasp_hostname, key_file_path))
 
-    exec_display_image(ssh, config, config_file, small_mode, test_mode)
+        exec_display_image(ssh, config, config_file, small_mode, test_mode)
 
-    if is_one_time:
-        # NOTE: 表示がされるまで待つ
-        sleep_time = 5
-    else:
-        diff_sec = datetime.datetime.now(TIMEZONE).second
-        if diff_sec > 30:
-            diff_sec = 60 - diff_sec
-        if diff_sec > 3:
-            logging.warning("Update timing gap is large: %d", diff_sec)
+        if is_one_time:
+            # NOTE: 表示がされるまで待つ
+            sleep_time = 5
+        else:
+            diff_sec = datetime.datetime.now(TIMEZONE).second
+            if diff_sec > 30:
+                diff_sec = 60 - diff_sec
+            if diff_sec > 3:
+                logging.warning("Update timing gap is large: %d", diff_sec)
 
-        # NOTE: 更新されていることが直感的に理解しやすくなるように、
-        # 更新完了タイミングを各分の 0 秒に合わせる
-        elapsed = time.perf_counter() - start
+            # NOTE: 更新されていることが直感的に理解しやすくなるように、
+            # 更新完了タイミングを各分の 0 秒に合わせる
+            elapsed = time.perf_counter() - start
 
-        if len(elapsed_list) >= 10:
-            elapsed_list.pop(0)
-        elapsed_list.append(elapsed)
+            if len(elapsed_list) >= 10:
+                elapsed_list.pop(0)
+            elapsed_list.append(elapsed)
 
-        sleep_time = (
-            config["panel"]["update"]["interval"]
-            - statistics.median(elapsed_list)
-            - datetime.datetime.now(TIMEZONE).second
-        )
-        while sleep_time < 0:
-            sleep_time += 60
+            sleep_time = (
+                config["panel"]["update"]["interval"]
+                - statistics.median(elapsed_list)
+                - datetime.datetime.now(TIMEZONE).second
+            )
+            while sleep_time < 0:
+                sleep_time += 60
 
-        logging.info("sleep %.1f sec...", sleep_time)
+            logging.info("sleep %.1f sec...", sleep_time)
 
-    time.sleep(sleep_time)
+        time.sleep(sleep_time)
+
+    except Exception as e:
+        success = False
+        error_message = str(e)
+        logging.error("display_image failed: %s", e)
+        ssh = prev_ssh  # Return previous ssh connection on error
+
+    finally:
+        # Log metrics to database
+        elapsed_time = time.perf_counter() - start
+        try:
+            weather_display.metrics.log_display_image_metrics(
+                elapsed_time=elapsed_time,
+                is_small_mode=small_mode,
+                is_test_mode=test_mode,
+                is_one_time=is_one_time,
+                rasp_hostname=rasp_hostname,
+                success=success,
+                error_message=error_message,
+                timestamp=start_time,
+            )
+        except Exception as e:
+            logging.warning("Failed to log display_image metrics: %s", e)
 
     return ssh
 

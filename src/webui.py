@@ -22,14 +22,21 @@ import flask_cors
 import my_lib.config
 import my_lib.logger
 
-import weather_display.api.run
-
 SCHEMA_CONFIG = "config.schema"
 
 
 def create_app(config_file_normal, config_file_small, dummy_mode=False):
     # # NOTE: アクセスログは無効にする
     # logging.getLogger("werkzeug").setLevel(logging.ERROR)
+
+    import my_lib.webapp.config
+
+    my_lib.webapp.config.URL_PREFIX = "/weather_panel"
+    my_lib.webapp.config.init(my_lib.config.load(config_file_normal, pathlib.Path(SCHEMA_CONFIG)))
+
+    import my_lib.webapp.base
+
+    import weather_display.api.run
 
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
         # NOTE: オプションでダミーモードが指定された場合、環境変数もそれに揃えておく
@@ -47,13 +54,6 @@ def create_app(config_file_normal, config_file_small, dummy_mode=False):
         atexit.register(notify_terminate)
     else:  # pragma: no cover
         pass
-
-    import my_lib.webapp.config
-
-    my_lib.webapp.config.URL_PREFIX = "/weather_panel"
-    my_lib.webapp.config.init(my_lib.config.load(config_file_normal, pathlib.Path(SCHEMA_CONFIG)))
-
-    import my_lib.webapp.base
 
     app = flask.Flask("unit_cooler")
 

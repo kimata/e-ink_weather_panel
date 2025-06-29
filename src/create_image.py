@@ -27,6 +27,7 @@ import my_lib.panel_util
 import my_lib.pil_util
 import PIL.Image
 
+import weather_display.metrics
 import weather_display.power_graph
 import weather_display.rain_cloud_panel
 import weather_display.rain_fall_panel
@@ -55,7 +56,7 @@ def draw_wall(config, img):
         )
 
 
-def draw_panel(config, img, is_small_mode=False):
+def draw_panel(config, img, is_small_mode=False, is_test_mode=False, is_dummy_mode=False):
     if is_small_mode:
         panel_list = [
             {"name": "rain_cloud", "func": weather_display.rain_cloud_panel.create, "arg": (True,)},
@@ -75,6 +76,7 @@ def draw_panel(config, img, is_small_mode=False):
         ]
 
     panel_map = {}
+    panel_metrics = []
 
     # NOTE: 並列処理 (matplotlib はマルチスレッド対応していないので、マルチプロセス処理する)
     start = time.perf_counter()
@@ -93,8 +95,10 @@ def draw_panel(config, img, is_small_mode=False):
         result = panel["task"].get()
         panel_img = result[0]
         elapsed = result[1]
+        has_error = len(result) > 2
+        error_message = result[2] if has_error else None
 
-        if len(result) > 2:
+        if has_error:
             my_lib.panel_util.notify_error(config, result[2])
             ret = ERROR_CODE_MINOR
 
@@ -108,9 +112,32 @@ def draw_panel(config, img, is_small_mode=False):
             )
 
         panel_map[panel["name"]] = panel_img
+        panel_metrics.append(
+            {
+                "name": panel["name"],
+                "elapsed_time": elapsed,
+                "has_error": has_error,
+                "error_message": error_message,
+            }
+        )
 
         logging.info("elapsed time: %s panel = %.3f sec", panel["name"], elapsed)
-    logging.info("total elapsed time: %.3f sec", time.perf_counter() - start)
+
+    total_elapsed_time = time.perf_counter() - start
+    logging.info("total elapsed time: %.3f sec", total_elapsed_time)
+
+    # Log metrics to database
+    try:
+        weather_display.metrics.log_draw_panel_metrics(
+            total_elapsed_time=total_elapsed_time,
+            panel_metrics=panel_metrics,
+            is_small_mode=is_small_mode,
+            is_test_mode=is_test_mode,
+            is_dummy_mode=is_dummy_mode,
+            error_code=ret,
+        )
+    except Exception as e:
+        logging.warning("Failed to log draw_panel metrics: %s", e)
 
     draw_wall(config, img)
 
@@ -150,7 +177,7 @@ def create_image(config, small_mode=False, dummy_mode=False, test_mode=False):
         return (img, 0)
 
     try:
-        ret = draw_panel(config, img, small_mode)
+        ret = draw_panel(config, img, small_mode, test_mode, dummy_mode)
 
         return (img, ret)
     except Exception:
