@@ -22,7 +22,7 @@ import flask_cors
 import my_lib.config
 import my_lib.logger
 
-import weather_display.generator
+import weather_display.api.run
 
 SCHEMA_CONFIG = "config.schema"
 
@@ -39,10 +39,10 @@ def create_app(config_file_normal, config_file_small, dummy_mode=False):
         else:  # pragma: no cover
             pass
 
-        weather_display.generator.init(pathlib.Path(__file__).parent / "create_image.py")
+        weather_display.api.run.init(pathlib.Path(__file__).parent / "create_image.py")
 
         def notify_terminate():  # pragma: no cover
-            weather_display.generator.term()
+            weather_display.api.run.term()
 
         atexit.register(notify_terminate)
     else:  # pragma: no cover
@@ -65,7 +65,7 @@ def create_app(config_file_normal, config_file_small, dummy_mode=False):
 
     app.register_blueprint(my_lib.webapp.base.blueprint)
     app.register_blueprint(my_lib.webapp.base.blueprint_default)
-    app.register_blueprint(weather_display.generator.blueprint)
+    app.register_blueprint(weather_display.api.run.blueprint)
 
     my_lib.webapp.config.show_handler_list(app)
 

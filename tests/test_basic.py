@@ -967,7 +967,7 @@ def test_api_run_small(client, mocker):
 
 
 def test_api_run_error(client, mocker):
-    mocker.patch("weather_display.generator.generate_image", side_effect=RuntimeError())
+    mocker.patch("weather_display.api.run.generate_image", side_effect=RuntimeError())
 
     response = client.get(
         f"{my_lib.webapp.config.URL_PREFIX}/api/run",

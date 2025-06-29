@@ -12,8 +12,9 @@ import uuid
 
 import flask
 import my_lib.flask_util
+import my_lib.webapp.config
 
-blueprint = flask.Blueprint("webapp", __name__, url_prefix="/")
+blueprint = flask.Blueprint("webapp", __name__, url_prefix=my_lib.webapp.config.URL_PREFIX)
 
 thread_pool = None
 panel_data_map = {}
@@ -165,7 +166,7 @@ def generate_image(config_file, is_small_mode, is_dummy_mode, is_test_mode):
     return token
 
 
-@blueprint.route("/weather_panel/api/image", methods=["POST"])
+@blueprint.route("/api/image", methods=["POST"])
 @my_lib.flask_util.gzipped
 def api_image():
     global panel_data_map
@@ -184,7 +185,7 @@ def api_image():
     return flask.Response(image_data, mimetype="image/png")
 
 
-@blueprint.route("/weather_panel/api/log", methods=["POST"])
+@blueprint.route("/api/log", methods=["POST"])
 def api_log():
     global panel_data_map
 
@@ -219,7 +220,7 @@ def api_log():
     return res
 
 
-@blueprint.route("/weather_panel/api/run", methods=["GET"])
+@blueprint.route("/api/run", methods=["GET"])
 @my_lib.flask_util.support_jsonp
 def api_run():
     mode = flask.request.args.get("mode", "")
