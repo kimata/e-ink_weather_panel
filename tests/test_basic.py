@@ -167,7 +167,9 @@ def mock_sensor_fetch_data(mocker):  # noqa: C901
         return results
 
     mocker.patch("weather_display.panel.sensor_graph.fetch_data", side_effect=fetch_data_mock)
-    mocker.patch("weather_display.panel.sensor_graph.fetch_data_parallel", side_effect=fetch_data_parallel_mock)
+    mocker.patch(
+        "weather_display.panel.sensor_graph.fetch_data_parallel", side_effect=fetch_data_parallel_mock
+    )
     mocker.patch("weather_display.panel.power_graph.fetch_data", side_effect=fetch_data_mock)
 
 

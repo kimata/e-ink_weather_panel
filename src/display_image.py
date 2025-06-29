@@ -29,9 +29,9 @@ import my_lib.footprint
 import my_lib.panel_util
 import my_lib.proc_util
 
+import weather_display.display
 import weather_display.metrics.collector
 import weather_display.metrics.server
-import weather_display.display
 
 TIMEZONE = zoneinfo.ZoneInfo("Asia/Tokyo")
 

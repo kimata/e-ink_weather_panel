@@ -53,6 +53,7 @@ config-small.yaml
 config-demo.yaml
 /font
 /src/*/img
+data/
 
 # Logs
 *.log
