@@ -633,49 +633,48 @@ def generate_chart_javascript():
         }
 
         function generatePanelTrendsCharts() {
-            // パネル別処理時間の箱ヒゲ図
+            // パネル別処理時間のヒストグラム
             const container = document.getElementById('panelTrendsContainer');
             if (!container || !panelTrendsData) return;
 
-            // 統一するレンジ（最大値-最小値）を決定
-            // 各パネルのデータ範囲を分析
-            let maxRange = 0;
-            const panelRanges = {};
+            // 全パネルのデータから最小値と最大値を取得
+            let globalMin = Infinity;
+            let globalMax = -Infinity;
             for (const panelName in panelTrendsData) {
                 const data = panelTrendsData[panelName];
                 const min = Math.min(...data);
                 const max = Math.max(...data);
-                const range = max - min;
-                panelRanges[panelName] = { min, max, range };
-                if (range > maxRange) {
-                    maxRange = range;
-                }
+                if (min < globalMin) globalMin = min;
+                if (max > globalMax) globalMax = max;
             }
 
-            // 統一レンジに基づいてtick間隔を決定
-            let stepSize;
-            if (maxRange <= 2) {
-                stepSize = 0.2;  // 0.2秒間隔
-            } else if (maxRange <= 5) {
-                stepSize = 0.5;  // 0.5秒間隔
-            } else if (maxRange <= 10) {
-                stepSize = 1;    // 1秒間隔
-            } else if (maxRange <= 20) {
-                stepSize = 2;    // 2秒間隔
-            } else {
-                stepSize = 5;    // 5秒間隔
-            }
+            // ヒストグラムのビン数とビン幅を決定
+            const binCount = 20;  // ビン数を20に設定
+            const binWidth = (globalMax - globalMin) / binCount;
 
-            // パネルごとに箱ヒゲ図を生成
+            // パネルごとにヒストグラムを生成
             let index = 0;
             for (const panelName in panelTrendsData) {
                 const data = panelTrendsData[panelName];
-                const panelRange = panelRanges[panelName];
                 
-                // 統一レンジに基づいてY軸の範囲を計算
-                const center = (panelRange.min + panelRange.max) / 2;
-                const yMin = center - maxRange / 2;
-                const yMax = center + maxRange / 2;
+                // ヒストグラムデータを作成
+                const histogram = new Array(binCount).fill(0);
+                const binLabels = [];
+                
+                // ビンのラベルを作成
+                for (let i = 0; i < binCount; i++) {
+                    const binStart = globalMin + i * binWidth;
+                    const binEnd = globalMin + (i + 1) * binWidth;
+                    binLabels.push(`${binStart.toFixed(1)}-${binEnd.toFixed(1)}`);
+                }
+                
+                // データをビンに分類
+                for (const value of data) {
+                    let binIndex = Math.floor((value - globalMin) / binWidth);
+                    // 最大値の場合は最後のビンに入れる
+                    if (binIndex >= binCount) binIndex = binCount - 1;
+                    if (binIndex >= 0) histogram[binIndex]++;
+                }
 
                 // カラムを作成
                 const columnDiv = document.createElement('div');
@@ -714,17 +713,15 @@ def generate_chart_javascript():
 
                 // チャートを作成
                 new Chart(canvas, {
-                    type: 'boxplot',
+                    type: 'bar',
                     data: {
-                        labels: [panelName],
+                        labels: binLabels,
                         datasets: [{
-                            label: '処理時間（秒）',
-                            data: [data],
+                            label: '頻度',
+                            data: histogram,
                             backgroundColor: getBoxplotColor(index),
                             borderColor: getBorderColor(index),
-                            borderWidth: 2,
-                            outlierColor: 'rgb(239, 68, 68)',
-                            medianColor: 'rgb(255, 193, 7)'
+                            borderWidth: 1
                         }]
                     },
                     options: {
@@ -739,45 +736,38 @@ def generate_chart_javascript():
                                 titleColor: 'white',
                                 bodyColor: 'white',
                                 callbacks: {
-                                    title: function() {
-                                        return panelName + ' パネル';
+                                    title: function(context) {
+                                        return panelName + ' パネル - ' + context[0].label + '秒';
                                     },
                                     label: function(context) {
-                                        const stats = context.parsed;
-                                        return [
-                                            '最小値: ' + stats.min.toFixed(2) + '秒',
-                                            '第1四分位: ' + stats.q1.toFixed(2) + '秒',
-                                            '中央値: ' + stats.median.toFixed(2) + '秒',
-                                            '第3四分位: ' + stats.q3.toFixed(2) + '秒',
-                                            '最大値: ' + stats.max.toFixed(2) + '秒'
-                                        ];
+                                        return '頻度: ' + context.parsed.y + '件';
                                     },
-                                    afterBody: function(context) {
-                                        if (context.length > 0) {
-                                            const outliers = context[0].parsed.outliers || [];
-                                            if (outliers.length > 0) {
-                                                return '外れ値: ' + outliers.length + '個';
-                                            }
-                                        }
-                                        return 'データ数: ' + data.length + '件';
+                                    afterBody: function() {
+                                        return '総データ数: ' + data.length + '件';
                                     }
                                 }
                             }
                         },
                         scales: {
-                            y: {
-                                beginAtZero: false,
-                                min: yMin,
-                                max: yMax,
-                                ticks: {
-                                    stepSize: stepSize,
-                                    callback: function(value) {
-                                        return value.toFixed(1) + '秒';
-                                    }
-                                },
+                            x: {
                                 title: {
                                     display: true,
                                     text: '処理時間（秒）',
+                                    font: {
+                                        size: 12,
+                                        weight: 'bold'
+                                    }
+                                },
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: '頻度',
                                     font: {
                                         size: 12,
                                         weight: 'bold'
