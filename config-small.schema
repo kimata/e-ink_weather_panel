@@ -814,6 +814,17 @@
                 "path"
             ]
         },
+        "metrics": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "data"
+            ]
+        },
         "webapp": {
             "type": "object",
             "properties": {

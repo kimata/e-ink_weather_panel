@@ -1054,6 +1054,17 @@
                 "path"
             ]
         },
+        "metrics": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "data"
+            ]
+        },
         "webapp": {
             "type": "object",
             "properties": {
@@ -1133,6 +1144,7 @@
         "font",
         "influxdb",
         "liveness",
+        "metrics",
         "panel",
         "power",
         "rain_cloud",

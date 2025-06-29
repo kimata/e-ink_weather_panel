@@ -283,6 +283,10 @@ font:
 
 # en_medium: FrutigerNeueLTW1G-Medium.otf
 # en_bold: FrutigerNeueLTW1G-Bold.otf
+
+metrics:
+    data: ./data/metrics.db
+
 webapp:
     timezone:
         offset: "+9"
