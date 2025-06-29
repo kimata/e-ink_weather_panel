@@ -1,21 +1,23 @@
 import logging
-import time
-import paramiko
-import traceback
-import subprocess
 import pathlib
-import create_image
+import subprocess
 import sys
+import time
+import traceback
 
 import my_lib.footprint
 import my_lib.panel_util
 import my_lib.proc_util
+import paramiko
+
+import create_image
 
 RETRY_COUNT = 3
 RETRY_WAIT = 2
 CREATE_IMAGE = pathlib.Path(__file__).parent.parent / "create_image.py"
 
-def exec_patiently(funcn, args):
+
+def exec_patiently(func, args):
     for i in range(RETRY_COUNT):
         try:
             return func(*args)
@@ -63,8 +65,8 @@ def ssh_kill_and_close_impl(ssh, cmd):
 
 
 def ssh_kill_and_close(ssh, cmd):
-    exec_patiently(ssh_kill_and_close_impl, (ssh, "fbi"))
-    
+    exec_patiently(ssh_kill_and_close_impl, (ssh, cmd))
+
 
 def ssh_connect(hostname, key_file_path):
     return exec_patiently(ssh_connect_impl, (hostname, key_file_path))
