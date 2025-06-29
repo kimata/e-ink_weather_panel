@@ -637,40 +637,33 @@ def generate_chart_javascript():
             const container = document.getElementById('panelTrendsContainer');
             if (!container || !panelTrendsData) return;
 
-            // 全パネルのデータから最小値と最大値を取得
-            let globalMin = Infinity;
-            let globalMax = -Infinity;
-            for (const panelName in panelTrendsData) {
-                const data = panelTrendsData[panelName];
-                const min = Math.min(...data);
-                const max = Math.max(...data);
-                if (min < globalMin) globalMin = min;
-                if (max > globalMax) globalMax = max;
-            }
-
-            // ヒストグラムのビン数とビン幅を決定
+            // ヒストグラムのビン数
             const binCount = 20;  // ビン数を20に設定
-            const binWidth = (globalMax - globalMin) / binCount;
 
             // パネルごとにヒストグラムを生成
             let index = 0;
             for (const panelName in panelTrendsData) {
                 const data = panelTrendsData[panelName];
                 
+                // パネルごとの最小値と最大値を取得
+                const panelMin = Math.min(...data);
+                const panelMax = Math.max(...data);
+                const binWidth = (panelMax - panelMin) / binCount;
+
                 // ヒストグラムデータを作成
                 const histogram = new Array(binCount).fill(0);
                 const binLabels = [];
-                
+
                 // ビンのラベルを作成
                 for (let i = 0; i < binCount; i++) {
-                    const binStart = globalMin + i * binWidth;
-                    const binEnd = globalMin + (i + 1) * binWidth;
+                    const binStart = panelMin + i * binWidth;
+                    const binEnd = panelMin + (i + 1) * binWidth;
                     binLabels.push(`${binStart.toFixed(1)}-${binEnd.toFixed(1)}`);
                 }
-                
+
                 // データをビンに分類
                 for (const value of data) {
-                    let binIndex = Math.floor((value - globalMin) / binWidth);
+                    let binIndex = Math.floor((value - panelMin) / binWidth);
                     // 最大値の場合は最後のビンに入れる
                     if (binIndex >= binCount) binIndex = binCount - 1;
                     if (binIndex >= 0) histogram[binIndex]++;

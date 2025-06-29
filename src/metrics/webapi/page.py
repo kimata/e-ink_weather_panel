@@ -667,7 +667,7 @@ def generate_panel_trends_section(panel_trends):
     """パネル別処理時間推移セクションのHTML生成。"""
     return """
     <div class="section">
-        <h2 class="title is-4"><span class="icon"><i class="fas fa-puzzle-piece"></i></span> パネル別処理時間推移</h2>
+        <h2 class="title is-4"><span class="icon"><i class="fas fa-puzzle-piece"></i></span> パネル別処理時間ヒストグラム</h2>
         <p class="subtitle is-6">各パネルの処理時間分布をヒストグラムで表示（横軸：時間、縦軸：頻度）</p>
 
         <div class="columns is-multiline" id="panelTrendsContainer">
