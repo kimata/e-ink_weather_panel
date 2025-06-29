@@ -27,7 +27,7 @@ import my_lib.panel_util
 import my_lib.pil_util
 import PIL.Image
 
-import weather_display.metrics
+import metrics.collector
 import weather_display.power_graph
 import weather_display.rain_cloud_panel
 import weather_display.rain_fall_panel
@@ -128,13 +128,19 @@ def draw_panel(config, img, is_small_mode=False, is_test_mode=False, is_dummy_mo
 
     # Log metrics to database
     try:
-        weather_display.metrics.log_draw_panel_metrics(
+        db_path = (
+            pathlib.Path(config["metrics"]["data"])
+            if "metrics" in config and "data" in config["metrics"]
+            else None
+        )
+        metrics.collector.collect_draw_panel_metrics(
             total_elapsed_time=total_elapsed_time,
             panel_metrics=panel_metrics,
             is_small_mode=is_small_mode,
             is_test_mode=is_test_mode,
             is_dummy_mode=is_dummy_mode,
             error_code=ret,
+            db_path=db_path,
         )
     except Exception as e:
         logging.warning("Failed to log draw_panel metrics: %s", e)

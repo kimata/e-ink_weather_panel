@@ -85,6 +85,7 @@ class MetricsCollector:
                     rasp_hostname TEXT,
                     success BOOLEAN NOT NULL,
                     error_message TEXT,
+                    sleep_time REAL,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             """)
@@ -216,6 +217,7 @@ class MetricsCollector:
         success: bool = True,
         error_message: Optional[str] = None,
         timestamp: Optional[datetime.datetime] = None,
+        sleep_time: Optional[float] = None,
     ) -> int:
         """
         Log display_image operation metrics.
@@ -247,8 +249,8 @@ class MetricsCollector:
                     """
                     INSERT INTO display_image_metrics
                     (timestamp, hour, day_of_week, elapsed_time, is_small_mode, is_test_mode,
-                     is_one_time, rasp_hostname, success, error_message)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     is_one_time, rasp_hostname, success, error_message, sleep_time)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
                         timestamp,
@@ -261,6 +263,7 @@ class MetricsCollector:
                         rasp_hostname,
                         success,
                         error_message,
+                        sleep_time,
                     ),
                 )
 
@@ -350,14 +353,15 @@ class MetricsAnalyzer:
         with self._get_connection() as conn:
             cursor = conn.cursor()
 
-            # Draw panel hourly patterns
+            # Draw panel hourly patterns (aggregated)
             cursor.execute(
                 """
                 SELECT
                     hour,
                     COUNT(*) as count,
                     AVG(total_elapsed_time) as avg_elapsed_time,
-                    STDDEV(total_elapsed_time) as std_elapsed_time,
+                    MIN(total_elapsed_time) as min_elapsed_time,
+                    MAX(total_elapsed_time) as max_elapsed_time,
                     SUM(CASE WHEN error_code > 0 THEN 1 ELSE 0 END) * 100.0 / COUNT(*) as error_rate
                 FROM draw_panel_metrics
                 WHERE timestamp >= ?
@@ -368,14 +372,15 @@ class MetricsAnalyzer:
             )
             draw_panel_hourly = [dict(row) for row in cursor.fetchall()]
 
-            # Display image hourly patterns
+            # Display image hourly patterns (aggregated)
             cursor.execute(
                 """
                 SELECT
                     hour,
                     COUNT(*) as count,
                     AVG(elapsed_time) as avg_elapsed_time,
-                    STDDEV(elapsed_time) as std_elapsed_time,
+                    MIN(elapsed_time) as min_elapsed_time,
+                    MAX(elapsed_time) as max_elapsed_time,
                     SUM(CASE WHEN success = 0 THEN 1 ELSE 0 END) * 100.0 / COUNT(*) as error_rate
                 FROM display_image_metrics
                 WHERE timestamp >= ?
@@ -386,9 +391,49 @@ class MetricsAnalyzer:
             )
             display_image_hourly = [dict(row) for row in cursor.fetchall()]
 
+            # Get raw data for boxplots
+            cursor.execute(
+                """
+                SELECT hour, total_elapsed_time
+                FROM draw_panel_metrics
+                WHERE timestamp >= ?
+                ORDER BY hour
+            """,
+                (since,),
+            )
+            draw_panel_raw = cursor.fetchall()
+
+            cursor.execute(
+                """
+                SELECT hour, elapsed_time
+                FROM display_image_metrics
+                WHERE timestamp >= ?
+                ORDER BY hour
+            """,
+                (since,),
+            )
+            display_image_raw = cursor.fetchall()
+
+            # Group raw data by hour for boxplots
+            draw_panel_boxplot = {}
+            for row in draw_panel_raw:
+                hour = row[0]
+                if hour not in draw_panel_boxplot:
+                    draw_panel_boxplot[hour] = []
+                draw_panel_boxplot[hour].append(row[1])
+
+            display_image_boxplot = {}
+            for row in display_image_raw:
+                hour = row[0]
+                if hour not in display_image_boxplot:
+                    display_image_boxplot[hour] = []
+                display_image_boxplot[hour].append(row[1])
+
             return {
                 "draw_panel": draw_panel_hourly,
                 "display_image": display_image_hourly,
+                "draw_panel_boxplot": draw_panel_boxplot,
+                "display_image_boxplot": display_image_boxplot,
             }
 
     def detect_anomalies(self, days: int = 30, contamination: float = 0.1) -> Dict:
@@ -654,6 +699,115 @@ class MetricsAnalyzer:
 
         return alerts
 
+    def get_panel_performance_trends(self, days: int = 30) -> Dict:
+        """パネル別の処理時間推移を取得する。"""
+        since = datetime.datetime.now(TIMEZONE) - datetime.timedelta(days=days)
+
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+
+            # パネル別の処理時間データを取得
+            cursor.execute(
+                """
+                SELECT 
+                    pm.panel_name,
+                    pm.elapsed_time,
+                    dpm.timestamp
+                FROM panel_metrics pm
+                JOIN draw_panel_metrics dpm ON pm.draw_panel_id = dpm.id
+                WHERE dpm.timestamp >= ?
+                ORDER BY pm.panel_name, dpm.timestamp
+            """,
+                (since,),
+            )
+            panel_data = cursor.fetchall()
+
+            # パネル名ごとにグループ化
+            panel_groups = {}
+            for row in panel_data:
+                panel_name = row[0]
+                elapsed_time = row[1]
+                
+                if panel_name not in panel_groups:
+                    panel_groups[panel_name] = []
+                panel_groups[panel_name].append(elapsed_time)
+
+            return panel_groups
+
+    def get_performance_statistics(self, days: int = 30) -> dict:
+        """パフォーマンス統計情報を取得する（異常検知詳細用）"""
+        since = datetime.datetime.now(TIMEZONE) - datetime.timedelta(days=days)
+
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+
+            # 画像生成処理の統計
+            cursor.execute(
+                """
+                SELECT 
+                    AVG(total_elapsed_time) as avg_time,
+                    COUNT(*) as count,
+                    MIN(total_elapsed_time) as min_time,
+                    MAX(total_elapsed_time) as max_time
+                FROM draw_panel_metrics
+                WHERE timestamp >= ?
+            """,
+                (since,),
+            )
+            draw_panel_stats = dict(cursor.fetchone())
+
+            # 標準偏差を計算（SQLiteにはSTDDEV関数がないため、手動計算）
+            cursor.execute(
+                """
+                SELECT total_elapsed_time
+                FROM draw_panel_metrics
+                WHERE timestamp >= ?
+            """,
+                (since,),
+            )
+            draw_panel_times = [row[0] for row in cursor.fetchall()]
+            
+            if len(draw_panel_times) > 1:
+                import statistics
+                draw_panel_stats['std_time'] = statistics.stdev(draw_panel_times)
+            else:
+                draw_panel_stats['std_time'] = 0
+
+            # 表示実行処理の統計
+            cursor.execute(
+                """
+                SELECT 
+                    AVG(elapsed_time) as avg_time,
+                    COUNT(*) as count,
+                    MIN(elapsed_time) as min_time,
+                    MAX(elapsed_time) as max_time
+                FROM display_image_metrics
+                WHERE timestamp >= ?
+            """,
+                (since,),
+            )
+            display_image_stats = dict(cursor.fetchone())
+
+            cursor.execute(
+                """
+                SELECT elapsed_time
+                FROM display_image_metrics
+                WHERE timestamp >= ?
+            """,
+                (since,),
+            )
+            display_image_times = [row[0] for row in cursor.fetchall()]
+            
+            if len(display_image_times) > 1:
+                display_image_stats['std_time'] = statistics.stdev(display_image_times)
+            else:
+                display_image_stats['std_time'] = 0
+
+            return {
+                "draw_panel": draw_panel_stats,
+                "display_image": display_image_stats
+            }
+
 
 # Global instance for easy access
 _metrics_collector = None
@@ -667,11 +821,17 @@ def get_metrics_collector(db_path: Union[str, pathlib.Path] = DEFAULT_DB_PATH) -
     return _metrics_collector
 
 
-def log_draw_panel_metrics(*args, **kwargs) -> int:
-    """Convenience function to log draw_panel metrics."""
+def collect_draw_panel_metrics(*args, db_path: Union[str, pathlib.Path] = None, **kwargs) -> int:
+    """Convenience function to collect draw_panel metrics."""
+    if db_path is not None:
+        kwargs.pop("db_path", None)  # Remove db_path from kwargs to avoid duplicate
+        return get_metrics_collector(db_path).log_draw_panel_metrics(*args, **kwargs)
     return get_metrics_collector().log_draw_panel_metrics(*args, **kwargs)
 
 
-def log_display_image_metrics(*args, **kwargs) -> int:
-    """Convenience function to log display_image metrics."""
+def collect_display_image_metrics(*args, db_path: Union[str, pathlib.Path] = None, **kwargs) -> int:
+    """Convenience function to collect display_image metrics."""
+    if db_path is not None:
+        kwargs.pop("db_path", None)  # Remove db_path from kwargs to avoid duplicate
+        return get_metrics_collector(db_path).log_display_image_metrics(*args, **kwargs)
     return get_metrics_collector().log_display_image_metrics(*args, **kwargs)

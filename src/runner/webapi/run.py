@@ -14,7 +14,7 @@ import flask
 import my_lib.flask_util
 import my_lib.webapp.config
 
-blueprint = flask.Blueprint("webapp", __name__, url_prefix=my_lib.webapp.config.URL_PREFIX)
+blueprint = flask.Blueprint("webapp-run", __name__, url_prefix=my_lib.webapp.config.URL_PREFIX)
 
 thread_pool = None
 panel_data_map = {}

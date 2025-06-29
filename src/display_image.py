@@ -3,13 +3,14 @@
 電子ペーパ表示用の画像を表示します。
 
 Usage:
-  display_image.py [-c CONFIG] [-p HOSTNAME] [-s] [-t] [-O] [-D]
+  display_image.py [-c CONFIG] [-s HOST] [-p PORT] [-S] [-t] [-O] [-D]
 
 Options:
   -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します。[default: config.yaml]
-  -s                : 小型ディスプレイモードで実行します。
+  -S                : 小型ディスプレイモードで実行します。
   -t                : テストモードで実行します。
-  -p HOSTNAME       : 表示を行う Raspberry Pi のホスト名。
+  -s HOST           : 表示を行う Raspberry Pi のホスト名。
+  -p PORT           : メトリクス表示用のサーバーを動かすポート番号。[default: 5000]
   -O                : 1回のみ表示
   -D                : デバッグモードで動作します。
 """
@@ -19,7 +20,6 @@ import logging
 import os
 import pathlib
 import statistics
-import subprocess
 import sys
 import time
 import traceback
@@ -28,124 +28,23 @@ import zoneinfo
 import my_lib.footprint
 import my_lib.panel_util
 import my_lib.proc_util
-import paramiko
 
-import create_image
-import weather_display.metrics
+import metrics.collector
+import metrics.server
+import weather_display.display
 
 TIMEZONE = zoneinfo.ZoneInfo("Asia/Tokyo")
 
 SCHEMA_CONFIG = "config.schema"
 SCHEMA_CONFIG_SMALL = "config-small.schema"
 
-RETRY_COUNT = 3
-RETRY_WAIT = 2
+
 NOTIFY_THRESHOLD = 2
-CREATE_IMAGE = pathlib.Path(__file__).parent / "create_image.py"
 
 elapsed_list = []
 
 
-def exec_patiently(func, args):
-    for i in range(RETRY_COUNT):
-        try:
-            return func(*args)
-        except Exception:  # noqa: PERF203
-            if i == (RETRY_COUNT - 1):
-                raise
-            logging.warning(traceback.format_exc())
-            time.sleep(RETRY_WAIT)
-    return None
-
-
-def ssh_connect(hostname, key_filename):
-    logging.info("Connect to %s", hostname)
-
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # noqa: S507
-
-    with open(key_filename) as f:  # noqa: PTH123
-        ssh.connect(
-            hostname,
-            username="ubuntu",
-            pkey=paramiko.RSAKey.from_private_key(f),
-            allow_agent=False,
-            look_for_keys=False,
-            timeout=2,
-            auth_timeout=2,
-        )
-
-    return ssh
-
-
-def ssh_kill_and_close(ssh, cmd):
-    if ssh is None:
-        return
-
-    try:
-        # NOTE: fbi コマンドのプロセスが残るので強制終了させる
-        ssh.exec_command(f"sudo killall -9 {cmd}")
-        ssh.close()
-        return
-    except AttributeError:
-        return
-    except:
-        raise
-
-
-def exec_display_image(ssh, config, config_file, small_mode, test_mode):
-    ssh_stdin, ssh_stdout, ssh_stderr = exec_patiently(
-        ssh.exec_command,
-        (
-            "cat - > /dev/shm/display.png && "
-            "sudo fbi -1 -T 1 -d /dev/fb0 --noverbose /dev/shm/display.png; echo $?",
-        ),
-    )
-
-    logging.info("Start drawing.")
-
-    cmd = ["python3", CREATE_IMAGE, "-c", config_file]
-    if small_mode:
-        cmd.append("-s")
-    if test_mode:
-        cmd.append("-t")
-
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # noqa: S603
-    ssh_stdin.write(proc.communicate()[0])
-    proc.wait()
-
-    ssh_stdin.flush()
-    ssh_stdin.channel.shutdown_write()
-
-    logging.info(proc.communicate()[1].decode("utf-8"))
-
-    fbi_status = ssh_stdout.channel.recv_exit_status()
-
-    # NOTE: -24 は create_image.py の異常時の終了コードに合わせる。
-    if (fbi_status == 0) and (proc.returncode == 0):
-        logging.info("Succeeded.")
-        my_lib.footprint.update(pathlib.Path(config["liveness"]["file"]["display"]))
-    elif proc.returncode == create_image.ERROR_CODE_MAJOR:
-        logging.warning("Failed to create image at all. (code: %d)", proc.returncode)
-    elif proc.returncode == create_image.ERROR_CODE_MINOR:
-        logging.warning("Failed to create image partially. (code: %d)", proc.returncode)
-        my_lib.footprint.update(pathlib.Path(config["liveness"]["file"]["display"]))
-    elif fbi_status != 0:
-        logging.warning("Failed to display image. (code: %d)", fbi_status)
-        logging.warning("[stdout] %s", ssh_stdout.read().decode("utf-8"))
-        logging.warning("[stderr] %s", ssh_stderr.read().decode("utf-8"))
-    else:
-        logging.error("Failed to create image. (code: %d)", proc.returncode)
-        sys.exit(proc.returncode)
-
-    ssh_stdin.close()
-    ssh_stdout.close()
-    ssh_stderr.close()
-
-    my_lib.proc_util.reap_zombie()
-
-
-def display_image(  # noqa: PLR0913
+def execute(  # noqa: PLR0913
     config,
     rasp_hostname,
     key_file_path,
@@ -159,18 +58,16 @@ def display_image(  # noqa: PLR0913
     start = time.perf_counter()
     success = True
     error_message = None
+    sleep_time = 60
 
     try:
-        exec_patiently(ssh_kill_and_close, (prev_ssh, "fbi"))
+        weather_display.display.ssh_kill_and_close(prev_ssh, "fbi")
 
-        ssh = exec_patiently(ssh_connect, (rasp_hostname, key_file_path))
+        ssh = weather_display.display.ssh_connect(rasp_hostname, key_file_path)
 
-        exec_display_image(ssh, config, config_file, small_mode, test_mode)
+        weather_display.display.execute(ssh, config, config_file, small_mode, test_mode)
 
-        if is_one_time:
-            # NOTE: 表示がされるまで待つ
-            sleep_time = 5
-        else:
+        if not is_one_time:
             diff_sec = datetime.datetime.now(TIMEZONE).second
             if diff_sec > 30:
                 diff_sec = 60 - diff_sec
@@ -193,21 +90,22 @@ def display_image(  # noqa: PLR0913
             while sleep_time < 0:
                 sleep_time += 60
 
-            logging.info("sleep %.1f sec...", sleep_time)
-
-        time.sleep(sleep_time)
-
     except Exception as e:
         success = False
         error_message = str(e)
-        logging.error("display_image failed: %s", e)
+        logging.exception("execute failed")
         ssh = prev_ssh  # Return previous ssh connection on error
 
     finally:
         # Log metrics to database
         elapsed_time = time.perf_counter() - start
         try:
-            weather_display.metrics.log_display_image_metrics(
+            db_path = (
+                pathlib.Path(config["metrics"]["data"])
+                if "metrics" in config and "data" in config["metrics"]
+                else None
+            )
+            metrics.collector.collect_display_image_metrics(
                 elapsed_time=elapsed_time,
                 is_small_mode=small_mode,
                 is_test_mode=test_mode,
@@ -216,11 +114,13 @@ def display_image(  # noqa: PLR0913
                 success=success,
                 error_message=error_message,
                 timestamp=start_time,
+                sleep_time=sleep_time,
+                db_path=db_path,
             )
         except Exception as e:
-            logging.warning("Failed to log display_image metrics: %s", e)
+            logging.warning("Failed to log execute metrics: %s", e)
 
-    return ssh
+    return ssh, sleep_time
 
 
 if __name__ == "__main__":
@@ -232,8 +132,9 @@ if __name__ == "__main__":
 
     config_file = args["-c"]
     is_one_time = args["-O"]
-    small_mode = args["-s"]
-    rasp_hostname = os.environ.get("RASP_HOSTNAME", args["-p"])
+    small_mode = args["-S"]
+    rasp_hostname = os.environ.get("RASP_HOSTNAME", args["-s"])
+    metrics_port = int(args["-p"])
     test_mode = args["-t"]
     debug_mode = args["-D"]
 
@@ -253,11 +154,13 @@ if __name__ == "__main__":
 
     logging.info("Raspberry Pi hostname: %s", rasp_hostname)
 
+    metrics.server.start(config, metrics_port)
+
     fail_count = 0
     prev_ssh = None
     while True:
         try:
-            prev_ssh = display_image(
+            prev_ssh, sleep_time = execute(
                 config,
                 rasp_hostname,
                 key_file_path,
@@ -271,6 +174,9 @@ if __name__ == "__main__":
 
             if is_one_time:
                 break
+
+            logging.info("sleep %.1f sec...", sleep_time)
+            time.sleep(sleep_time)
         except Exception:
             logging.exception("Failed to display image")
             fail_count += 1

@@ -967,7 +967,7 @@ def test_api_run_small(client, mocker):
 
 
 def test_api_run_error(client, mocker):
-    mocker.patch("weather_display.api.run.generate_image", side_effect=RuntimeError())
+    mocker.patch("runner.webapi.run.generate_image", side_effect=RuntimeError())
 
     response = client.get(
         f"{my_lib.webapp.config.URL_PREFIX}/api/run",
@@ -1077,7 +1077,7 @@ def test_display_image(mocker, config):
 
     mocker.patch("builtins.open", side_effect=open_mock)
 
-    display_image.display_image(
+    display_image.execute(
         config,
         "TEST",
         "TEST",
@@ -1129,7 +1129,7 @@ def test_display_image_onetime(mocker, config):
 
     mocker.patch("builtins.open", side_effect=open_mock)
 
-    display_image.display_image(
+    display_image.execute(
         config,
         "TEST",
         "TEST",
@@ -1186,7 +1186,7 @@ def test_display_image_error_major(mocker, config):
 
     mocker.patch("builtins.open", side_effect=open_mock)
 
-    display_image.display_image(
+    display_image.execute(
         config,
         "TEST",
         "TEST",
@@ -1244,7 +1244,7 @@ def test_display_image_error_minor(mocker, config):
 
     mocker.patch("builtins.open", side_effect=open_mock)
 
-    display_image.display_image(
+    display_image.execute(
         config,
         "TEST",
         "TEST",
@@ -1302,7 +1302,7 @@ def test_display_image_error_unknown(mocker, config):
     mocker.patch("builtins.open", side_effect=open_mock)
 
     with pytest.raises(SystemExit):
-        display_image.display_image(
+        display_image.execute(
             config,
             "TEST",
             "TEST",

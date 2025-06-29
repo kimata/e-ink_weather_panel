@@ -3,10 +3,11 @@
 メトリクスを WebUI で提供します。
 
 Usage:
-  metrics_server.py [-c CONFIG] [-D]
+  metrics_server.py [-c CONFIG] [-p PORT] [-D]
 
 Options:
   -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します。[default: config.yaml]
+  -p PORT           : Web サーバーを動作させるポートを指定します。[default: 5000]
   -D                : デバッグモードで動作します。
 """
 
@@ -18,27 +19,17 @@ import flask_cors
 import werkzeug.serving
 
 
-def create_app(config, event_queue):
+def create_app(config):
     import my_lib.webapp.config
 
     my_lib.webapp.config.URL_PREFIX = "/weather_panel"
-    my_lib.webapp.config.init()
-    # my_lib.config.load(config_file_normal, pathlib.Path(SCHEMA_CONFIG))
-    # my_lib.webapp.config.init(config["actuator"]["log_server"])
 
-    import my_lib.webapp.base
-    import my_lib.webapp.event
-    import my_lib.webapp.log
-    import my_lib.webapp.util
-
-    import unit_cooler.actuator.api.flow_status
-    import unit_cooler.actuator.api.metrics
-    import unit_cooler.actuator.api.valve_status
-
+    import metrics.webapi.page
+    
     # NOTE: アクセスログは無効にする
     logging.getLogger("werkzeug").setLevel(logging.ERROR)
 
-    app = flask.Flask("unit-cooler-log")
+    app = flask.Flask("unit_cooler")
 
     flask_cors.CORS(app)
 
@@ -46,35 +37,21 @@ def create_app(config, event_queue):
 
     app.json.compat = True
 
-    app.register_blueprint(my_lib.webapp.log.blueprint)
-    app.register_blueprint(my_lib.webapp.event.blueprint)
-    app.register_blueprint(my_lib.webapp.util.blueprint)
-    app.register_blueprint(unit_cooler.actuator.api.valve_status.blueprint)
-    app.register_blueprint(unit_cooler.actuator.api.flow_status.blueprint)
-    app.register_blueprint(unit_cooler.actuator.api.metrics.blueprint)
+    app.register_blueprint(metrics.webapi.page.blueprint)
 
     my_lib.webapp.config.show_handler_list(app)
-
-    my_lib.webapp.log.init(config)
-    my_lib.webapp.event.start(event_queue)
-
-    # メトリクスデータベースの初期化
-    with app.app_context():
-        import unit_cooler.actuator.api.metrics
-
-        unit_cooler.actuator.api.metrics.init_metrics_db()
 
     # app.debug = True
 
     return app
 
 
-def start(config, event_queue, port):
+def start(config, port):
     # NOTE: Flask は別のプロセスで実行
     server = werkzeug.serving.make_server(
         "0.0.0.0",  # noqa: S104
         port,
-        create_app(config, event_queue),
+        create_app(config),
         threaded=True,
     )
     thread = threading.Thread(target=server.serve_forever)
@@ -90,22 +67,15 @@ def start(config, event_queue, port):
 
 
 def term(handle):
-    import my_lib.webapp.event
-
     logging.warning("Stop log server")
-
-    my_lib.webapp.event.term()
 
     handle["server"].shutdown()
     handle["server"].server_close()
     handle["thread"].join()
 
-    my_lib.webapp.log.term()
-
 
 if __name__ == "__main__":
     # TEST Code
-    import multiprocessing
 
     import docopt
     import my_lib.config
@@ -115,11 +85,18 @@ if __name__ == "__main__":
     args = docopt.docopt(__doc__)
 
     config_file = args["-c"]
+    port = int(args["-p"])
     debug_mode = args["-D"]
 
     my_lib.logger.init("test", level=logging.DEBUG if debug_mode else logging.INFO)
 
     config = my_lib.config.load(config_file)
-    event_queue = multiprocessing.Queue()
 
-    log_server_handle = start(config, event_queue)
+    metrics_server_handle = start(config, port)
+
+    try:
+        # サーバーを継続実行
+        metrics_server_handle["thread"].join()
+    except KeyboardInterrupt:
+        logging.info("Stopping metrics server...")
+        term(metrics_server_handle)
