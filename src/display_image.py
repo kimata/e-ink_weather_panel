@@ -27,7 +27,7 @@ import zoneinfo
 
 import my_lib.footprint
 import my_lib.panel_util
-import my_lib.proc
+import my_lib.proc_util
 import paramiko
 
 import create_image
@@ -141,7 +141,7 @@ def exec_display_image(ssh, config, config_file, small_mode, test_mode):
     ssh_stdout.close()
     ssh_stderr.close()
 
-    my_lib.proc.reap_zombie()
+    my_lib.proc_util.reap_zombie()
 
 
 def display_image(  # noqa: PLR0913
