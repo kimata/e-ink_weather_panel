@@ -468,14 +468,16 @@ def generate_anomalies_section(anomalies, performance_stats):
             if elapsed_time > 60:  # 1分以上
                 anomaly_reasons.append('<span class="tag is-small is-warning">長時間処理</span>')
                 if std_time > 0:
-                    sigma_deviation = abs(elapsed_time - avg_time) / std_time
-                    anomaly_details.append(f"平均値から<strong>{sigma_deviation:.1f}σ</strong>乖離")
+                    sigma_deviation = (elapsed_time - avg_time) / std_time
+                    sign = "+" if sigma_deviation >= 0 else ""
+                    anomaly_details.append(f"平均値から<strong>{sign}{sigma_deviation:.1f}σ</strong>乖離")
                 anomaly_details.append(f"実行時間: <strong>{elapsed_time:.2f}秒</strong>")
             elif elapsed_time < 1:  # 1秒未満
                 anomaly_reasons.append('<span class="tag is-small is-info">短時間処理</span>')
                 if std_time > 0:
-                    sigma_deviation = abs(elapsed_time - avg_time) / std_time
-                    anomaly_details.append(f"平均値から<strong>{sigma_deviation:.1f}σ</strong>乖離")
+                    sigma_deviation = (elapsed_time - avg_time) / std_time
+                    sign = "+" if sigma_deviation >= 0 else ""
+                    anomaly_details.append(f"平均値から<strong>{sign}{sigma_deviation:.1f}σ</strong>乖離")
                 anomaly_details.append(f"実行時間: <strong>{elapsed_time:.2f}秒</strong>")
 
             if error_code > 0:
@@ -485,8 +487,9 @@ def generate_anomalies_section(anomalies, performance_stats):
             if not anomaly_reasons:
                 anomaly_reasons.append('<span class="tag is-small is-light">パターン異常</span>')
                 if std_time > 0:
-                    sigma_deviation = abs(elapsed_time - avg_time) / std_time
-                    anomaly_details.append(f"平均値から<strong>{sigma_deviation:.1f}σ</strong>乖離")
+                    sigma_deviation = (elapsed_time - avg_time) / std_time
+                    sign = "+" if sigma_deviation >= 0 else ""
+                    anomaly_details.append(f"平均値から<strong>{sign}{sigma_deviation:.1f}σ</strong>乖離")
                 anomaly_details.append(f"実行時間: <strong>{elapsed_time:.2f}秒</strong>")
 
             # 日時を自然な日本語形式に変換
@@ -581,14 +584,16 @@ def generate_anomalies_section(anomalies, performance_stats):
             if elapsed_time > 120:  # 2分以上
                 anomaly_reasons.append('<span class="tag is-small is-warning">長時間処理</span>')
                 if std_time_di > 0:
-                    sigma_deviation = abs(elapsed_time - avg_time_di) / std_time_di
-                    anomaly_details.append(f"平均値から<strong>{sigma_deviation:.1f}σ</strong>乖離")
+                    sigma_deviation = (elapsed_time - avg_time_di) / std_time_di
+                    sign = "+" if sigma_deviation >= 0 else ""
+                    anomaly_details.append(f"平均値から<strong>{sign}{sigma_deviation:.1f}σ</strong>乖離")
                 anomaly_details.append(f"実行時間: <strong>{elapsed_time:.2f}秒</strong>")
             elif elapsed_time < 5:  # 5秒未満
                 anomaly_reasons.append('<span class="tag is-small is-info">短時間処理</span>')
                 if std_time_di > 0:
-                    sigma_deviation = abs(elapsed_time - avg_time_di) / std_time_di
-                    anomaly_details.append(f"平均値から<strong>{sigma_deviation:.1f}σ</strong>乖離")
+                    sigma_deviation = (elapsed_time - avg_time_di) / std_time_di
+                    sign = "+" if sigma_deviation >= 0 else ""
+                    anomaly_details.append(f"平均値から<strong>{sign}{sigma_deviation:.1f}σ</strong>乖離")
                 anomaly_details.append(f"実行時間: <strong>{elapsed_time:.2f}秒</strong>")
 
             if not success:
@@ -598,8 +603,9 @@ def generate_anomalies_section(anomalies, performance_stats):
             if not anomaly_reasons:
                 anomaly_reasons.append('<span class="tag is-small is-light">パターン異常</span>')
                 if std_time_di > 0:
-                    sigma_deviation = abs(elapsed_time - avg_time_di) / std_time_di
-                    anomaly_details.append(f"平均値から<strong>{sigma_deviation:.1f}σ</strong>乖離")
+                    sigma_deviation = (elapsed_time - avg_time_di) / std_time_di
+                    sign = "+" if sigma_deviation >= 0 else ""
+                    anomaly_details.append(f"平均値から<strong>{sign}{sigma_deviation:.1f}σ</strong>乖離")
                 anomaly_details.append(f"実行時間: <strong>{elapsed_time:.2f}秒</strong>")
 
             # 日時を自然な日本語形式に変換
