@@ -206,7 +206,7 @@ test-sample-small:
         - job: test-rain-cloud-panel
           artifacts: false
     variables:
-        CREATE_IMAGE_ARGS: "-s -c config-small.example.yaml"
+        CREATE_IMAGE_ARGS: "-S -c config-small.example.yaml"
 test-demo:
     extends: .create_image_template
     needs:
@@ -252,7 +252,7 @@ test-regular-small:
         - job: test-rain-cloud-panel
           artifacts: false
     variables:
-        CREATE_IMAGE_ARGS: "-s -c config-small.yaml"
+        CREATE_IMAGE_ARGS: "-S -c config-small.yaml"
 # 共通テンプレート: display_image.pyを使用したディスプレイテスト
 .display_image_template:
     stage: test
