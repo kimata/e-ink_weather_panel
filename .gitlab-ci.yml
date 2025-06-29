@@ -140,24 +140,24 @@ test-walk-through:
 test-sensor-graph:
     extends: .panel_test_template
     variables:
-        PANEL_SCRIPT: "src/weather_display/sensor_graph.py"
+        PANEL_SCRIPT: "src/weather_display/panel/sensor_graph.py"
 # 電力グラフ画像のテスト
 test-power-graph:
     extends: .panel_test_template
     variables:
-        PANEL_SCRIPT: "src/weather_display/power_graph.py"
+        PANEL_SCRIPT: "src/weather_display/panel/power_graph.py"
 
 # 天気予報画像のテスト
 test-weather-panel:
     extends: .panel_test_template
     variables:
-        PANEL_SCRIPT: "src/weather_display/weather_panel.py"
+        PANEL_SCRIPT: "src/weather_display/panel/weather.py"
 
 # 雨雲レーダ画像のテスト
 test-rain-cloud-panel:
     extends: .panel_test_template
     variables:
-        PANEL_SCRIPT: "src/weather_display/rain_cloud_panel.py"
+        PANEL_SCRIPT: "src/weather_display/panel/rain_cloud.py"
     artifacts:
         when: always
         paths:

@@ -29,8 +29,8 @@ import my_lib.footprint
 import my_lib.panel_util
 import my_lib.proc_util
 
-import metrics.collector
-import metrics.server
+import weather_display.metrics.collector
+import weather_display.metrics.server
 import weather_display.display
 
 TIMEZONE = zoneinfo.ZoneInfo("Asia/Tokyo")
@@ -105,7 +105,7 @@ def execute(  # noqa: PLR0913
                 if "metrics" in config and "data" in config["metrics"]
                 else None
             )
-            metrics.collector.collect_display_image_metrics(
+            weather_display.metrics.collector.collect_display_image_metrics(
                 elapsed_time=elapsed_time,
                 is_small_mode=small_mode,
                 is_test_mode=test_mode,
@@ -154,7 +154,7 @@ if __name__ == "__main__":
 
     logging.info("Raspberry Pi hostname: %s", rasp_hostname)
 
-    handle = metrics.server.start(config, metrics_port)
+    handle = weather_display.metrics.server.start(config, metrics_port)
 
     fail_count = 0
     prev_ssh = None
@@ -189,4 +189,4 @@ if __name__ == "__main__":
             else:
                 time.sleep(10)
 
-    metrics.server.term(handle)
+    weather_display.metrics.server.term(handle)

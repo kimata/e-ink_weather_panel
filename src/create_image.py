@@ -27,14 +27,14 @@ import my_lib.panel_util
 import my_lib.pil_util
 import PIL.Image
 
-import metrics.collector
-import weather_display.power_graph
-import weather_display.rain_cloud_panel
-import weather_display.rain_fall_panel
-import weather_display.sensor_graph
-import weather_display.time_panel
-import weather_display.wbgt_panel
-import weather_display.weather_panel
+import weather_display.metrics.collector
+import weather_display.panel.power_graph
+import weather_display.panel.rain_cloud
+import weather_display.panel.rain_fall
+import weather_display.panel.sensor_graph
+import weather_display.panel.time
+import weather_display.panel.wbgt
+import weather_display.panel.weather
 
 SCHEMA_CONFIG = "config.schema"
 SCHEMA_CONFIG_SMALL = "config-small.schema"
@@ -59,20 +59,20 @@ def draw_wall(config, img):
 def draw_panel(config, img, is_small_mode=False, is_test_mode=False, is_dummy_mode=False):
     if is_small_mode:
         panel_list = [
-            {"name": "rain_cloud", "func": weather_display.rain_cloud_panel.create, "arg": (True,)},
-            {"name": "weather", "func": weather_display.weather_panel.create, "arg": (False,)},
-            {"name": "wbgt", "func": weather_display.wbgt_panel.create},
-            {"name": "time", "func": weather_display.time_panel.create},
+            {"name": "rain_cloud", "func": weather_display.panel.rain_cloud.create, "arg": (True,)},
+            {"name": "weather", "func": weather_display.panel.weather.create, "arg": (False,)},
+            {"name": "wbgt", "func": weather_display.panel.wbgt.create},
+            {"name": "time", "func": weather_display.panel.time.create},
         ]
     else:
         panel_list = [
-            {"name": "rain_cloud", "func": weather_display.rain_cloud_panel.create},
-            {"name": "sensor", "func": weather_display.sensor_graph.create},
-            {"name": "power", "func": weather_display.power_graph.create},
-            {"name": "weather", "func": weather_display.weather_panel.create},
-            {"name": "wbgt", "func": weather_display.wbgt_panel.create},
-            {"name": "rain_fall", "func": weather_display.rain_fall_panel.create},
-            {"name": "time", "func": weather_display.time_panel.create},
+            {"name": "rain_cloud", "func": weather_display.panel.rain_cloud.create},
+            {"name": "sensor", "func": weather_display.panel.sensor_graph.create},
+            {"name": "power", "func": weather_display.panel.power_graph.create},
+            {"name": "weather", "func": weather_display.panel.weather.create},
+            {"name": "wbgt", "func": weather_display.panel.wbgt.create},
+            {"name": "rain_fall", "func": weather_display.panel.rain_fall.create},
+            {"name": "time", "func": weather_display.panel.time.create},
         ]
 
     panel_map = {}
@@ -133,7 +133,7 @@ def draw_panel(config, img, is_small_mode=False, is_test_mode=False, is_dummy_mo
             if "metrics" in config and "data" in config["metrics"]
             else None
         )
-        metrics.collector.collect_draw_panel_metrics(
+        weather_display.metrics.collector.collect_draw_panel_metrics(
             total_elapsed_time=total_elapsed_time,
             panel_metrics=panel_metrics,
             is_small_mode=is_small_mode,

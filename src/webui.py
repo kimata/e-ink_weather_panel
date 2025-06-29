@@ -36,8 +36,8 @@ def create_app(config_file_normal, config_file_small, dummy_mode=False):
 
     import my_lib.webapp.base
 
-    import metrics.webapi.page
-    import runner.webapi.run
+    import weather_display.metrics.webapi.page
+    import weather_display.runner.webapi.run
 
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
         # NOTE: オプションでダミーモードが指定された場合、環境変数もそれに揃えておく
@@ -47,10 +47,10 @@ def create_app(config_file_normal, config_file_small, dummy_mode=False):
         else:  # pragma: no cover
             pass
 
-        runner.webapi.run.init(pathlib.Path(__file__).parent / "create_image.py")
+        weather_display.runner.webapi.run.init(pathlib.Path(__file__).parent / "create_image.py")
 
         def notify_terminate():  # pragma: no cover
-            runner.webapi.run.term()
+            weather_display.runner.webapi.run.term()
 
         atexit.register(notify_terminate)
     else:  # pragma: no cover
@@ -66,8 +66,8 @@ def create_app(config_file_normal, config_file_small, dummy_mode=False):
 
     app.register_blueprint(my_lib.webapp.base.blueprint)
     app.register_blueprint(my_lib.webapp.base.blueprint_default)
-    app.register_blueprint(runner.webapi.run.blueprint)
-    app.register_blueprint(metrics.webapi.page.blueprint)
+    app.register_blueprint(weather_display.runner.webapi.run.blueprint)
+    app.register_blueprint(weather_display.metrics.webapi.page.blueprint)
 
     my_lib.webapp.config.show_handler_list(app)
 

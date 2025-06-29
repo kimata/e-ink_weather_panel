@@ -166,9 +166,9 @@ def mock_sensor_fetch_data(mocker):  # noqa: C901
             results.append(result)
         return results
 
-    mocker.patch("weather_display.sensor_graph.fetch_data", side_effect=fetch_data_mock)
-    mocker.patch("weather_display.sensor_graph.fetch_data_parallel", side_effect=fetch_data_parallel_mock)
-    mocker.patch("weather_display.power_graph.fetch_data", side_effect=fetch_data_mock)
+    mocker.patch("weather_display.panel.sensor_graph.fetch_data", side_effect=fetch_data_mock)
+    mocker.patch("weather_display.panel.sensor_graph.fetch_data_parallel", side_effect=fetch_data_parallel_mock)
+    mocker.patch("weather_display.panel.power_graph.fetch_data", side_effect=fetch_data_mock)
 
 
 def gen_sensor_data(value=[30, 34, 25, 20], valid=True):  # noqa: B006
@@ -315,11 +315,11 @@ def test_create_image_influx_error(request, config, mocker):
 
 ######################################################################
 def test_weather_panel(request, config):
-    import weather_display.weather_panel
+    import weather_display.panel.weather
 
     check_image(
         request,
-        weather_display.weather_panel.create(config, False)[0],
+        weather_display.panel.weather.create(config, False)[0],
         config["weather"]["panel"],
     )
 
@@ -329,7 +329,7 @@ def test_weather_panel(request, config):
 def test_weather_panel_dummy(mocker, request, config):
     import copy
 
-    import weather_display.weather_panel
+    import weather_display.panel.weather
 
     wather_info_day = [
         {
@@ -360,13 +360,13 @@ def test_weather_panel_dummy(mocker, request, config):
     clothing_info = {"today": 0, "tommorow": 50}
     wbgt_info = {"daily": {"today": list(range(9)), "tommorow": None}}
 
-    mocker.patch("weather_display.weather_panel.get_weather_yahoo", return_value=weather_info)
-    mocker.patch("weather_display.weather_panel.get_clothing_yahoo", return_value=clothing_info)
-    mocker.patch("weather_display.weather_panel.get_wbgt", return_value=wbgt_info)
+    mocker.patch("weather_display.panel.weather.get_weather_yahoo", return_value=weather_info)
+    mocker.patch("weather_display.panel.weather.get_clothing_yahoo", return_value=clothing_info)
+    mocker.patch("weather_display.panel.weather.get_wbgt", return_value=wbgt_info)
 
     check_image(
         request,
-        weather_display.weather_panel.create(config)[0],
+        weather_display.panel.weather.create(config)[0],
         config["weather"]["panel"],
     )
 
@@ -375,11 +375,11 @@ def test_weather_panel_dummy(mocker, request, config):
 
 ######################################################################
 def test_wbgt_panel(request, config):
-    import weather_display.wbgt_panel
+    import weather_display.panel.wbgt
 
     check_image(
         request,
-        weather_display.wbgt_panel.create(config)[0],
+        weather_display.panel.wbgt.create(config)[0],
         config["wbgt"]["panel"],
     )
 
@@ -387,15 +387,15 @@ def test_wbgt_panel(request, config):
 
 
 def test_wbgt_panel_var(mocker, request, config):
-    import weather_display.wbgt_panel
+    import weather_display.panel.wbgt
 
     wbgt_info = gen_wbgt_info()
     for i in range(20, 34, 2):
         wbgt_info["current"] = i
-        mocker.patch("weather_display.wbgt_panel.get_wbgt", return_value=wbgt_info)
+        mocker.patch("weather_display.panel.wbgt.get_wbgt", return_value=wbgt_info)
         check_image(
             request,
-            weather_display.wbgt_panel.create(config)[0],
+            weather_display.panel.wbgt.create(config)[0],
             config["wbgt"]["panel"],
             i,
         )
@@ -404,14 +404,14 @@ def test_wbgt_panel_var(mocker, request, config):
 
 
 def test_wbgt_panel_error_1(time_machine, mocker, request, config):
-    import weather_display.wbgt_panel
+    import weather_display.panel.wbgt
 
     # NOTE: 暑さ指数は夏のみ使うので、時期を変更
     time_machine.move_to(datetime.datetime.now(TIMEZONE).replace(month=8))
 
     mocker.patch("my_lib.weather.fetch_page", side_effect=RuntimeError())
 
-    ret = weather_display.wbgt_panel.create(config)
+    ret = weather_display.panel.wbgt.create(config)
     check_image(request, ret[0], config["wbgt"]["panel"])
 
     assert len(ret) == 3
@@ -419,11 +419,11 @@ def test_wbgt_panel_error_1(time_machine, mocker, request, config):
 
 
 def test_wbgt_panel_error_2(mocker, request, config):
-    import weather_display.wbgt_panel
+    import weather_display.panel.wbgt
 
     mocker.patch("lxml.html.HtmlElement.xpath", return_value=[])
 
-    ret = weather_display.wbgt_panel.create(config)
+    ret = weather_display.panel.wbgt.create(config)
     check_image(request, ret[0], config["wbgt"]["panel"])
 
     # NOTE: ページのフォーマットが期待値と異なるくらいではエラーにしない
@@ -432,11 +432,11 @@ def test_wbgt_panel_error_2(mocker, request, config):
 
 ######################################################################
 def test_time_panel(request, config):
-    import weather_display.time_panel
+    import weather_display.panel.time
 
     check_image(
         request,
-        weather_display.time_panel.create(config)[0],
+        weather_display.panel.time.create(config)[0],
         config["time"]["panel"],
     )
 
@@ -445,13 +445,13 @@ def test_time_panel(request, config):
 
 ######################################################################
 def test_create_power_graph(mocker, request, config):
-    import weather_display.power_graph
+    import weather_display.panel.power_graph
 
     mock_sensor_fetch_data(mocker)
 
     check_image(
         request,
-        weather_display.power_graph.create(config)[0],
+        weather_display.panel.power_graph.create(config)[0],
         config["power"]["panel"],
         0,
     )
@@ -460,7 +460,7 @@ def test_create_power_graph(mocker, request, config):
 
     check_image(
         request,
-        weather_display.power_graph.create(config)[0],
+        weather_display.panel.power_graph.create(config)[0],
         config["power"]["panel"],
         1,
     )
@@ -469,15 +469,15 @@ def test_create_power_graph(mocker, request, config):
 
 
 def test_create_power_graph_invalid(mocker, request, config):
-    import weather_display.power_graph
+    import weather_display.panel.power_graph
 
     mocker.patch(
-        "weather_display.power_graph.fetch_data", return_value=gen_sensor_data([1000, 500, 0], False)
+        "weather_display.panel.power_graph.fetch_data", return_value=gen_sensor_data([1000, 500, 0], False)
     )
 
     check_image(
         request,
-        weather_display.power_graph.create(config)[0],
+        weather_display.panel.power_graph.create(config)[0],
         config["power"]["panel"],
     )
 
@@ -485,13 +485,13 @@ def test_create_power_graph_invalid(mocker, request, config):
 
 
 def test_create_power_graph_error(mocker, request, config):
-    import weather_display.power_graph
+    import weather_display.panel.power_graph
 
-    mocker.patch("weather_display.power_graph.create_power_graph_impl", side_effect=RuntimeError())
+    mocker.patch("weather_display.panel.power_graph.create_power_graph_impl", side_effect=RuntimeError())
 
     check_image(
         request,
-        weather_display.power_graph.create(config)[0],
+        weather_display.panel.power_graph.create(config)[0],
         config["power"]["panel"],
     )
 
@@ -500,7 +500,7 @@ def test_create_power_graph_error(mocker, request, config):
 
 ######################################################################
 def test_create_sensor_graph_1(time_machine, mocker, request, config):
-    import weather_display.sensor_graph
+    import weather_display.panel.sensor_graph
 
     mock_sensor_fetch_data(mocker)
 
@@ -508,7 +508,7 @@ def test_create_sensor_graph_1(time_machine, mocker, request, config):
 
     check_image(
         request,
-        weather_display.sensor_graph.create(config)[0],
+        weather_display.panel.sensor_graph.create(config)[0],
         config["sensor"]["panel"],
         0,
     )
@@ -517,7 +517,7 @@ def test_create_sensor_graph_1(time_machine, mocker, request, config):
 
     check_image(
         request,
-        weather_display.sensor_graph.create(config)[0],
+        weather_display.panel.sensor_graph.create(config)[0],
         config["sensor"]["panel"],
         1,
     )
@@ -526,7 +526,7 @@ def test_create_sensor_graph_1(time_machine, mocker, request, config):
 
 
 def test_create_sensor_graph_2(time_machine, mocker, request, config):
-    import weather_display.sensor_graph
+    import weather_display.panel.sensor_graph
 
     def value_mock():
         value_mock.i += 1
@@ -562,7 +562,7 @@ def test_create_sensor_graph_2(time_machine, mocker, request, config):
 
     check_image(
         request,
-        weather_display.sensor_graph.create(config)[0],
+        weather_display.panel.sensor_graph.create(config)[0],
         config["sensor"]["panel"],
     )
 
@@ -570,7 +570,7 @@ def test_create_sensor_graph_2(time_machine, mocker, request, config):
 
 
 def test_create_sensor_graph_dummy(time_machine, mocker, request, config):
-    import weather_display.sensor_graph
+    import weather_display.panel.sensor_graph
 
     mocker.patch.dict("os.environ", {"DUMMY_MODE": "true"})
 
@@ -580,7 +580,7 @@ def test_create_sensor_graph_dummy(time_machine, mocker, request, config):
 
     check_image(
         request,
-        weather_display.sensor_graph.create(config)[0],
+        weather_display.panel.sensor_graph.create(config)[0],
         config["sensor"]["panel"],
         0,
     )
@@ -589,7 +589,7 @@ def test_create_sensor_graph_dummy(time_machine, mocker, request, config):
 
     check_image(
         request,
-        weather_display.sensor_graph.create(config)[0],
+        weather_display.panel.sensor_graph.create(config)[0],
         config["sensor"]["panel"],
         1,
     )
@@ -600,7 +600,7 @@ def test_create_sensor_graph_dummy(time_machine, mocker, request, config):
 def test_create_sensor_graph_invalid(mocker, request, config):
     import inspect
 
-    import weather_display.sensor_graph
+    import weather_display.panel.sensor_graph
 
     def dummy_data(db_config, measure, hostname, field, start, stop, last=False):  # noqa: ARG001,PLR0913
         dummy_data.i += 1
@@ -611,11 +611,11 @@ def test_create_sensor_graph_invalid(mocker, request, config):
 
     dummy_data.i = 0
 
-    mocker.patch("weather_display.sensor_graph.fetch_data", side_effect=dummy_data)
+    mocker.patch("weather_display.panel.sensor_graph.fetch_data", side_effect=dummy_data)
 
     check_image(
         request,
-        weather_display.sensor_graph.create(config)[0],
+        weather_display.panel.sensor_graph.create(config)[0],
         config["sensor"]["panel"],
     )
 
@@ -623,11 +623,11 @@ def test_create_sensor_graph_invalid(mocker, request, config):
 
 
 def test_create_sensor_graph_influx_error(mocker, request, config):
-    import weather_display.sensor_graph
+    import weather_display.panel.sensor_graph
 
     mocker.patch("influxdb_client.InfluxDBClient.query_api", side_effect=RuntimeError())
 
-    ret = weather_display.sensor_graph.create(config)
+    ret = weather_display.panel.sensor_graph.create(config)
 
     check_image(request, ret[0], config["sensor"]["panel"])
 
@@ -637,18 +637,18 @@ def test_create_sensor_graph_influx_error(mocker, request, config):
 
 ######################################################################
 def test_create_rain_cloud_panel(request, config):
-    import weather_display.rain_cloud_panel
+    import weather_display.panel.rain_cloud
 
     check_image(
         request,
-        weather_display.rain_cloud_panel.create(config)[0],
+        weather_display.panel.rain_cloud.create(config)[0],
         config["rain_cloud"]["panel"],
         0,
     )
 
     check_image(
         request,
-        weather_display.rain_cloud_panel.create(config, is_side_by_side=False)[0],
+        weather_display.panel.rain_cloud.create(config, is_side_by_side=False)[0],
         config["rain_cloud"]["panel"],
         1,
     )
@@ -659,7 +659,7 @@ def test_create_rain_cloud_panel(request, config):
 def test_create_rain_cloud_panel_cache_and_error(mocker, request, config):
     from my_lib.selenium_util import click_xpath as click_xpath_orig
 
-    import weather_display.rain_cloud_panel
+    import weather_display.panel.rain_cloud
 
     # NOTE: 6回だけエラーにする
     def click_xpath_mock(driver, xpath, wait=None, is_warn=True):
@@ -671,12 +671,12 @@ def test_create_rain_cloud_panel_cache_and_error(mocker, request, config):
 
     click_xpath_mock.i = 0
 
-    mocker.patch("weather_display.rain_cloud_panel.click_xpath", side_effect=click_xpath_mock)
-    mocker.patch("weather_display.rain_cloud_panel.time.sleep")  # Mock time.sleep to prevent timeout
+    mocker.patch("weather_display.panel.rain_cloud.click_xpath", side_effect=click_xpath_mock)
+    mocker.patch("weather_display.panel.rain_cloud.time.sleep")  # Mock time.sleep to prevent timeout
 
     check_image(
         request,
-        weather_display.rain_cloud_panel.create(config, True, False)[0],
+        weather_display.panel.rain_cloud.create(config, True, False)[0],
         config["rain_cloud"]["panel"],
         0,
     )
@@ -685,7 +685,7 @@ def test_create_rain_cloud_panel_cache_and_error(mocker, request, config):
 
     check_image(
         request,
-        weather_display.rain_cloud_panel.create(config)[0],
+        weather_display.panel.rain_cloud.create(config)[0],
         config["rain_cloud"]["panel"],
         1,
     )
@@ -696,7 +696,7 @@ def test_create_rain_cloud_panel_cache_and_error(mocker, request, config):
 def test_create_rain_cloud_panel_xpath_fail(mocker, request, config):
     from my_lib.selenium_util import xpath_exists
 
-    import weather_display.rain_cloud_panel
+    import weather_display.panel.rain_cloud
 
     # NOTE: 一回だけエラーにする
     def xpath_exists_mock(driver, xpath):
@@ -712,7 +712,7 @@ def test_create_rain_cloud_panel_xpath_fail(mocker, request, config):
 
     check_image(
         request,
-        weather_display.rain_cloud_panel.create(config)[0],
+        weather_display.panel.rain_cloud.create(config)[0],
         config["rain_cloud"]["panel"],
     )
 
@@ -723,7 +723,7 @@ def test_create_rain_cloud_panel_xpath_fail(mocker, request, config):
 def test_create_rain_cloud_panel_selenium_error(mocker, request, config):
     from my_lib.selenium_util import create_driver_impl
 
-    import weather_display.rain_cloud_panel
+    import weather_display.panel.rain_cloud
 
     # NOTE: 一回だけエラーにする
     def create_driver_impl_mock(profile_name, data_path):
@@ -739,7 +739,7 @@ def test_create_rain_cloud_panel_selenium_error(mocker, request, config):
 
     check_image(
         request,
-        weather_display.rain_cloud_panel.create(config)[0],
+        weather_display.panel.rain_cloud.create(config)[0],
         config["rain_cloud"]["panel"],
     )
 
@@ -750,7 +750,7 @@ def test_create_rain_cloud_panel_selenium_error(mocker, request, config):
 def test_create_rain_cloud_panel_xpath_error(mocker, request, config):
     from my_lib.selenium_util import xpath_exists
 
-    import weather_display.rain_cloud_panel
+    import weather_display.panel.rain_cloud
 
     # NOTE: 一回だけエラーにする
     def xpath_exists_mock(driver, xpath):
@@ -766,7 +766,7 @@ def test_create_rain_cloud_panel_xpath_error(mocker, request, config):
 
     check_image(
         request,
-        weather_display.rain_cloud_panel.create(config)[0],
+        weather_display.panel.rain_cloud.create(config)[0],
         config["rain_cloud"]["panel"],
     )
 
@@ -800,7 +800,7 @@ def test_slack_error(mocker, request, config):
 def test_slack_error_with_image(mocker, request, config):
     from my_lib.selenium_util import click_xpath as click_xpath_orig
 
-    import weather_display.rain_cloud_panel
+    import weather_display.panel.rain_cloud
 
     # NOTE: 6回だけエラーにする（test_create_rain_cloud_panel_cache_and_errorと同じアプローチ）
     def click_xpath_mock(driver, xpath, wait=None, is_warn=True):
@@ -812,12 +812,12 @@ def test_slack_error_with_image(mocker, request, config):
 
     click_xpath_mock.i = 0
 
-    mocker.patch("weather_display.rain_cloud_panel.click_xpath", side_effect=click_xpath_mock)
-    mocker.patch("weather_display.rain_cloud_panel.time.sleep")  # Mock time.sleep to prevent timeout
+    mocker.patch("weather_display.panel.rain_cloud.click_xpath", side_effect=click_xpath_mock)
+    mocker.patch("weather_display.panel.rain_cloud.time.sleep")  # Mock time.sleep to prevent timeout
 
     check_image(
         request,
-        weather_display.rain_cloud_panel.create(config, True, False)[0],
+        weather_display.panel.rain_cloud.create(config, True, False)[0],
         config["rain_cloud"]["panel"],
     )
 
@@ -967,7 +967,7 @@ def test_api_run_small(client, mocker):
 
 
 def test_api_run_error(client, mocker):
-    mocker.patch("runner.webapi.run.generate_image", side_effect=RuntimeError())
+    mocker.patch("weather_display.runner.webapi.run.generate_image", side_effect=RuntimeError())
 
     response = client.get(
         f"{my_lib.webapp.config.URL_PREFIX}/api/run",
