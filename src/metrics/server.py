@@ -25,7 +25,7 @@ def create_app(config):
     my_lib.webapp.config.URL_PREFIX = "/weather_panel"
 
     import metrics.webapi.page
-    
+
     # NOTE: アクセスログは無効にする
     logging.getLogger("werkzeug").setLevel(logging.ERROR)
 

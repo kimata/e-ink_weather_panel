@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 def generate_chart_javascript():
     """Chart.js用のJavaScriptコードを生成する"""
     return """
@@ -128,8 +129,8 @@ def generate_chart_javascript():
                                 type: 'linear',
                                 display: true,
                                 position: 'left',
-                                title: { 
-                                    display: true, 
+                                title: {
+                                    display: true,
                                     text: '処理時間（秒）',
                                     font: {
                                         size: 14,
@@ -144,15 +145,15 @@ def generate_chart_javascript():
                                 type: 'linear',
                                 display: true,
                                 position: 'right',
-                                title: { 
-                                    display: true, 
+                                title: {
+                                    display: true,
                                     text: 'エラー率（%）',
                                     font: {
                                         size: 14,
                                         weight: 'bold'
                                     }
                                 },
-                                grid: { 
+                                grid: {
                                     drawOnChartArea: false,
                                     color: 'rgba(255, 99, 132, 0.2)'
                                 }
@@ -161,7 +162,7 @@ def generate_chart_javascript():
                     }
                 });
             }
-            
+
             // 表示実行 時間別パフォーマンス
             const displayImageCtx = document.getElementById('displayImageHourlyChart');
             if (displayImageCtx && hourlyData.display_image) {
@@ -272,7 +273,7 @@ def generate_chart_javascript():
                 });
             }
         }
-        
+
         function generateBoxplotCharts() {
             // 画像生成処理 箱ひげ図
             const drawPanelBoxplotCtx = document.getElementById('drawPanelBoxplotChart');
@@ -286,7 +287,7 @@ def generate_chart_javascript():
                         });
                     }
                 }
-                
+
                 new Chart(drawPanelBoxplotCtx, {
                     type: 'boxplot',
                     data: {
@@ -320,7 +321,7 @@ def generate_chart_javascript():
                                         const stats = context.parsed;
                                         return [
                                             '最小値: ' + stats.min.toFixed(2) + '秒',
-                                            '第1四分位: ' + stats.q1.toFixed(2) + '秒', 
+                                            '第1四分位: ' + stats.q1.toFixed(2) + '秒',
                                             '中央値: ' + stats.median.toFixed(2) + '秒',
                                             '第3四分位: ' + stats.q3.toFixed(2) + '秒',
                                             '最大値: ' + stats.max.toFixed(2) + '秒'
@@ -365,7 +366,7 @@ def generate_chart_javascript():
                     }
                 });
             }
-            
+
             // 表示実行処理 箱ひげ図
             const displayImageBoxplotCtx = document.getElementById('displayImageBoxplotChart');
             if (displayImageBoxplotCtx && hourlyData.display_image_boxplot) {
@@ -378,7 +379,7 @@ def generate_chart_javascript():
                         });
                     }
                 }
-                
+
                 new Chart(displayImageBoxplotCtx, {
                     type: 'boxplot',
                     data: {
@@ -412,7 +413,7 @@ def generate_chart_javascript():
                                         const stats = context.parsed;
                                         return [
                                             '最小値: ' + stats.min.toFixed(2) + '秒',
-                                            '第1四分位: ' + stats.q1.toFixed(2) + '秒', 
+                                            '第1四分位: ' + stats.q1.toFixed(2) + '秒',
                                             '中央値: ' + stats.median.toFixed(2) + '秒',
                                             '第3四分位: ' + stats.q3.toFixed(2) + '秒',
                                             '最大値: ' + stats.max.toFixed(2) + '秒'
@@ -458,7 +459,7 @@ def generate_chart_javascript():
                 });
             }
         }
-        
+
         function generateTrendsCharts() {
             // 画像生成パネル 推移
             const drawPanelTrendsCtx = document.getElementById('drawPanelTrendsChart');
@@ -544,7 +545,7 @@ def generate_chart_javascript():
                     }
                 });
             }
-            
+
             // 表示実行 推移
             const displayImageTrendsCtx = document.getElementById('displayImageTrendsChart');
             if (displayImageTrendsCtx && trendsData.display_image) {
@@ -630,12 +631,12 @@ def generate_chart_javascript():
                 });
             }
         }
-        
+
         function generatePanelTrendsCharts() {
             // パネル別処理時間の箱ヒゲ図
             const container = document.getElementById('panelTrendsContainer');
             if (!container || !panelTrendsData) return;
-            
+
             // 統一するtick間隔を決定（1メモリのスケール）
             // 各パネルのデータ範囲を分析して適切なtick間隔を決定
             let maxRange = 0;
@@ -648,7 +649,7 @@ def generate_chart_javascript():
                     maxRange = range;
                 }
             }
-            
+
             // tick間隔を決定（データ範囲に基づいて適切な値を選択）
             let stepSize;
             if (maxRange <= 2) {
@@ -662,20 +663,20 @@ def generate_chart_javascript():
             } else {
                 stepSize = 5;    // 5秒間隔
             }
-            
+
             // パネルごとに箱ヒゲ図を生成
             let index = 0;
             for (const panelName in panelTrendsData) {
                 const data = panelTrendsData[panelName];
-                
+
                 // カラムを作成
                 const columnDiv = document.createElement('div');
                 columnDiv.className = 'column is-half-tablet is-one-third-desktop';
-                
+
                 // カードを作成
                 const cardDiv = document.createElement('div');
                 cardDiv.className = 'card metrics-card';
-                
+
                 // カードヘッダー
                 const headerDiv = document.createElement('div');
                 headerDiv.className = 'card-header';
@@ -683,26 +684,26 @@ def generate_chart_javascript():
                 headerTitle.className = 'card-header-title';
                 headerTitle.textContent = panelName + ' パネル';
                 headerDiv.appendChild(headerTitle);
-                
+
                 // カードコンテンツ
                 const contentDiv = document.createElement('div');
                 contentDiv.className = 'card-content';
                 const chartContainer = document.createElement('div');
                 chartContainer.className = 'chart-container';
                 chartContainer.style.height = '350px';
-                
+
                 // キャンバス
                 const canvas = document.createElement('canvas');
                 canvas.id = 'panelChart' + index;
                 chartContainer.appendChild(canvas);
                 contentDiv.appendChild(chartContainer);
-                
+
                 // 構造を組み立て
                 cardDiv.appendChild(headerDiv);
                 cardDiv.appendChild(contentDiv);
                 columnDiv.appendChild(cardDiv);
                 container.appendChild(columnDiv);
-                
+
                 // チャートを作成
                 new Chart(canvas, {
                     type: 'boxplot',
@@ -779,11 +780,11 @@ def generate_chart_javascript():
                         }
                     }
                 });
-                
+
                 index++;
             }
         }
-        
+
         function getBoxplotColor(index) {
             const colors = [
                 'rgba(75, 192, 192, 0.6)',
@@ -797,7 +798,7 @@ def generate_chart_javascript():
             ];
             return colors[index % colors.length];
         }
-        
+
         function getBorderColor(index) {
             const colors = [
                 'rgb(75, 192, 192)',

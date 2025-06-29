@@ -10,6 +10,7 @@ import my_lib.flask_util
 import my_lib.webapp.config
 
 import metrics.collector
+
 from . import page_js
 
 blueprint = flask.Blueprint("metrics", __name__, url_prefix=my_lib.webapp.config.URL_PREFIX)
@@ -43,7 +44,9 @@ def metrics_view():
         performance_stats = analyzer.get_performance_statistics(days=100)
 
         # HTMLを生成
-        html_content = generate_metrics_html(basic_stats, hourly_patterns, anomalies, trends, alerts, panel_trends, performance_stats)
+        html_content = generate_metrics_html(
+            basic_stats, hourly_patterns, anomalies, trends, alerts, panel_trends, performance_stats
+        )
 
         return flask.Response(html_content, mimetype="text/html")
 
@@ -66,7 +69,9 @@ def favicon():
         return flask.Response("", status=500)
 
 
-def generate_metrics_html(basic_stats, hourly_patterns, anomalies, trends, alerts, panel_trends, performance_stats):
+def generate_metrics_html(
+    basic_stats, hourly_patterns, anomalies, trends, alerts, panel_trends, performance_stats
+):
     """Bulma CSSを使用した包括的なメトリクスHTMLを生成。"""
 
     # JavaScript チャート用にデータをJSONに変換
@@ -78,7 +83,8 @@ def generate_metrics_html(basic_stats, hourly_patterns, anomalies, trends, alert
     # URL_PREFIXを取得してfaviconパスを構築
     favicon_path = f"{my_lib.webapp.config.URL_PREFIX}/favicon.ico"
 
-    html = f"""
+    html = (
+        f"""
 <!DOCTYPE html>
 <html>
 <head>
@@ -99,12 +105,12 @@ def generate_metrics_html(basic_stats, hourly_patterns, anomalies, trends, alert
         .legend-color {{ display: inline-block; width: 20px; height: 3px; margin-right: 0.5rem; vertical-align: middle; }}
         .legend-dashed {{ border-top: 3px dashed; height: 0; }}
         .legend-dotted {{ border-top: 3px dotted; height: 0; }}
-        .anomaly-item {{ 
-            margin-bottom: 1rem; 
-            padding: 0.75rem; 
-            background-color: #fafafa; 
-            border-radius: 6px; 
-            border-left: 4px solid #ffdd57; 
+        .anomaly-item {{
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background-color: #fafafa;
+            border-radius: 6px;
+            border-left: 4px solid #ffdd57;
         }}
         .alert-item {{ margin-bottom: 1rem; }}
         .hourly-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }}
@@ -143,10 +149,18 @@ def generate_metrics_html(basic_stats, hourly_patterns, anomalies, trends, alert
     </div>
 
     <script>
-        const hourlyData = """ + hourly_data_json + """;
-        const trendsData = """ + trends_data_json + """;
-        const anomaliesData = """ + anomalies_data_json + """;
-        const panelTrendsData = """ + panel_trends_data_json + """;
+        const hourlyData = """
+        + hourly_data_json
+        + """;
+        const trendsData = """
+        + trends_data_json
+        + """;
+        const anomaliesData = """
+        + anomalies_data_json
+        + """;
+        const panelTrendsData = """
+        + panel_trends_data_json
+        + """;
 
         // チャート生成
         generateHourlyCharts();
@@ -154,10 +168,13 @@ def generate_metrics_html(basic_stats, hourly_patterns, anomalies, trends, alert
         generateTrendsCharts();
         generatePanelTrendsCharts();
 
-        """ + page_js.generate_chart_javascript() + """
+        """
+        + page_js.generate_chart_javascript()
+        + """
     </script>
 </html>
     """
+    )
 
     return html
 
@@ -394,7 +411,7 @@ def generate_anomalies_section(anomalies, performance_stats):
     anomalies_html = f"""
     <div class="section">
         <h2 class="title is-4"><span class="icon"><i class="fas fa-search"></i></span> 異常検知</h2>
-        
+
         <div class="notification is-info is-light">
             <p><strong>異常検知について：</strong></p>
             <p>機械学習の<strong>Isolation Forest</strong>アルゴリズムを使用して、以下の要素から異常なパターンを検知しています：</p>
@@ -442,29 +459,29 @@ def generate_anomalies_section(anomalies, performance_stats):
             dp_stats = performance_stats.get("draw_panel", {})
             avg_time = dp_stats.get("avg_time", 0)
             std_time = dp_stats.get("std_time", 0)
-            
+
             anomaly_reasons = []
             reason_tooltips = []
-            
+
             anomaly_details = []
-            
+
             if elapsed_time > 60:  # 1分以上
                 anomaly_reasons.append('<span class="tag is-small is-warning">長時間処理</span>')
                 if std_time > 0:
                     sigma_deviation = abs(elapsed_time - avg_time) / std_time
                     anomaly_details.append(f"平均値から<strong>{sigma_deviation:.1f}σ</strong>乖離")
                 anomaly_details.append(f"実行時間: <strong>{elapsed_time:.2f}秒</strong>")
-            elif elapsed_time < 1:   # 1秒未満
+            elif elapsed_time < 1:  # 1秒未満
                 anomaly_reasons.append('<span class="tag is-small is-info">短時間処理</span>')
                 if std_time > 0:
                     sigma_deviation = abs(elapsed_time - avg_time) / std_time
                     anomaly_details.append(f"平均値から<strong>{sigma_deviation:.1f}σ</strong>乖離")
                 anomaly_details.append(f"実行時間: <strong>{elapsed_time:.2f}秒</strong>")
-            
+
             if error_code > 0:
                 anomaly_reasons.append('<span class="tag is-small is-danger">エラー発生</span>')
                 anomaly_details.append(f"エラーコード: <strong>{error_code}</strong>")
-            
+
             if not anomaly_reasons:
                 anomaly_reasons.append('<span class="tag is-small is-light">パターン異常</span>')
                 if std_time > 0:
@@ -505,7 +522,7 @@ def generate_anomalies_section(anomalies, performance_stats):
 
             reason_tags = " ".join(anomaly_reasons)
             detail_text = " | ".join(anomaly_details)
-            anomalies_html += f'''<div class="anomaly-item">
+            anomalies_html += f"""<div class="anomaly-item">
                 <div class="mb-2">
                     <span class="tag is-warning">{formatted_time}</span>
                     {reason_tags}
@@ -513,7 +530,7 @@ def generate_anomalies_section(anomalies, performance_stats):
                 <div class="pl-3 has-text-grey-dark" style="font-size: 0.9rem;">
                     {detail_text}
                 </div>
-            </div>'''
+            </div>"""
         anomalies_html += "</div>"
 
     anomalies_html += """
@@ -556,28 +573,28 @@ def generate_anomalies_section(anomalies, performance_stats):
             di_stats = performance_stats.get("display_image", {})
             avg_time_di = di_stats.get("avg_time", 0)
             std_time_di = di_stats.get("std_time", 0)
-            
+
             anomaly_reasons = []
-            
+
             anomaly_details = []
-            
+
             if elapsed_time > 120:  # 2分以上
                 anomaly_reasons.append('<span class="tag is-small is-warning">長時間処理</span>')
                 if std_time_di > 0:
                     sigma_deviation = abs(elapsed_time - avg_time_di) / std_time_di
                     anomaly_details.append(f"平均値から<strong>{sigma_deviation:.1f}σ</strong>乖離")
                 anomaly_details.append(f"実行時間: <strong>{elapsed_time:.2f}秒</strong>")
-            elif elapsed_time < 5:   # 5秒未満
+            elif elapsed_time < 5:  # 5秒未満
                 anomaly_reasons.append('<span class="tag is-small is-info">短時間処理</span>')
                 if std_time_di > 0:
                     sigma_deviation = abs(elapsed_time - avg_time_di) / std_time_di
                     anomaly_details.append(f"平均値から<strong>{sigma_deviation:.1f}σ</strong>乖離")
                 anomaly_details.append(f"実行時間: <strong>{elapsed_time:.2f}秒</strong>")
-            
+
             if not success:
                 anomaly_reasons.append('<span class="tag is-small is-danger">実行失敗</span>')
                 anomaly_details.append("実行結果: <strong>失敗</strong>")
-            
+
             if not anomaly_reasons:
                 anomaly_reasons.append('<span class="tag is-small is-light">パターン異常</span>')
                 if std_time_di > 0:
@@ -618,7 +635,7 @@ def generate_anomalies_section(anomalies, performance_stats):
 
             reason_tags = " ".join(anomaly_reasons)
             detail_text = " | ".join(anomaly_details)
-            anomalies_html += f'''<div class="anomaly-item">
+            anomalies_html += f"""<div class="anomaly-item">
                 <div class="mb-2">
                     <span class="tag is-warning">{formatted_time}</span>
                     {reason_tags}
@@ -626,7 +643,7 @@ def generate_anomalies_section(anomalies, performance_stats):
                 <div class="pl-3 has-text-grey-dark" style="font-size: 0.9rem;">
                     {detail_text}
                 </div>
-            </div>'''
+            </div>"""
         anomalies_html += "</div>"
 
     anomalies_html += """

@@ -709,7 +709,7 @@ class MetricsAnalyzer:
             # パネル別の処理時間データを取得
             cursor.execute(
                 """
-                SELECT 
+                SELECT
                     pm.panel_name,
                     pm.elapsed_time,
                     dpm.timestamp
@@ -727,7 +727,7 @@ class MetricsAnalyzer:
             for row in panel_data:
                 panel_name = row[0]
                 elapsed_time = row[1]
-                
+
                 if panel_name not in panel_groups:
                     panel_groups[panel_name] = []
                 panel_groups[panel_name].append(elapsed_time)
@@ -744,7 +744,7 @@ class MetricsAnalyzer:
             # 画像生成処理の統計
             cursor.execute(
                 """
-                SELECT 
+                SELECT
                     AVG(total_elapsed_time) as avg_time,
                     COUNT(*) as count,
                     MIN(total_elapsed_time) as min_time,
@@ -766,17 +766,18 @@ class MetricsAnalyzer:
                 (since,),
             )
             draw_panel_times = [row[0] for row in cursor.fetchall()]
-            
+
             if len(draw_panel_times) > 1:
                 import statistics
-                draw_panel_stats['std_time'] = statistics.stdev(draw_panel_times)
+
+                draw_panel_stats["std_time"] = statistics.stdev(draw_panel_times)
             else:
-                draw_panel_stats['std_time'] = 0
+                draw_panel_stats["std_time"] = 0
 
             # 表示実行処理の統計
             cursor.execute(
                 """
-                SELECT 
+                SELECT
                     AVG(elapsed_time) as avg_time,
                     COUNT(*) as count,
                     MIN(elapsed_time) as min_time,
@@ -797,16 +798,13 @@ class MetricsAnalyzer:
                 (since,),
             )
             display_image_times = [row[0] for row in cursor.fetchall()]
-            
-            if len(display_image_times) > 1:
-                display_image_stats['std_time'] = statistics.stdev(display_image_times)
-            else:
-                display_image_stats['std_time'] = 0
 
-            return {
-                "draw_panel": draw_panel_stats,
-                "display_image": display_image_stats
-            }
+            if len(display_image_times) > 1:
+                display_image_stats["std_time"] = statistics.stdev(display_image_times)
+            else:
+                display_image_stats["std_time"] = 0
+
+            return {"draw_panel": draw_panel_stats, "display_image": display_image_stats}
 
 
 # Global instance for easy access
