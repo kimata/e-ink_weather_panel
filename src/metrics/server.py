@@ -56,7 +56,7 @@ def start(config, port):
     )
     thread = threading.Thread(target=server.serve_forever)
 
-    logging.info("Start log server")
+    logging.info("Start metrics server")
 
     thread.start()
 
@@ -67,7 +67,7 @@ def start(config, port):
 
 
 def term(handle):
-    logging.warning("Stop log server")
+    logging.warning("Stop metrics server")
 
     handle["server"].shutdown()
     handle["server"].server_close()

@@ -154,7 +154,7 @@ if __name__ == "__main__":
 
     logging.info("Raspberry Pi hostname: %s", rasp_hostname)
 
-    metrics.server.start(config, metrics_port)
+    handle = metrics.server.start(config, metrics_port)
 
     fail_count = 0
     prev_ssh = None
@@ -188,3 +188,5 @@ if __name__ == "__main__":
                 raise
             else:
                 time.sleep(10)
+
+    metrics.server.term(handle)
