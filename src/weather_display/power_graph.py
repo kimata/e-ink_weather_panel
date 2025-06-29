@@ -21,6 +21,7 @@ import time
 import traceback
 
 import matplotlib  # noqa: ICN001
+import my_lib.notify.slack
 import PIL.Image
 
 matplotlib.use("Agg")
@@ -96,7 +97,9 @@ def plot_item(ax, unit, data, ylim, fmt, face_map):  # noqa: PLR0913
             fontsize=12,
             color="red",
         )
-        return
+        # 空データエラーをSlackに通知
+        error_msg = f"Empty data in power_graph: x={len(x)}, y={len(y)}"
+        raise ValueError(error_msg)
 
     if len(x) != len(y):
         logging.error("Mismatched data lengths: x=%d, y=%d", len(x), len(y))
@@ -257,14 +260,32 @@ def create(config):
     panel_config = config["power"]
     font_config = config["font"]
     db_config = config["influxdb"]
+    slack_config = config.get("slack")
 
     try:
         return (
             create_power_graph_impl(panel_config, font_config, db_config),
             time.perf_counter() - start,
         )
-    except Exception:
+    except Exception as e:
         error_message = traceback.format_exc()
+
+        # 空データエラーの場合はSlack通知
+        if "Empty data in power_graph" in str(e) and slack_config is not None:
+            try:
+                slack_message = f"Power Graph Data Error: {e!s}\n\n詳細:\n{error_message}"
+                my_lib.notify.slack.error(
+                    slack_config["bot_token"],
+                    slack_config["error"]["channel"]["name"],
+                    slack_config["error"]["channel"]["id"],
+                    slack_config["from"],
+                    slack_message,
+                    interval_min=slack_config["error"]["interval_min"],
+                )
+                logging.info("Sent Slack notification for empty power data")
+            except Exception as slack_error:
+                logging.warning("Failed to send Slack notification: %s", slack_error)
+
         return (
             my_lib.panel_util.create_error_image(panel_config, font_config, error_message),
             time.perf_counter() - start,
