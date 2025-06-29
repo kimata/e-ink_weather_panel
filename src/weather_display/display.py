@@ -85,7 +85,7 @@ def execute(ssh, config, config_file, small_mode, test_mode):
 
     cmd = ["python3", CREATE_IMAGE, "-c", config_file]
     if small_mode:
-        cmd.append("-s")
+        cmd.append("-S")
     if test_mode:
         cmd.append("-t")
 

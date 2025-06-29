@@ -3,11 +3,11 @@
 電子ペーパ表示用の画像を生成します。
 
 Usage:
-  create_image.py [-c CONFIG] [-s] [-o PNG_FILE] [-t] [-D] [-d]
+  create_image.py [-c CONFIG] [-S] [-o PNG_FILE] [-t] [-D] [-d]
 
 Options:
   -c CONFIG         : CONFIG を設定ファイルとして読み込んで実行します。[default: config.yaml]
-  -s                : 小型ディスプレイモードで実行します。
+  -S                : 小型ディスプレイモードで実行します。
   -o PNG_FILE       : 生成した画像を指定されたパスに保存します。
   -t                : テストモードで実行します。
   -d                : ダミーモードで実行します。
@@ -228,7 +228,7 @@ if __name__ == "__main__":
     args = docopt.docopt(__doc__)
 
     config_file = args["-c"]
-    small_mode = args["-s"]
+    small_mode = args["-S"]
     dummy_mode = args["-d"]
     test_mode = args["-t"]
     debug_mode = args["-D"]

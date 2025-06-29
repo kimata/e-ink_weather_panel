@@ -265,7 +265,7 @@ test-regular-small:
     script:
         - >
             docker run --rm --tty=true ${CI_REGISTRY_IMAGE}:${TAG}
-            src/display_image.py ${DISPLAY_IMAGE_ARGS} -p ${RASP_HOSTNAME} -O
+            src/display_image.py ${DISPLAY_IMAGE_ARGS} -s ${RASP_HOSTNAME} -O
 # 本番設定ファイルで，問題なく動くかチェック
 test-display:
     extends: .display_image_template
@@ -288,7 +288,7 @@ test-display-small:
           artifacts: false
     variables:
         RASP_HOSTNAME: rasp-display-2
-        DISPLAY_IMAGE_ARGS: "-s -c config-small.yaml"
+        DISPLAY_IMAGE_ARGS: "-S -c config-small.yaml"
 test-webapp:
     stage: test
     needs:
