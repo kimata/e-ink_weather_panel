@@ -19,6 +19,7 @@ dependencies = [
     "docopt-ng>=0.9.0",
     "flask>=3.0.3",
     "flask-cors>=5.0.0",
+    "scipy>=1.15.3",
 ]
 
 [dependency-groups]
