@@ -637,20 +637,22 @@ def generate_chart_javascript():
             const container = document.getElementById('panelTrendsContainer');
             if (!container || !panelTrendsData) return;
 
-            // 統一するtick間隔を決定（1メモリのスケール）
-            // 各パネルのデータ範囲を分析して適切なtick間隔を決定
+            // 統一するレンジ（最大値-最小値）を決定
+            // 各パネルのデータ範囲を分析
             let maxRange = 0;
+            const panelRanges = {};
             for (const panelName in panelTrendsData) {
                 const data = panelTrendsData[panelName];
                 const min = Math.min(...data);
                 const max = Math.max(...data);
                 const range = max - min;
+                panelRanges[panelName] = { min, max, range };
                 if (range > maxRange) {
                     maxRange = range;
                 }
             }
 
-            // tick間隔を決定（データ範囲に基づいて適切な値を選択）
+            // 統一レンジに基づいてtick間隔を決定
             let stepSize;
             if (maxRange <= 2) {
                 stepSize = 0.2;  // 0.2秒間隔
@@ -668,6 +670,12 @@ def generate_chart_javascript():
             let index = 0;
             for (const panelName in panelTrendsData) {
                 const data = panelTrendsData[panelName];
+                const panelRange = panelRanges[panelName];
+                
+                // 統一レンジに基づいてY軸の範囲を計算
+                const center = (panelRange.min + panelRange.max) / 2;
+                const yMin = center - maxRange / 2;
+                const yMax = center + maxRange / 2;
 
                 // カラムを作成
                 const columnDiv = document.createElement('div');
@@ -759,6 +767,8 @@ def generate_chart_javascript():
                         scales: {
                             y: {
                                 beginAtZero: false,
+                                min: yMin,
+                                max: yMax,
                                 ticks: {
                                     stepSize: stepSize,
                                     callback: function(value) {
