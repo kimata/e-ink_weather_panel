@@ -56,10 +56,10 @@ def slack_mock():
 
 @pytest.fixture(scope="session")
 def app():
-    import runner
+    import webui
 
     with mock.patch.dict("os.environ", {"WERKZEUG_RUN_MAIN": "true"}):
-        app = runner.create_app(CONFIG_FILE, CONFIG_SMALL_FILE, dummy_mode=True)
+        app = webui.create_app(CONFIG_FILE, CONFIG_SMALL_FILE, dummy_mode=True)
 
         yield app
 
@@ -985,12 +985,12 @@ def test_api_run_error(client, mocker):
 def test_api_run_normal(mocker):
     import inspect
 
-    import runner
+    import webui
 
     # NOTE: fixture の方はダミーモード固定で動かしているので、
     # ここではノーマルモードで webapp を動かしてテストする。
     mocker.patch.dict("os.environ", {"WERKZEUG_RUN_MAIN": "true"})
-    app = runner.create_app(CONFIG_FILE, CONFIG_SMALL_FILE)
+    app = webui.create_app(CONFIG_FILE, CONFIG_SMALL_FILE)
     client = app.test_client()
 
     def dummy_time():
