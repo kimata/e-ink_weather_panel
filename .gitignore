@@ -55,6 +55,7 @@ config-demo.yaml
 /src/*/img
 data/
 key/
+node_modules/
 
 # Logs
 *.log
