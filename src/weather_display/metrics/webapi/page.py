@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import io
 import json
 import logging
 import pathlib
@@ -8,6 +9,7 @@ import flask
 import my_lib.config
 import my_lib.flask_util
 import my_lib.webapp.config
+from PIL import Image, ImageDraw
 
 import weather_display.metrics.collector
 
@@ -55,19 +57,52 @@ def metrics_view():
         return flask.Response(f"エラー: {e!s}", mimetype="text/plain", status=500)
 
 
+def generate_metrics_icon():
+    """メトリクス用のアイコンを動的生成"""
+    # 32x32のアイコンを生成
+    size = 32
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+
+    # 背景円（メトリクスらしい青色）
+    draw.ellipse([2, 2, size - 2, size - 2], fill=(52, 152, 219, 255), outline=(41, 128, 185, 255))
+
+    # グラフっぽい線を描画
+    points = [(8, 20), (12, 16), (16, 12), (20, 14), (24, 10)]
+
+    # 折れ線グラフ
+    for i in range(len(points) - 1):
+        draw.line([points[i], points[i + 1]], fill=(255, 255, 255, 255), width=2)
+
+    # データポイント
+    for point in points:
+        draw.ellipse([point[0] - 1, point[1] - 1, point[0] + 1, point[1] + 1], fill=(255, 255, 255, 255))
+
+    return img
+
+
 @blueprint.route("/favicon.ico", methods=["GET"])
 def favicon():
-    """favicon.icoを返す"""
+    """動的生成されたメトリクス用favicon.icoを返す"""
     try:
-        favicon_path = (
-            pathlib.Path(__file__).parent.parent.parent.parent.parent / "react" / "dist" / "favicon.ico"
+        # メトリクスアイコンを生成
+        img = generate_metrics_icon()
+
+        # ICO形式で出力
+        output = io.BytesIO()
+        img.save(output, format="ICO", sizes=[(32, 32)])
+        output.seek(0)
+
+        return flask.Response(
+            output.getvalue(),
+            mimetype="image/x-icon",
+            headers={
+                "Cache-Control": "public, max-age=3600",  # 1時間キャッシュ
+                "Content-Type": "image/x-icon",
+            },
         )
-        if favicon_path.exists():
-            return flask.send_file(favicon_path, mimetype="image/x-icon")
-        else:
-            return flask.Response("", status=404)
     except Exception:
-        logging.exception("favicon取得エラー")
+        logging.exception("favicon生成エラー")
         return flask.Response("", status=500)
 
 
