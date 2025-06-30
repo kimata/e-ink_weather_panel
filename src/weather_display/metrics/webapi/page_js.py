@@ -673,6 +673,19 @@ def generate_chart_javascript():
                 const totalCount = data.length;
                 const histogramPercent = histogram.map(count => (count / totalCount) * 100);
 
+                // Y軸の最大値を動的に設定（見やすくするため）
+                const maxPercent = Math.max(...histogramPercent);
+                let yAxisMax;
+                if (maxPercent <= 10) {
+                    yAxisMax = Math.ceil(maxPercent / 2) * 2; // 2%単位で切り上げ
+                } else if (maxPercent <= 25) {
+                    yAxisMax = Math.ceil(maxPercent / 5) * 5; // 5%単位で切り上げ
+                } else if (maxPercent <= 50) {
+                    yAxisMax = Math.ceil(maxPercent / 10) * 10; // 10%単位で切り上げ
+                } else {
+                    yAxisMax = Math.ceil(maxPercent / 20) * 20; // 20%単位で切り上げ
+                }
+
                 // カラムを作成
                 const columnDiv = document.createElement('div');
                 columnDiv.className = 'column is-half-tablet is-one-third-desktop';
@@ -764,7 +777,7 @@ def generate_chart_javascript():
                             },
                             y: {
                                 beginAtZero: true,
-                                max: 100,
+                                max: yAxisMax,
                                 title: {
                                     display: true,
                                     text: '割合（%）',
