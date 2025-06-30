@@ -25,7 +25,7 @@ DEFAULT_DB_PATH = pathlib.Path("data/metrics.db")
 
 
 class MetricsCollector:
-    """Collects and stores performance metrics for weather panel operations."""
+    """Collects and stores performance metrics for weather panel operations."""  # noqa: D203
 
     def __init__(self, db_path: str | pathlib.Path = DEFAULT_DB_PATH):
         """Initialize MetricsCollector with database path."""
@@ -114,19 +114,19 @@ class MetricsCollector:
         except Exception:
             if conn:
                 conn.rollback()
-            logging.exception("Database error: %s")
+            logging.exception("Database error")
             raise
         finally:
             if conn:
                 conn.close()
 
-    def log_draw_panel_metrics(
+    def log_draw_panel_metrics(  # noqa: PLR0913
         self,
         total_elapsed_time: float,
         panel_metrics: list[dict],
-        is_small_mode: bool = False,
-        is_test_mode: bool = False,
-        is_dummy_mode: bool = False,
+        is_small_mode: bool = False,  # noqa: FBT001
+        is_test_mode: bool = False,  # noqa: FBT001
+        is_dummy_mode: bool = False,  # noqa: FBT001
         error_code: int = 0,
         timestamp: datetime.datetime | None = None,
     ) -> int:
@@ -204,17 +204,17 @@ class MetricsCollector:
                 return draw_panel_id
 
         except Exception:
-            logging.exception("Failed to log draw_panel metrics: %s")
+            logging.exception("Failed to log draw_panel metrics")
             return -1
 
-    def log_display_image_metrics(
+    def log_display_image_metrics(  # noqa: PLR0913
         self,
         elapsed_time: float,
-        is_small_mode: bool = False,
-        is_test_mode: bool = False,
-        is_one_time: bool = False,
+        is_small_mode: bool = False,  # noqa: FBT001
+        is_test_mode: bool = False,  # noqa: FBT001
+        is_one_time: bool = False,  # noqa: FBT001
         rasp_hostname: str | None = None,
-        success: bool = True,
+        success: bool = True,  # noqa: FBT001
         error_message: str | None = None,
         timestamp: datetime.datetime | None = None,
         sleep_time: float | None = None,
@@ -232,9 +232,12 @@ class MetricsCollector:
             success: Whether the operation succeeded
             error_message: Error message if any
             timestamp: When the operation occurred (default: now)
+            sleep_time: Sleep time after operation
+            diff_sec: Timing difference in seconds
 
         Returns:
             ID of the inserted record
+
         """
         if timestamp is None:
             timestamp = datetime.datetime.now(TIMEZONE)
@@ -276,17 +279,19 @@ class MetricsCollector:
                 return cursor.lastrowid
 
         except Exception:
-            logging.exception("Failed to log display_image metrics: %s")
+            logging.exception("Failed to log display_image metrics")
             return -1
 
 
 class MetricsAnalyzer:
-    """Analyzes metrics data for patterns and anomalies."""
+    """Analyzes metrics data for patterns and anomalies."""  # noqa: D203
 
     def __init__(self, db_path: str | pathlib.Path = DEFAULT_DB_PATH):
+        """Initialize MetricsAnalyzer with database path."""
         self.db_path = pathlib.Path(db_path)
         if not self.db_path.exists():
-            raise FileNotFoundError(f"Metrics database not found: {self.db_path}")
+            msg = f"Metrics database not found: {self.db_path}"
+            raise FileNotFoundError(msg)
 
     @contextmanager
     def _get_connection(self):
@@ -297,7 +302,7 @@ class MetricsAnalyzer:
             conn.row_factory = sqlite3.Row
             yield conn
         except Exception:
-            logging.exception("Database error: %s")
+            logging.exception("Database error")
             raise
         finally:
             if conn:
@@ -487,6 +492,7 @@ class MetricsAnalyzer:
 
         Returns:
             Dictionary with anomaly detection results
+
         """
         since = datetime.datetime.now(TIMEZONE) - datetime.timedelta(days=days)
 
@@ -676,7 +682,10 @@ class MetricsAnalyzer:
                 alerts.append(
                     {
                         "type": "slow_draw_panel",
-                        "message": f"Found {row['slow_count']} slow draw_panel operations (max: {row['max_time']:.1f}s)",
+                        "message": (
+                            f"Found {row['slow_count']} slow draw_panel operations "
+                            f"(max: {row['max_time']:.1f}s)"
+                        ),
                         "severity": "warning",
                     }
                 )
@@ -695,7 +704,10 @@ class MetricsAnalyzer:
                 alerts.append(
                     {
                         "type": "slow_display_image",
-                        "message": f"Found {row['slow_count']} slow display_image operations (max: {row['max_time']:.1f}s)",
+                        "message": (
+                            f"Found {row['slow_count']} slow display_image operations "
+                            f"(max: {row['max_time']:.1f}s)"
+                        ),
                         "severity": "warning",
                     }
                 )
@@ -853,14 +865,14 @@ _metrics_collector = None
 
 def get_metrics_collector(db_path: str | pathlib.Path = DEFAULT_DB_PATH) -> MetricsCollector:
     """Get or create global metrics collector instance."""
-    global _metrics_collector
+    global _metrics_collector  # noqa: PLW0603
     if _metrics_collector is None or _metrics_collector.db_path != pathlib.Path(db_path):
         _metrics_collector = MetricsCollector(db_path)
     return _metrics_collector
 
 
 def collect_draw_panel_metrics(*args, db_path: str | pathlib.Path | None = None, **kwargs) -> int:
-    """Convenience function to collect draw_panel metrics."""
+    """Collect draw_panel metrics with convenience wrapper."""
     if db_path is not None:
         kwargs.pop("db_path", None)  # Remove db_path from kwargs to avoid duplicate
         return get_metrics_collector(db_path).log_draw_panel_metrics(*args, **kwargs)
@@ -868,7 +880,7 @@ def collect_draw_panel_metrics(*args, db_path: str | pathlib.Path | None = None,
 
 
 def collect_display_image_metrics(*args, db_path: str | pathlib.Path | None = None, **kwargs) -> int:
-    """Convenience function to collect display_image metrics."""
+    """Collect display_image metrics with convenience wrapper."""
     if db_path is not None:
         kwargs.pop("db_path", None)  # Remove db_path from kwargs to avoid duplicate
         return get_metrics_collector(db_path).log_display_image_metrics(*args, **kwargs)

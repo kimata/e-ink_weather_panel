@@ -51,7 +51,7 @@ def metrics_view():
         return flask.Response(html_content, mimetype="text/html")
 
     except Exception as e:
-        logging.exception("メトリクス表示の生成エラー: %s")
+        logging.exception("メトリクス表示の生成エラー")
         return flask.Response(f"エラー: {e!s}", mimetype="text/plain", status=500)
 
 
@@ -67,11 +67,11 @@ def favicon():
         else:
             return flask.Response("", status=404)
     except Exception:
-        logging.exception("favicon取得エラー: %s")
+        logging.exception("favicon取得エラー")
         return flask.Response("", status=500)
 
 
-def generate_metrics_html(
+def generate_metrics_html(  # noqa: PLR0913
     basic_stats, hourly_patterns, anomalies, trends, alerts, panel_trends, performance_stats
 ):
     """Bulma CSSを使用した包括的なメトリクスHTMLを生成。"""
@@ -190,7 +190,7 @@ def generate_metrics_html(
     """
     )
 
-    return html
+    return html  # noqa: RET504
 
 
 def generate_alerts_section(alerts):
