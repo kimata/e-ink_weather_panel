@@ -909,7 +909,7 @@ def generate_chart_javascript():
 
                 // カラムを作成
                 const columnDiv = document.createElement('div');
-                columnDiv.className = 'column is-half-tablet is-one-third-desktop';
+                columnDiv.className = 'column is-half';
 
                 // カードを作成
                 const cardDiv = document.createElement('div');

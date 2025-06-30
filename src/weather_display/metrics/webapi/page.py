@@ -58,27 +58,48 @@ def metrics_view():
 
 
 def generate_metrics_icon():
-    """メトリクス用のアイコンを動的生成"""
-    # 32x32のアイコンを生成
+    """メトリクス用のアイコンを動的生成（アンチエイリアス対応）"""
+    # アンチエイリアスのため4倍サイズで描画してから縮小
+    scale = 4
     size = 32
-    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    large_size = size * scale
+
+    # 大きなサイズで描画
+    img = Image.new("RGBA", (large_size, large_size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
     # 背景円（メトリクスらしい青色）
-    draw.ellipse([2, 2, size - 2, size - 2], fill=(52, 152, 219, 255), outline=(41, 128, 185, 255))
+    margin = 2 * scale
+    draw.ellipse(
+        [margin, margin, large_size - margin, large_size - margin],
+        fill=(52, 152, 219, 255),
+        outline=(41, 128, 185, 255),
+        width=2 * scale,
+    )
 
-    # グラフっぽい線を描画
-    points = [(8, 20), (12, 16), (16, 12), (20, 14), (24, 10)]
+    # グラフっぽい線を描画（座標を4倍に拡大）
+    points = [
+        (8 * scale, 20 * scale),
+        (12 * scale, 16 * scale),
+        (16 * scale, 12 * scale),
+        (20 * scale, 14 * scale),
+        (24 * scale, 10 * scale),
+    ]
 
     # 折れ線グラフ
     for i in range(len(points) - 1):
-        draw.line([points[i], points[i + 1]], fill=(255, 255, 255, 255), width=2)
+        draw.line([points[i], points[i + 1]], fill=(255, 255, 255, 255), width=2 * scale)
 
     # データポイント
+    point_size = 1 * scale
     for point in points:
-        draw.ellipse([point[0] - 1, point[1] - 1, point[0] + 1, point[1] + 1], fill=(255, 255, 255, 255))
+        draw.ellipse(
+            [point[0] - point_size, point[1] - point_size, point[0] + point_size, point[1] + point_size],
+            fill=(255, 255, 255, 255),
+        )
 
-    return img
+    # 32x32に縮小してアンチエイリアス効果を得る
+    return img.resize((size, size), Image.LANCZOS)
 
 
 @blueprint.route("/favicon.ico", methods=["GET"])
@@ -788,7 +809,8 @@ def generate_panel_trends_section(panel_trends):  # noqa: ARG001
         </h2>
         <p class="subtitle is-6">各パネルの処理時間分布をヒストグラムで表示（横軸：時間、縦軸：割合）</p>
 
-        <div class="columns is-multiline" id="panelTrendsContainer">
+        <div class="columns is-multiline is-variable is-2" id="panelTrendsContainer"
+             style="justify-content: flex-start;">
             <!-- パネル別ヒストグラムがJavaScriptで動的に生成される -->
         </div>
     </div>
