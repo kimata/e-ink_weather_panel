@@ -51,10 +51,11 @@ requirements*.lock
 config.yaml
 config-small.yaml
 config-demo.yaml
-/font
+font/
 /src/*/img
 data/
 key/
+img/
 node_modules/
 
 # Logs
