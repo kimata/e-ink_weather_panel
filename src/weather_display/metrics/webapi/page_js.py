@@ -669,6 +669,10 @@ def generate_chart_javascript():
                     if (binIndex >= 0) histogram[binIndex]++;
                 }
 
+                // ヒストグラムデータを割合（パーセンテージ）に変換
+                const totalCount = data.length;
+                const histogramPercent = histogram.map(count => (count / totalCount) * 100);
+
                 // カラムを作成
                 const columnDiv = document.createElement('div');
                 columnDiv.className = 'column is-half-tablet is-one-third-desktop';
@@ -710,8 +714,8 @@ def generate_chart_javascript():
                     data: {
                         labels: binLabels,
                         datasets: [{
-                            label: '頻度',
-                            data: histogram,
+                            label: '割合',
+                            data: histogramPercent,
                             backgroundColor: getBoxplotColor(index),
                             borderColor: getBorderColor(index),
                             borderWidth: 1
@@ -733,7 +737,9 @@ def generate_chart_javascript():
                                         return panelName + ' パネル - ' + context[0].label + '秒';
                                     },
                                     label: function(context) {
-                                        return '頻度: ' + context.parsed.y + '件';
+                                        const percentage = context.parsed.y.toFixed(1);
+                                        const count = histogram[context.dataIndex];
+                                        return `割合: ${percentage}% (${count}件)`;
                                     },
                                     afterBody: function() {
                                         return '総データ数: ' + data.length + '件';
@@ -758,9 +764,10 @@ def generate_chart_javascript():
                             },
                             y: {
                                 beginAtZero: true,
+                                max: 100,
                                 title: {
                                     display: true,
-                                    text: '頻度',
+                                    text: '割合（%）',
                                     font: {
                                         size: 12,
                                         weight: 'bold'
