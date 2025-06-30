@@ -59,7 +59,9 @@ def metrics_view():
 def favicon():
     """favicon.icoを返す"""
     try:
-        favicon_path = pathlib.Path(__file__).parent.parent.parent.parent / "react" / "dist" / "favicon.ico"
+        favicon_path = (
+            pathlib.Path(__file__).parent.parent.parent.parent.parent / "react" / "dist" / "favicon.ico"
+        )
         if favicon_path.exists():
             return flask.send_file(favicon_path, mimetype="image/x-icon")
         else:
