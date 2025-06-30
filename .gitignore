@@ -54,6 +54,7 @@ config-demo.yaml
 /font
 /src/*/img
 data/
+key/
 
 # Logs
 *.log
