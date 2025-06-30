@@ -40,7 +40,7 @@ def slack_mock():
     with (
         mock.patch(
             "my_lib.notify.slack.slack_sdk.web.client.WebClient.chat_postMessage",
-            return_value=True,
+            return_value={"ok": True, "ts": "1234567890.123456"},
         ),
         mock.patch(
             "my_lib.notify.slack.slack_sdk.web.client.WebClient.files_upload_v2",
