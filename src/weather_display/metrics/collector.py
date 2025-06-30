@@ -86,6 +86,7 @@ class MetricsCollector:
                     success BOOLEAN NOT NULL,
                     error_message TEXT,
                     sleep_time REAL,
+                    diff_sec INTEGER,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             """)
@@ -218,6 +219,7 @@ class MetricsCollector:
         error_message: Optional[str] = None,
         timestamp: Optional[datetime.datetime] = None,
         sleep_time: Optional[float] = None,
+        diff_sec: Optional[int] = None,
     ) -> int:
         """
         Log display_image operation metrics.
@@ -249,8 +251,8 @@ class MetricsCollector:
                     """
                     INSERT INTO display_image_metrics
                     (timestamp, hour, day_of_week, elapsed_time, is_small_mode, is_test_mode,
-                     is_one_time, rasp_hostname, success, error_message, sleep_time)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     is_one_time, rasp_hostname, success, error_message, sleep_time, diff_sec)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
                         timestamp,
@@ -264,6 +266,7 @@ class MetricsCollector:
                         success,
                         error_message,
                         sleep_time,
+                        diff_sec,
                     ),
                 )
 
@@ -391,6 +394,24 @@ class MetricsAnalyzer:
             )
             display_image_hourly = [dict(row) for row in cursor.fetchall()]
 
+            # Display timing (diff_sec) hourly patterns
+            cursor.execute(
+                """
+                SELECT
+                    hour,
+                    COUNT(*) as count,
+                    AVG(CAST(diff_sec AS REAL)) as avg_diff_sec,
+                    MIN(CAST(diff_sec AS REAL)) as min_diff_sec,
+                    MAX(CAST(diff_sec AS REAL)) as max_diff_sec
+                FROM display_image_metrics
+                WHERE timestamp >= ? AND diff_sec IS NOT NULL AND is_one_time = 0
+                GROUP BY hour
+                ORDER BY hour
+            """,
+                (since,),
+            )
+            diff_sec_hourly = [dict(row) for row in cursor.fetchall()]
+
             # Get raw data for boxplots
             cursor.execute(
                 """
@@ -414,6 +435,18 @@ class MetricsAnalyzer:
             )
             display_image_raw = cursor.fetchall()
 
+            # Get diff_sec raw data for boxplots
+            cursor.execute(
+                """
+                SELECT hour, CAST(diff_sec AS REAL)
+                FROM display_image_metrics
+                WHERE timestamp >= ? AND diff_sec IS NOT NULL AND is_one_time = 0
+                ORDER BY hour
+            """,
+                (since,),
+            )
+            diff_sec_raw = cursor.fetchall()
+
             # Group raw data by hour for boxplots
             draw_panel_boxplot = {}
             for row in draw_panel_raw:
@@ -429,11 +462,20 @@ class MetricsAnalyzer:
                     display_image_boxplot[hour] = []
                 display_image_boxplot[hour].append(row[1])
 
+            diff_sec_boxplot = {}
+            for row in diff_sec_raw:
+                hour = row[0]
+                if hour not in diff_sec_boxplot:
+                    diff_sec_boxplot[hour] = []
+                diff_sec_boxplot[hour].append(row[1])
+
             return {
                 "draw_panel": draw_panel_hourly,
                 "display_image": display_image_hourly,
+                "diff_sec": diff_sec_hourly,
                 "draw_panel_boxplot": draw_panel_boxplot,
                 "display_image_boxplot": display_image_boxplot,
+                "diff_sec_boxplot": diff_sec_boxplot,
             }
 
     def detect_anomalies(self, days: int = 30, contamination: float = 0.1) -> Dict:

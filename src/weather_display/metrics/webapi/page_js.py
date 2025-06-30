@@ -274,6 +274,227 @@ def generate_chart_javascript():
             }
         }
 
+        function generateDiffSecCharts() {
+            // 表示タイミング 時間別パフォーマンス
+            const diffSecCtx = document.getElementById('diffSecHourlyChart');
+            if (diffSecCtx && hourlyData.diff_sec) {
+                new Chart(diffSecCtx, {
+                    type: 'line',
+                    data: {
+                        labels: hourlyData.diff_sec.map(d => d.hour + '時'),
+                        datasets: [{
+                            label: '平均タイミング差（秒）',
+                            data: hourlyData.diff_sec.map(d => d.avg_diff_sec),
+                            borderColor: 'rgb(255, 159, 64)',
+                            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                            tension: 0.1,
+                            borderWidth: 3,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }, {
+                            label: '最小タイミング差（秒）',
+                            data: hourlyData.diff_sec.map(d => d.min_diff_sec),
+                            borderColor: 'rgb(34, 197, 94)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            tension: 0.1,
+                            borderDash: [8, 4],
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointHoverRadius: 5
+                        }, {
+                            label: '最大タイミング差（秒）',
+                            data: hourlyData.diff_sec.map(d => d.max_diff_sec),
+                            borderColor: 'rgb(239, 68, 68)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.1,
+                            borderDash: [4, 4],
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointHoverRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 20,
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleColor: 'white',
+                                bodyColor: 'white',
+                                borderColor: 'rgba(255, 255, 255, 0.3)',
+                                borderWidth: 1,
+                                callbacks: {
+                                    title: function(context) {
+                                        return '時刻: ' + context[0].label;
+                                    },
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += context.parsed.y.toFixed(1) + '秒';
+                                        }
+                                        return label;
+                                    },
+                                    afterBody: function(context) {
+                                        if (context.length > 0) {
+                                            const dataIndex = context[0].dataIndex;
+                                            const hourData = hourlyData.diff_sec[dataIndex];
+                                            if (hourData) {
+                                                return '実行回数: ' + (hourData.count || 0) + '回';
+                                            }
+                                        }
+                                        return '';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                },
+                                title: {
+                                    display: true,
+                                    text: '時間',
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    }
+                                }
+                            },
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'タイミング差（秒）',
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(255, 159, 64, 0.2)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 表示タイミング 箱ひげ図
+            const diffSecBoxplotCtx = document.getElementById('diffSecBoxplotChart');
+            if (diffSecBoxplotCtx && hourlyData.diff_sec_boxplot) {
+                const boxplotData = [];
+                for (let hour = 0; hour < 24; hour++) {
+                    if (hourlyData.diff_sec_boxplot[hour]) {
+                        boxplotData.push({
+                            x: hour + '時',
+                            y: hourlyData.diff_sec_boxplot[hour]
+                        });
+                    }
+                }
+
+                new Chart(diffSecBoxplotCtx, {
+                    type: 'boxplot',
+                    data: {
+                        labels: boxplotData.map(d => d.x),
+                        datasets: [{
+                            label: 'タイミング差分布（秒）',
+                            data: boxplotData.map(d => d.y),
+                            backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                            borderColor: 'rgb(255, 159, 64)',
+                            borderWidth: 2,
+                            outlierColor: 'rgb(239, 68, 68)',
+                            medianColor: 'rgb(255, 193, 7)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleColor: 'white',
+                                bodyColor: 'white',
+                                callbacks: {
+                                    title: function(context) {
+                                        return '時刻: ' + context[0].label;
+                                    },
+                                    label: function(context) {
+                                        const stats = context.parsed;
+                                        return [
+                                            '最小値: ' + stats.min.toFixed(1) + '秒',
+                                            '第1四分位: ' + stats.q1.toFixed(1) + '秒',
+                                            '中央値: ' + stats.median.toFixed(1) + '秒',
+                                            '第3四分位: ' + stats.q3.toFixed(1) + '秒',
+                                            '最大値: ' + stats.max.toFixed(1) + '秒'
+                                        ];
+                                    },
+                                    afterBody: function(context) {
+                                        if (context.length > 0) {
+                                            const outliers = context[0].parsed.outliers || [];
+                                            if (outliers.length > 0) {
+                                                return '外れ値: ' + outliers.length + '個';
+                                            }
+                                        }
+                                        return '';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: '時間',
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    }
+                                }
+                            },
+                            y: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'タイミング差（秒）',
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
         function generateBoxplotCharts() {
             // 画像生成処理 箱ひげ図
             const drawPanelBoxplotCtx = document.getElementById('drawPanelBoxplotChart');

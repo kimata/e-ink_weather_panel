@@ -136,6 +136,9 @@ def generate_metrics_html(
                 <!-- 時間別パターン -->
                 {generate_hourly_patterns_section(hourly_patterns)}
 
+                <!-- 表示タイミング -->
+                {generate_diff_sec_section()}
+
                 <!-- パフォーマンス推移 -->
                 {generate_trends_section(trends)}
 
@@ -164,6 +167,7 @@ def generate_metrics_html(
 
         // チャート生成
         generateHourlyCharts();
+        generateDiffSecCharts();
         generateBoxplotCharts();
         generateTrendsCharts();
         generatePanelTrendsCharts();
@@ -661,6 +665,43 @@ def generate_anomalies_section(anomalies, performance_stats):
     """
 
     return anomalies_html
+
+
+def generate_diff_sec_section():
+    """表示タイミングセクションのHTML生成。"""
+    return """
+    <div class="section">
+        <h2 class="title is-4"><span class="icon"><i class="fas fa-clock"></i></span> 表示タイミング</h2>
+        <p class="subtitle is-6">表示実行時の分単位での秒数の偏差（0秒が理想的なタイミング）</p>
+
+        <div class="columns">
+            <div class="column is-half">
+                <div class="card metrics-card">
+                    <div class="card-header">
+                        <p class="card-header-title">表示タイミング - 時間別パフォーマンス</p>
+                    </div>
+                    <div class="card-content">
+                        <div class="chart-container">
+                            <canvas id="diffSecHourlyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="column is-half">
+                <div class="card metrics-card">
+                    <div class="card-header">
+                        <p class="card-header-title">表示タイミング - 時間別分布（箱ひげ図）</p>
+                    </div>
+                    <div class="card-content">
+                        <div class="chart-container">
+                            <canvas id="diffSecBoxplotChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    """
 
 
 def generate_panel_trends_section(panel_trends):

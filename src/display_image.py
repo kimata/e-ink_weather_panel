@@ -67,7 +67,9 @@ def execute(  # noqa: PLR0913
 
         weather_display.display.execute(ssh, config, config_file, small_mode, test_mode)
 
-        if not is_one_time:
+        if is_one_time:
+            diff_sec = 0
+        else:
             diff_sec = datetime.datetime.now(TIMEZONE).second
             if diff_sec > 30:
                 diff_sec = 60 - diff_sec
@@ -115,6 +117,7 @@ def execute(  # noqa: PLR0913
                 error_message=error_message,
                 timestamp=start_time,
                 sleep_time=sleep_time,
+                diff_sec=diff_sec,
                 db_path=db_path,
             )
         except Exception as e:
