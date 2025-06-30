@@ -51,8 +51,8 @@ def metrics_view():
         return flask.Response(html_content, mimetype="text/html")
 
     except Exception as e:
-        logging.error(f"メトリクス表示の生成エラー: {e}")
-        return flask.Response(f"エラー: {str(e)}", mimetype="text/plain", status=500)
+        logging.exception("メトリクス表示の生成エラー: %s", e)
+        return flask.Response(f"エラー: {e!s}", mimetype="text/plain", status=500)
 
 
 @blueprint.route("/favicon.ico", methods=["GET"])
@@ -67,7 +67,7 @@ def favicon():
         else:
             return flask.Response("", status=404)
     except Exception as e:
-        logging.error(f"favicon取得エラー: {e}")
+        logging.exception("favicon取得エラー: %s", e)
         return flask.Response("", status=500)
 
 
@@ -75,7 +75,6 @@ def generate_metrics_html(
     basic_stats, hourly_patterns, anomalies, trends, alerts, panel_trends, performance_stats
 ):
     """Bulma CSSを使用した包括的なメトリクスHTMLを生成。"""
-
     # JavaScript チャート用にデータをJSONに変換
     hourly_data_json = json.dumps(hourly_patterns)
     trends_data_json = json.dumps(trends)
@@ -104,7 +103,10 @@ def generate_metrics_html(
         .chart-container {{ position: relative; height: 450px; margin: 1rem 0; }}
         .chart-legend {{ margin-bottom: 1rem; }}
         .legend-item {{ display: inline-block; margin-right: 1rem; margin-bottom: 0.5rem; }}
-        .legend-color {{ display: inline-block; width: 20px; height: 3px; margin-right: 0.5rem; vertical-align: middle; }}
+        .legend-color {{
+            display: inline-block; width: 20px; height: 3px;
+            margin-right: 0.5rem; vertical-align: middle;
+        }}
         .legend-dashed {{ border-top: 3px dashed; height: 0; }}
         .legend-dotted {{ border-top: 3px dotted; height: 0; }}
         .anomaly-item {{
@@ -115,8 +117,14 @@ def generate_metrics_html(
             border-left: 4px solid #ffdd57;
         }}
         .alert-item {{ margin-bottom: 1rem; }}
-        .hourly-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }}
-        .japanese-font {{ font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", "Yu Gothic", sans-serif; }}
+        .hourly-grid {{
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }}
+        .japanese-font {{
+            font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+                         "Noto Sans CJK JP", "Yu Gothic", sans-serif;
+        }}
     </style>
 </head>
 <body class="japanese-font">
@@ -368,7 +376,10 @@ def generate_trends_section(trends):
     """パフォーマンス推移セクションのHTML生成。"""
     return """
     <div class="section">
-        <h2 class="title is-4"><span class="icon"><i class="fas fa-trending-up"></i></span> パフォーマンス推移</h2>
+        <h2 class="title is-4">
+            <span class="icon"><i class="fas fa-trending-up"></i></span>
+            パフォーマンス推移
+        </h2>
 
         <div class="columns">
             <div class="column">
@@ -420,7 +431,8 @@ def generate_anomalies_section(anomalies, performance_stats):
 
         <div class="notification is-info is-light">
             <p><strong>異常検知について：</strong></p>
-            <p>機械学習の<strong>Isolation Forest</strong>アルゴリズムを使用して、以下の要素から異常なパターンを検知しています：</p>
+            <p>機械学習の<strong>Isolation Forest</strong>アルゴリズムを使用して、
+               以下の要素から異常なパターンを検知しています：</p>
             <ul>
                 <li><strong>処理時間</strong>：通常より極端に長い、または短い処理時間</li>
                 <li><strong>曜日パターン</strong>：通常の曜日パターンと異なる実行</li>
@@ -458,7 +470,7 @@ def generate_anomalies_section(anomalies, performance_stats):
         for anomaly in sorted_anomalies[:20]:  # 最新20件を表示
             timestamp_str = anomaly.get("timestamp", "不明")
             elapsed_time = anomaly.get("elapsed_time", 0)
-            hour = anomaly.get("hour", 0)
+            # hour = anomaly.get("hour", 0)  # unused
             error_code = anomaly.get("error_code", 0)
 
             # 異常の種類を分析（統計情報を使用）
@@ -467,7 +479,6 @@ def generate_anomalies_section(anomalies, performance_stats):
             std_time = dp_stats.get("std_time", 0)
 
             anomaly_reasons = []
-            reason_tooltips = []
 
             anomaly_details = []
 
@@ -526,7 +537,7 @@ def generate_anomalies_section(anomalies, performance_stats):
                     formatted_time += f" ({elapsed_text})"
                 else:
                     formatted_time = "不明"
-            except:
+            except Exception:
                 formatted_time = timestamp_str
 
             reason_tags = " ".join(anomaly_reasons)
@@ -542,7 +553,7 @@ def generate_anomalies_section(anomalies, performance_stats):
             </div>"""
         anomalies_html += "</div>"
 
-    anomalies_html += """
+    anomalies_html += f"""
                     </div>
                 </div>
             </div>
@@ -556,14 +567,14 @@ def generate_anomalies_section(anomalies, performance_stats):
                         <div class="columns">
                             <div class="column has-text-centered">
                                 <p class="heading">検出された異常数</p>
-                                <p class="stat-number has-text-warning">{}</p>
+                                <p class="stat-number has-text-warning">{di_anomaly_count}</p>
                             </div>
                             <div class="column has-text-centered">
                                 <p class="heading">異常率</p>
-                                <p class="stat-number has-text-warning">{:.2f}%</p>
+                                <p class="stat-number has-text-warning">{di_anomaly_rate:.2f}%</p>
                             </div>
                         </div>
-    """.format(di_anomaly_count, di_anomaly_rate)
+    """
 
     # 個別の異常がある場合は表示
     if display_image_anomalies.get("anomalies"):
@@ -575,7 +586,7 @@ def generate_anomalies_section(anomalies, performance_stats):
         for anomaly in sorted_anomalies[:20]:  # 最新20件を表示
             timestamp_str = anomaly.get("timestamp", "不明")
             elapsed_time = anomaly.get("elapsed_time", 0)
-            hour = anomaly.get("hour", 0)
+            # hour = anomaly.get("hour", 0)  # unused
             success = anomaly.get("success", True)
 
             # 異常の種類を分析（表示実行処理用、統計情報を使用）
@@ -642,7 +653,7 @@ def generate_anomalies_section(anomalies, performance_stats):
                     formatted_time += f" ({elapsed_text})"
                 else:
                     formatted_time = "不明"
-            except:
+            except Exception:
                 formatted_time = timestamp_str
 
             reason_tags = " ".join(anomaly_reasons)
@@ -706,11 +717,14 @@ def generate_diff_sec_section():
     """
 
 
-def generate_panel_trends_section(panel_trends):
+def generate_panel_trends_section(panel_trends):  # noqa: ARG001
     """パネル別処理時間推移セクションのHTML生成。"""
     return """
     <div class="section">
-        <h2 class="title is-4"><span class="icon"><i class="fas fa-puzzle-piece"></i></span> パネル別処理時間ヒストグラム</h2>
+        <h2 class="title is-4">
+            <span class="icon"><i class="fas fa-puzzle-piece"></i></span>
+            パネル別処理時間ヒストグラム
+        </h2>
         <p class="subtitle is-6">各パネルの処理時間分布をヒストグラムで表示（横軸：時間、縦軸：割合）</p>
 
         <div class="columns is-multiline" id="panelTrendsContainer">

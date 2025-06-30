@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""
-Metrics collection and analysis module for weather panel system.
-"""
+"""Metrics collection and analysis module for weather panel system."""
 
 from .collector import (
     MetricsAnalyzer,
@@ -11,8 +9,8 @@ from .collector import (
 )
 
 __all__ = [
-    "MetricsCollector",
     "MetricsAnalyzer",
-    "collect_draw_panel_metrics",
+    "MetricsCollector",
     "collect_display_image_metrics",
+    "collect_draw_panel_metrics",
 ]

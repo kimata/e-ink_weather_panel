@@ -39,7 +39,7 @@ def create_app(config):
 
     app.register_blueprint(weather_display.metrics.webapi.page.blueprint)
 
-    my_lib.webapp.config.show_handler_list(app)
+    my_lib.webapp.config.show_handler_list(app, True)
 
     # app.debug = True
 

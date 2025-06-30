@@ -13,13 +13,11 @@ import datetime
 import logging
 import pathlib
 import sqlite3
-import statistics
 import zoneinfo
 from contextlib import contextmanager
-from typing import Dict, List, Optional, Tuple, Union
+from typing import List, Optional, Union
 
 import numpy as np
-from scipy import stats
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 
@@ -31,6 +29,7 @@ class MetricsCollector:
     """Collects and stores performance metrics for weather panel operations."""
 
     def __init__(self, db_path: Union[str, pathlib.Path] = DEFAULT_DB_PATH):
+        """Initialize MetricsCollector with database path."""
         self.db_path = pathlib.Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_database()
@@ -116,7 +115,7 @@ class MetricsCollector:
         except Exception as e:
             if conn:
                 conn.rollback()
-            logging.error("Database error: %s", e)
+            logging.exception("Database error: %s", e)
             raise
         finally:
             if conn:
@@ -125,7 +124,7 @@ class MetricsCollector:
     def log_draw_panel_metrics(
         self,
         total_elapsed_time: float,
-        panel_metrics: List[Dict],
+        panel_metrics: List[dict],
         is_small_mode: bool = False,
         is_test_mode: bool = False,
         is_dummy_mode: bool = False,
@@ -298,13 +297,13 @@ class MetricsAnalyzer:
             conn.row_factory = sqlite3.Row
             yield conn
         except Exception as e:
-            logging.error("Database error: %s", e)
+            logging.exception("Database error: %s", e)
             raise
         finally:
             if conn:
                 conn.close()
 
-    def get_basic_statistics(self, days: int = 30) -> Dict:
+    def get_basic_statistics(self, days: int = 30) -> dict:
         """Get basic statistics for the last N days."""
         since = datetime.datetime.now(TIMEZONE) - datetime.timedelta(days=days)
 
@@ -349,7 +348,7 @@ class MetricsAnalyzer:
                 "display_image": display_image_stats,
             }
 
-    def get_hourly_patterns(self, days: int = 30) -> Dict:
+    def get_hourly_patterns(self, days: int = 30) -> dict:
         """Analyze performance patterns by hour of day."""
         since = datetime.datetime.now(TIMEZONE) - datetime.timedelta(days=days)
 
@@ -478,7 +477,7 @@ class MetricsAnalyzer:
                 "diff_sec_boxplot": diff_sec_boxplot,
             }
 
-    def detect_anomalies(self, days: int = 30, contamination: float = 0.1) -> Dict:
+    def detect_anomalies(self, days: int = 30, contamination: float = 0.1) -> dict:
         """
         Detect anomalies in performance metrics using Isolation Forest.
 
@@ -592,7 +591,7 @@ class MetricsAnalyzer:
 
         return results
 
-    def get_performance_trends(self, days: int = 30) -> Dict:
+    def get_performance_trends(self, days: int = 30) -> dict:
         """Analyze performance trends over time."""
         since = datetime.datetime.now(TIMEZONE) - datetime.timedelta(days=days)
 
@@ -638,7 +637,7 @@ class MetricsAnalyzer:
                 "display_image": display_image_trends,
             }
 
-    def check_performance_alerts(self, thresholds: Optional[Dict] = None) -> List[Dict]:
+    def check_performance_alerts(self, thresholds: Optional[dict] = None) -> List[dict]:
         """
         Check for performance alerts based on thresholds.
 
@@ -741,7 +740,7 @@ class MetricsAnalyzer:
 
         return alerts
 
-    def get_panel_performance_trends(self, days: int = 30) -> Dict:
+    def get_panel_performance_trends(self, days: int = 30) -> dict:
         """パネル別の処理時間推移を取得する。"""
         since = datetime.datetime.now(TIMEZONE) - datetime.timedelta(days=days)
 
@@ -810,9 +809,7 @@ class MetricsAnalyzer:
             draw_panel_times = [row[0] for row in cursor.fetchall()]
 
             if len(draw_panel_times) > 1:
-                import statistics
-
-                draw_panel_stats["std_time"] = statistics.stdev(draw_panel_times)
+                draw_panel_stats["std_time"] = np.std(draw_panel_times, ddof=1)
             else:
                 draw_panel_stats["std_time"] = 0
 
@@ -842,7 +839,7 @@ class MetricsAnalyzer:
             display_image_times = [row[0] for row in cursor.fetchall()]
 
             if len(display_image_times) > 1:
-                display_image_stats["std_time"] = statistics.stdev(display_image_times)
+                display_image_stats["std_time"] = np.std(display_image_times, ddof=1)
             else:
                 display_image_stats["std_time"] = 0
 
