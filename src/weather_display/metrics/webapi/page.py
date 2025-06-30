@@ -154,9 +154,20 @@ def generate_metrics_html(  # noqa: PLR0913
     <script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .metrics-card {{ margin-bottom: 1.5rem; }}
+        .metrics-card {{ margin-bottom: 1rem; }}
+        @media (max-width: 768px) {{
+            .metrics-card {{ margin-bottom: 0.75rem; }}
+        }}
         .stat-number {{ font-size: 2rem; font-weight: bold; }}
-        .chart-container {{ position: relative; height: 450px; margin: 1rem 0; }}
+        .chart-container {{ position: relative; height: 350px; margin: 0.5rem 0; }}
+        @media (max-width: 768px) {{
+            .chart-container {{ height: 300px; margin: 0.25rem 0; }}
+            .container.is-fluid {{ padding: 0.25rem !important; }}
+            .section {{ padding: 0.5rem 0.25rem !important; }}
+            .card {{ margin-bottom: 1rem !important; }}
+            .columns {{ margin: 0 !important; }}
+            .column {{ padding: 0.25rem !important; }}
+        }}
         .chart-legend {{ margin-bottom: 1rem; }}
         .legend-item {{ display: inline-block; margin-right: 1rem; margin-bottom: 0.5rem; }}
         .legend-color {{
@@ -184,9 +195,9 @@ def generate_metrics_html(  # noqa: PLR0913
     </style>
 </head>
 <body class="japanese-font">
-    <div class="container is-fluid">
-        <section class="section">
-            <div class="container">
+    <div class="container is-fluid" style="padding: 0.5rem;">
+        <section class="section" style="padding: 1rem 0.5rem;">
+            <div class="container" style="max-width: 100%; padding: 0;">
                 <h1 class="title is-2 has-text-centered">
                     <span class="icon is-large"><i class="fas fa-chart-line"></i></span>
                     天気パネル メトリクス ダッシュボード
@@ -809,7 +820,7 @@ def generate_panel_trends_section(panel_trends):  # noqa: ARG001
         </h2>
         <p class="subtitle is-6">各パネルの処理時間分布をヒストグラムで表示（横軸：時間、縦軸：割合）</p>
 
-        <div class="columns is-multiline is-variable is-2" id="panelTrendsContainer"
+        <div class="columns is-multiline is-variable is-1" id="panelTrendsContainer"
              style="justify-content: flex-start;">
             <!-- パネル別ヒストグラムがJavaScriptで動的に生成される -->
         </div>

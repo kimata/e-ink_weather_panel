@@ -65,7 +65,7 @@ def generate_chart_javascript():
                                 position: 'top',
                                 labels: {
                                     usePointStyle: true,
-                                    padding: 20,
+                                    padding: 8,
                                     font: {
                                         size: 12
                                     }
@@ -114,7 +114,8 @@ def generate_chart_javascript():
                             x: {
                                 display: true,
                                 grid: {
-                                    color: 'rgba(0, 0, 0, 0.1)'
+                                    color: 'rgba(0, 0, 0, 0.1)',
+                                    display: true
                                 },
                                 title: {
                                     display: true,
@@ -325,7 +326,7 @@ def generate_chart_javascript():
                                 position: 'top',
                                 labels: {
                                     usePointStyle: true,
-                                    padding: 20,
+                                    padding: 8,
                                     font: {
                                         size: 12
                                     }
@@ -370,7 +371,8 @@ def generate_chart_javascript():
                             x: {
                                 display: true,
                                 grid: {
-                                    color: 'rgba(0, 0, 0, 0.1)'
+                                    color: 'rgba(0, 0, 0, 0.1)',
+                                    display: true
                                 },
                                 title: {
                                     display: true,
