@@ -72,8 +72,8 @@ def execute(  # noqa: PLR0913
         else:
             diff_sec = datetime.datetime.now(TIMEZONE).second
             if diff_sec > 30:
-                diff_sec = 60 - diff_sec
-            if diff_sec > 3:
+                diff_sec = diff_sec - 60
+            if abs(diff_sec) > 3:
                 logging.warning("Update timing gap is large: %d", diff_sec)
 
             # NOTE: 更新されていることが直感的に理解しやすくなるように、
