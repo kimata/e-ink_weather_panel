@@ -51,7 +51,7 @@ def metrics_view():
         return flask.Response(html_content, mimetype="text/html")
 
     except Exception as e:
-        logging.exception("メトリクス表示の生成エラー: %s", e)
+        logging.exception("メトリクス表示の生成エラー: %s")
         return flask.Response(f"エラー: {e!s}", mimetype="text/plain", status=500)
 
 
@@ -66,8 +66,8 @@ def favicon():
             return flask.send_file(favicon_path, mimetype="image/x-icon")
         else:
             return flask.Response("", status=404)
-    except Exception as e:
-        logging.exception("favicon取得エラー: %s", e)
+    except Exception:
+        logging.exception("favicon取得エラー: %s")
         return flask.Response("", status=500)
 
 
@@ -203,7 +203,11 @@ def generate_alerts_section(alerts):
         </div>
         """
 
-    alerts_html = '<div class="section"><h2 class="title is-4"><span class="icon"><i class="fas fa-exclamation-triangle"></i></span> パフォーマンスアラート</h2>'
+    alerts_html = (
+        '<div class="section"><h2 class="title is-4">'
+        '<span class="icon"><i class="fas fa-exclamation-triangle"></i></span> '
+        "パフォーマンスアラート</h2>"
+    )
 
     for alert in alerts:
         severity_class = {"critical": "is-danger", "warning": "is-warning", "info": "is-info"}.get(
@@ -230,7 +234,10 @@ def generate_basic_stats_section(basic_stats):
 
     return f"""
     <div class="section">
-        <h2 class="title is-4"><span class="icon"><i class="fas fa-chart-bar"></i></span> 基本統計（過去100日間）</h2>
+        <h2 class="title is-4">
+            <span class="icon"><i class="fas fa-chart-bar"></i></span>
+            基本統計（過去100日間）
+        </h2>
 
         <div class="columns">
             <div class="column">
@@ -243,25 +250,33 @@ def generate_basic_stats_section(basic_stats):
                             <div class="column is-half">
                                 <div class="has-text-centered">
                                     <p class="heading">総実行回数</p>
-                                    <p class="stat-number has-text-primary">{draw_panel.get("total_operations", 0):,}</p>
+                                    <p class="stat-number has-text-primary">
+                                    {draw_panel.get("total_operations", 0):,}
+                                </p>
                                 </div>
                             </div>
                             <div class="column is-half">
                                 <div class="has-text-centered">
                                     <p class="heading">エラー回数</p>
-                                    <p class="stat-number has-text-danger">{draw_panel.get("error_count", 0):,}</p>
+                                    <p class="stat-number has-text-danger">
+                                    {draw_panel.get("error_count", 0):,}
+                                </p>
                                 </div>
                             </div>
                             <div class="column is-half">
                                 <div class="has-text-centered">
                                     <p class="heading">平均処理時間（秒）</p>
-                                    <p class="stat-number has-text-info">{draw_panel.get("avg_elapsed_time", 0):.2f}</p>
+                                    <p class="stat-number has-text-info">
+                                    {draw_panel.get("avg_elapsed_time", 0):.2f}
+                                </p>
                                 </div>
                             </div>
                             <div class="column is-half">
                                 <div class="has-text-centered">
                                     <p class="heading">最大処理時間（秒）</p>
-                                    <p class="stat-number has-text-warning">{draw_panel.get("max_elapsed_time", 0):.2f}</p>
+                                    <p class="stat-number has-text-warning">
+                                    {draw_panel.get("max_elapsed_time", 0):.2f}
+                                </p>
                                 </div>
                             </div>
                         </div>
@@ -279,25 +294,33 @@ def generate_basic_stats_section(basic_stats):
                             <div class="column is-half">
                                 <div class="has-text-centered">
                                     <p class="heading">総実行回数</p>
-                                    <p class="stat-number has-text-primary">{display_image.get("total_operations", 0):,}</p>
+                                    <p class="stat-number has-text-primary">
+                                    {display_image.get("total_operations", 0):,}
+                                </p>
                                 </div>
                             </div>
                             <div class="column is-half">
                                 <div class="has-text-centered">
                                     <p class="heading">失敗回数</p>
-                                    <p class="stat-number has-text-danger">{display_image.get("failure_count", 0):,}</p>
+                                    <p class="stat-number has-text-danger">
+                                    {display_image.get("failure_count", 0):,}
+                                </p>
                                 </div>
                             </div>
                             <div class="column is-half">
                                 <div class="has-text-centered">
                                     <p class="heading">平均処理時間（秒）</p>
-                                    <p class="stat-number has-text-info">{display_image.get("avg_elapsed_time", 0):.2f}</p>
+                                    <p class="stat-number has-text-info">
+                                    {display_image.get("avg_elapsed_time", 0):.2f}
+                                </p>
                                 </div>
                             </div>
                             <div class="column is-half">
                                 <div class="has-text-centered">
                                     <p class="heading">最大処理時間（秒）</p>
-                                    <p class="stat-number has-text-warning">{display_image.get("max_elapsed_time", 0):.2f}</p>
+                                    <p class="stat-number has-text-warning">
+                                    {display_image.get("max_elapsed_time", 0):.2f}
+                                </p>
                                 </div>
                             </div>
                         </div>
@@ -309,11 +332,14 @@ def generate_basic_stats_section(basic_stats):
     """
 
 
-def generate_hourly_patterns_section(hourly_patterns):
+def generate_hourly_patterns_section(hourly_patterns):  # noqa: ARG001
     """時間別パターンセクションのHTML生成。"""
     return """
     <div class="section">
-        <h2 class="title is-4"><span class="icon"><i class="fas fa-clock"></i></span> 時間別パフォーマンスパターン</h2>
+        <h2 class="title is-4">
+            <span class="icon"><i class="fas fa-clock"></i></span>
+            時間別パフォーマンスパターン
+        </h2>
 
         <div class="columns">
             <div class="column is-half">
@@ -372,7 +398,7 @@ def generate_hourly_patterns_section(hourly_patterns):
     """
 
 
-def generate_trends_section(trends):
+def generate_trends_section(trends):  # noqa: ARG001
     """パフォーマンス推移セクションのHTML生成。"""
     return """
     <div class="section">
@@ -414,7 +440,7 @@ def generate_trends_section(trends):
     """
 
 
-def generate_anomalies_section(anomalies, performance_stats):
+def generate_anomalies_section(anomalies, performance_stats):  # noqa: C901, PLR0912, PLR0915
     """異常検知セクションのHTML生成。"""
     draw_panel_anomalies = anomalies.get("draw_panel", {})
     display_image_anomalies = anomalies.get("display_image", {})

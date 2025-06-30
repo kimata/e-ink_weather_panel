@@ -15,7 +15,6 @@ import pathlib
 import sqlite3
 import zoneinfo
 from contextlib import contextmanager
-from typing import List, Optional, Union
 
 import numpy as np
 from sklearn.ensemble import IsolationForest
@@ -28,7 +27,7 @@ DEFAULT_DB_PATH = pathlib.Path("data/metrics.db")
 class MetricsCollector:
     """Collects and stores performance metrics for weather panel operations."""
 
-    def __init__(self, db_path: Union[str, pathlib.Path] = DEFAULT_DB_PATH):
+    def __init__(self, db_path: str | pathlib.Path = DEFAULT_DB_PATH):
         """Initialize MetricsCollector with database path."""
         self.db_path = pathlib.Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -112,10 +111,10 @@ class MetricsCollector:
             conn = sqlite3.connect(self.db_path, timeout=30)
             conn.row_factory = sqlite3.Row
             yield conn
-        except Exception as e:
+        except Exception:
             if conn:
                 conn.rollback()
-            logging.exception("Database error: %s", e)
+            logging.exception("Database error: %s")
             raise
         finally:
             if conn:
@@ -124,12 +123,12 @@ class MetricsCollector:
     def log_draw_panel_metrics(
         self,
         total_elapsed_time: float,
-        panel_metrics: List[dict],
+        panel_metrics: list[dict],
         is_small_mode: bool = False,
         is_test_mode: bool = False,
         is_dummy_mode: bool = False,
         error_code: int = 0,
-        timestamp: Optional[datetime.datetime] = None,
+        timestamp: datetime.datetime | None = None,
     ) -> int:
         """
         Log draw_panel operation metrics.
@@ -145,6 +144,7 @@ class MetricsCollector:
 
         Returns:
             ID of the inserted draw_panel_metrics record
+
         """
         if timestamp is None:
             timestamp = datetime.datetime.now(TIMEZONE)
@@ -203,8 +203,8 @@ class MetricsCollector:
                 )
                 return draw_panel_id
 
-        except Exception as e:
-            logging.error("Failed to log draw_panel metrics: %s", e)
+        except Exception:
+            logging.exception("Failed to log draw_panel metrics: %s")
             return -1
 
     def log_display_image_metrics(
@@ -213,12 +213,12 @@ class MetricsCollector:
         is_small_mode: bool = False,
         is_test_mode: bool = False,
         is_one_time: bool = False,
-        rasp_hostname: Optional[str] = None,
+        rasp_hostname: str | None = None,
         success: bool = True,
-        error_message: Optional[str] = None,
-        timestamp: Optional[datetime.datetime] = None,
-        sleep_time: Optional[float] = None,
-        diff_sec: Optional[int] = None,
+        error_message: str | None = None,
+        timestamp: datetime.datetime | None = None,
+        sleep_time: float | None = None,
+        diff_sec: int | None = None,
     ) -> int:
         """
         Log display_image operation metrics.
@@ -275,15 +275,15 @@ class MetricsCollector:
                 )
                 return cursor.lastrowid
 
-        except Exception as e:
-            logging.error("Failed to log display_image metrics: %s", e)
+        except Exception:
+            logging.exception("Failed to log display_image metrics: %s")
             return -1
 
 
 class MetricsAnalyzer:
     """Analyzes metrics data for patterns and anomalies."""
 
-    def __init__(self, db_path: Union[str, pathlib.Path] = DEFAULT_DB_PATH):
+    def __init__(self, db_path: str | pathlib.Path = DEFAULT_DB_PATH):
         self.db_path = pathlib.Path(db_path)
         if not self.db_path.exists():
             raise FileNotFoundError(f"Metrics database not found: {self.db_path}")
@@ -296,8 +296,8 @@ class MetricsAnalyzer:
             conn = sqlite3.connect(self.db_path, timeout=30)
             conn.row_factory = sqlite3.Row
             yield conn
-        except Exception as e:
-            logging.exception("Database error: %s", e)
+        except Exception:
+            logging.exception("Database error: %s")
             raise
         finally:
             if conn:
@@ -637,7 +637,7 @@ class MetricsAnalyzer:
                 "display_image": display_image_trends,
             }
 
-    def check_performance_alerts(self, thresholds: Optional[dict] = None) -> List[dict]:
+    def check_performance_alerts(self, thresholds: dict | None = None) -> list[dict]:
         """
         Check for performance alerts based on thresholds.
 
@@ -646,6 +646,7 @@ class MetricsAnalyzer:
 
         Returns:
             List of alert dictionaries
+
         """
         if thresholds is None:
             thresholds = {
@@ -850,7 +851,7 @@ class MetricsAnalyzer:
 _metrics_collector = None
 
 
-def get_metrics_collector(db_path: Union[str, pathlib.Path] = DEFAULT_DB_PATH) -> MetricsCollector:
+def get_metrics_collector(db_path: str | pathlib.Path = DEFAULT_DB_PATH) -> MetricsCollector:
     """Get or create global metrics collector instance."""
     global _metrics_collector
     if _metrics_collector is None or _metrics_collector.db_path != pathlib.Path(db_path):
@@ -858,7 +859,7 @@ def get_metrics_collector(db_path: Union[str, pathlib.Path] = DEFAULT_DB_PATH) -
     return _metrics_collector
 
 
-def collect_draw_panel_metrics(*args, db_path: Union[str, pathlib.Path] = None, **kwargs) -> int:
+def collect_draw_panel_metrics(*args, db_path: str | pathlib.Path | None = None, **kwargs) -> int:
     """Convenience function to collect draw_panel metrics."""
     if db_path is not None:
         kwargs.pop("db_path", None)  # Remove db_path from kwargs to avoid duplicate
@@ -866,7 +867,7 @@ def collect_draw_panel_metrics(*args, db_path: Union[str, pathlib.Path] = None, 
     return get_metrics_collector().log_draw_panel_metrics(*args, **kwargs)
 
 
-def collect_display_image_metrics(*args, db_path: Union[str, pathlib.Path] = None, **kwargs) -> int:
+def collect_display_image_metrics(*args, db_path: str | pathlib.Path | None = None, **kwargs) -> int:
     """Convenience function to collect display_image metrics."""
     if db_path is not None:
         kwargs.pop("db_path", None)  # Remove db_path from kwargs to avoid duplicate
