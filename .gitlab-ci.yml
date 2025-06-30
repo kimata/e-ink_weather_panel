@@ -308,7 +308,7 @@ test-webapp:
             docker run --rm --detach=true --tty=true
             --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME}
             ${CI_REGISTRY_IMAGE}:${TAG} ./src/webui.py -c config-demo.yaml -D
-        - uv run playwright install
+        - uv run playwright install --with-deps chromium
         - >
             uv run pytest tests/test_playwright.py
             --host $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'
