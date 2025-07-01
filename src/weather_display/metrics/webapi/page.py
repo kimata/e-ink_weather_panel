@@ -248,6 +248,7 @@ def generate_metrics_html(  # noqa: PLR0913
         generateBoxplotCharts();
         generateTrendsCharts();
         generatePanelTrendsCharts();
+        generatePanelTimeSeriesChart();
 
         """
         + page_js.generate_chart_javascript()
@@ -528,10 +529,9 @@ def generate_anomalies_section(anomalies, performance_stats):  # noqa: C901, PLR
                以下の要素から異常なパターンを検知しています：</p>
             <ul>
                 <li><strong>処理時間</strong>：通常より極端に長い、または短い処理時間</li>
-                <li><strong>曜日パターン</strong>：通常の曜日パターンと異なる実行</li>
                 <li><strong>エラー発生</strong>：エラーの有無も考慮要素</li>
             </ul>
-            <p>例：異常に長い処理時間、平日と休日の処理パターンの違い、エラーを伴う異常な処理時間など</p>
+            <p>例：異常に長い処理時間、エラーを伴う異常な処理時間など</p>
         </div>
 
         <div class="columns">
@@ -823,6 +823,29 @@ def generate_panel_trends_section(panel_trends):  # noqa: ARG001
         <div class="columns is-multiline is-variable is-1" id="panelTrendsContainer"
              style="justify-content: flex-start;">
             <!-- パネル別ヒストグラムがJavaScriptで動的に生成される -->
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="title is-4">
+            <span class="icon"><i class="fas fa-chart-line"></i></span>
+            パネル別処理時間推移
+        </h2>
+        <p class="subtitle is-6">各パネルの処理時間の時系列推移グラフ（時間軸での処理時間変化）</p>
+
+        <div class="columns">
+            <div class="column">
+                <div class="card metrics-card">
+                    <div class="card-header">
+                        <p class="card-header-title">パネル別処理時間推移</p>
+                    </div>
+                    <div class="card-content">
+                        <div class="chart-container">
+                            <canvas id="panelTimeSeriesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     """

@@ -1048,4 +1048,121 @@ def generate_chart_javascript():
             ];
             return colors[index % colors.length];
         }
+
+        function generatePanelTimeSeriesChart() {
+            // パネル別処理時間推移の時系列グラフ
+            const panelTimeSeriesCtx = document.getElementById('panelTimeSeriesChart');
+            if (!panelTimeSeriesCtx || !panelTrendsData) return;
+
+            // パネル名を取得し、データセットを準備
+            const panelNames = Object.keys(panelTrendsData);
+            const datasets = [];
+
+            panelNames.forEach((panelName, index) => {
+                const data = panelTrendsData[panelName];
+                if (!data || data.length === 0) return;
+
+                // 時系列データを作成（日付とデータのペア）
+                const timeSeriesData = data.map((value, i) => ({
+                    x: i,
+                    y: value
+                }));
+
+                datasets.push({
+                    label: panelName + ' パネル',
+                    data: timeSeriesData,
+                    borderColor: getBorderColor(index),
+                    backgroundColor: getBoxplotColor(index),
+                    tension: 0.1,
+                    borderWidth: 2,
+                    pointRadius: 1,
+                    pointHoverRadius: 4,
+                    fill: false
+                });
+            });
+
+            new Chart(panelTimeSeriesCtx, {
+                type: 'line',
+                data: {
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 8,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            borderColor: 'rgba(255, 255, 255, 0.3)',
+                            borderWidth: 1,
+                            callbacks: {
+                                title: function(context) {
+                                    return 'データポイント: ' + (context[0].dataIndex + 1);
+                                },
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y.toFixed(2) + '秒';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'データポイント（時系列順）',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)',
+                                display: true
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            title: {
+                                display: true,
+                                text: '処理時間（秒）',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
     """
