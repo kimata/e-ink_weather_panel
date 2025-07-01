@@ -33,6 +33,16 @@ def metrics_view():
         # 設定からデータベースパスを取得
         db_path = config.get("metrics", {}).get("data", "data/metrics.db")
 
+        # データベースファイルの存在確認
+        if not pathlib.Path(db_path).exists():
+            return flask.Response(
+                f"<html><body><h1>メトリクスデータベースが見つかりません</h1>"
+                f"<p>データベースファイル: {db_path}</p>"
+                f"<p>システムが十分に動作してからメトリクスが生成されます。</p></body></html>",
+                mimetype="text/html",
+                status=503,
+            )
+
         # メトリクス分析器を初期化
         analyzer = weather_display.metrics.collector.MetricsAnalyzer(db_path)
 
