@@ -19,7 +19,6 @@ import datetime
 import logging
 import os
 import pathlib
-import statistics
 import sys
 import time
 import traceback
@@ -32,6 +31,7 @@ import my_lib.proc_util
 import weather_display.display
 import weather_display.metrics.collector
 import weather_display.metrics.server
+import weather_display.timing_filter
 
 TIMEZONE = zoneinfo.ZoneInfo("Asia/Tokyo")
 
@@ -42,6 +42,7 @@ SCHEMA_CONFIG_SMALL = "config-small.schema"
 NOTIFY_THRESHOLD = 2
 
 elapsed_list = []
+timing_controller = None
 
 
 def execute(  # noqa: PLR0913
@@ -70,27 +71,32 @@ def execute(  # noqa: PLR0913
         if is_one_time:
             diff_sec = 0
         else:
-            diff_sec = datetime.datetime.now(TIMEZONE).second
-            if diff_sec > 30:
-                diff_sec = diff_sec - 60
-            if abs(diff_sec) > 3:
-                logging.warning("Update timing gap is large: %d", diff_sec)
+            # diff_secはtiming_controllerで計算されるため、ここでは初期化のみ
+            diff_sec = 0
 
             # NOTE: 更新されていることが直感的に理解しやすくなるように、
             # 更新完了タイミングを各分の 0 秒に合わせる
             elapsed = time.perf_counter() - start
 
+            # カルマンフィルタを使用したタイミング制御
+            global timing_controller
+            if timing_controller is None:
+                timing_controller = weather_display.timing_filter.TimingController(
+                    update_interval=config["panel"]["update"]["interval"], target_second=0
+                )
+
+            sleep_time, diff_sec = timing_controller.calculate_sleep_time(
+                elapsed, datetime.datetime.now(TIMEZONE)
+            )
+
+            # タイミングのずれが大きい場合は警告
+            if abs(diff_sec) > 3:
+                logging.warning("Update timing gap is large: %d", diff_sec)
+
+            # 従来の統計ベース手法も維持（比較用）
             if len(elapsed_list) >= 10:
                 elapsed_list.pop(0)
             elapsed_list.append(elapsed)
-
-            sleep_time = (
-                config["panel"]["update"]["interval"]
-                - statistics.median(elapsed_list)
-                - datetime.datetime.now(TIMEZONE).second
-            )
-            while sleep_time < 0:
-                sleep_time += 60
 
     except Exception as e:
         success = False
