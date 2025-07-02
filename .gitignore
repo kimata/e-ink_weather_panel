@@ -58,6 +58,7 @@ key/
 img/
 react/dist
 node_modules/
+tmp-my-lib/
 
 # Logs
 *.log
