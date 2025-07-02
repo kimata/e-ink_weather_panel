@@ -853,7 +853,7 @@ def generate_chart_javascript():
             if (diffSecTrendsCtx && trendsData.diff_sec_boxplot) {
                 const boxplotData = trendsData.diff_sec_boxplot.map(d => ({
                     x: d.date,
-                    y: d.diff_secs
+                    y: d.elapsed_times
                 }));
 
                 new Chart(diffSecTrendsCtx, {

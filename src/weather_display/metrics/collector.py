@@ -661,6 +661,18 @@ class MetricsAnalyzer:
             )
             display_image_raw = cursor.fetchall()
 
+            # Get raw diff_sec data for boxplot by day
+            cursor.execute(
+                """
+                SELECT DATE(timestamp) as date, CAST(diff_sec AS REAL)
+                FROM display_image_metrics
+                WHERE timestamp >= ? AND diff_sec IS NOT NULL AND is_one_time = 0
+                ORDER BY date
+            """,
+                (since,),
+            )
+            diff_sec_raw = cursor.fetchall()
+
             # Group by date for boxplot data
             draw_panel_boxplot = {}
             for row in draw_panel_raw:
@@ -676,6 +688,13 @@ class MetricsAnalyzer:
                     display_image_boxplot[date] = []
                 display_image_boxplot[date].append(row[1])
 
+            diff_sec_boxplot = {}
+            for row in diff_sec_raw:
+                date = row[0]
+                if date not in diff_sec_boxplot:
+                    diff_sec_boxplot[date] = []
+                diff_sec_boxplot[date].append(row[1])
+
             # Convert to list format for JavaScript
             draw_panel_boxplot_list = [
                 {"date": date, "elapsed_times": times} for date, times in draw_panel_boxplot.items()
@@ -683,12 +702,16 @@ class MetricsAnalyzer:
             display_image_boxplot_list = [
                 {"date": date, "elapsed_times": times} for date, times in display_image_boxplot.items()
             ]
+            diff_sec_boxplot_list = [
+                {"date": date, "elapsed_times": times} for date, times in diff_sec_boxplot.items()
+            ]
 
             return {
                 "draw_panel": draw_panel_trends,
                 "display_image": display_image_trends,
                 "draw_panel_boxplot": draw_panel_boxplot_list,
                 "display_image_boxplot": display_image_boxplot_list,
+                "diff_sec_boxplot": diff_sec_boxplot_list,
             }
 
     def check_performance_alerts(self, thresholds: dict | None = None) -> list[dict]:
