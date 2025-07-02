@@ -202,15 +202,85 @@ def generate_metrics_html(  # noqa: PLR0913
             font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN",
                          "Noto Sans CJK JP", "Yu Gothic", sans-serif;
         }}
+
+        /* パーマリンク機能のスタイル */
+        .permalink-container {{
+            position: relative;
+            display: inline-block;
+        }}
+        .permalink-icon {{
+            position: absolute;
+            right: -25px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            cursor: pointer;
+            color: #3273dc;
+            font-size: 0.8em;
+        }}
+        .permalink-container:hover .permalink-icon {{
+            opacity: 1;
+        }}
+        .permalink-icon:hover {{
+            color: #2366d1;
+        }}
+
+        /* カード用パーマリンク */
+        .card-permalink {{
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            cursor: pointer;
+            color: #3273dc;
+            font-size: 0.9em;
+            z-index: 10;
+        }}
+        .card:hover .card-permalink {{
+            opacity: 1;
+        }}
+        .card-permalink:hover {{
+            color: #2366d1;
+        }}
+
+        /* セクション用パーマリンク調整 */
+        .section-header {{
+            position: relative;
+            padding-right: 30px;
+        }}
+
+        /* コピー成功通知 */
+        .copy-notification {{
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #48c774;
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }}
+        .copy-notification.show {{
+            opacity: 1;
+            transform: translateY(0);
+        }}
     </style>
 </head>
 <body class="japanese-font">
     <div class="container is-fluid" style="padding: 0.5rem;">
         <section class="section" style="padding: 1rem 0.5rem;">
             <div class="container" style="max-width: 100%; padding: 0;">
-                <h1 class="title is-2 has-text-centered">
-                    <span class="icon is-large"><i class="fas fa-chart-line"></i></span>
-                    天気パネル メトリクス ダッシュボード
+                <h1 class="title is-2 has-text-centered" id="dashboard">
+                    <div class="permalink-container">
+                        <span class="icon is-large"><i class="fas fa-chart-line"></i></span>
+                        天気パネル メトリクス ダッシュボード
+                        <i class="fas fa-link permalink-icon" onclick="copyPermalink('dashboard')"></i>
+                    </div>
                 </h1>
                 <p class="subtitle has-text-centered">過去100日間のパフォーマンス監視と異常検知</p>
 
@@ -263,6 +333,72 @@ def generate_metrics_html(  # noqa: PLR0913
         """
         + page_js.generate_chart_javascript()
         + """
+
+        // パーマリンク機能
+        function copyPermalink(elementId) {
+            const currentUrl = window.location.origin + window.location.pathname;
+            const permalink = currentUrl + '#' + elementId;
+
+            // クリップボードにコピー
+            navigator.clipboard.writeText(permalink).then(function() {
+                showCopyNotification('パーマリンクをコピーしました');
+
+                // URLを更新
+                history.pushState(null, null, '#' + elementId);
+            }).catch(function(err) {
+                // フォールバック方法
+                const textArea = document.createElement('textarea');
+                textArea.value = permalink;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+
+                showCopyNotification('パーマリンクをコピーしました');
+                history.pushState(null, null, '#' + elementId);
+            });
+        }
+
+        function showCopyNotification(message) {
+            // 既存の通知があれば削除
+            const existingNotification = document.querySelector('.copy-notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+
+            // 通知要素を作成
+            const notification = document.createElement('div');
+            notification.className = 'copy-notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            // アニメーション表示
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 10);
+
+            // 3秒後に非表示
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // ページ読み込み時にハッシュがあれば該当要素にスクロール
+        window.addEventListener('DOMContentLoaded', function() {
+            if (window.location.hash) {
+                const element = document.querySelector(window.location.hash);
+                if (element) {
+                    setTimeout(() => {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 500); // チャート描画完了後にスクロール
+                }
+            }
+        });
     </script>
 </html>
     """
@@ -275,16 +411,19 @@ def generate_alerts_section(alerts):
     """アラートセクションのHTML生成。"""
     if not alerts:
         return """
-        <div class="notification is-success">
+        <div class="notification is-success" id="alerts">
             <span class="icon"><i class="fas fa-check-circle"></i></span>
             パフォーマンスアラートは検出されていません。
         </div>
         """
 
     alerts_html = (
-        '<div class="section"><h2 class="title is-4">'
+        '<div class="section" id="alerts"><h2 class="title is-4 section-header">'
+        '<div class="permalink-container">'
         '<span class="icon"><i class="fas fa-exclamation-triangle"></i></span> '
-        "パフォーマンスアラート</h2>"
+        "パフォーマンスアラート"
+        '<i class="fas fa-link permalink-icon" onclick="copyPermalink(\'alerts\')"></i>'
+        "</div></h2>"
     )
 
     for alert in alerts:
@@ -311,15 +450,19 @@ def generate_basic_stats_section(basic_stats):
     display_image = basic_stats.get("display_image", {})
 
     return f"""
-    <div class="section">
-        <h2 class="title is-4">
-            <span class="icon"><i class="fas fa-chart-bar"></i></span>
-            基本統計（過去100日間）
+    <div class="section" id="basic-stats">
+        <h2 class="title is-4 section-header">
+            <div class="permalink-container">
+                <span class="icon"><i class="fas fa-chart-bar"></i></span>
+                基本統計（過去100日間）
+                <i class="fas fa-link permalink-icon" onclick="copyPermalink('basic-stats')"></i>
+            </div>
         </h2>
 
         <div class="columns">
             <div class="column">
-                <div class="card metrics-card">
+                <div class="card metrics-card" id="draw-panel-stats">
+                    <i class="fas fa-link card-permalink" onclick="copyPermalink('draw-panel-stats')"></i>
                     <div class="card-header">
                         <p class="card-header-title">画像生成処理</p>
                     </div>
@@ -363,7 +506,8 @@ def generate_basic_stats_section(basic_stats):
             </div>
 
             <div class="column">
-                <div class="card metrics-card">
+                <div class="card metrics-card" id="display-image-stats">
+                    <i class="fas fa-link card-permalink" onclick="copyPermalink('display-image-stats')"></i>
                     <div class="card-header">
                         <p class="card-header-title">表示実行処理</p>
                     </div>
@@ -413,15 +557,19 @@ def generate_basic_stats_section(basic_stats):
 def generate_hourly_patterns_section(hourly_patterns):  # noqa: ARG001
     """時間別パターンセクションのHTML生成。"""
     return """
-    <div class="section">
-        <h2 class="title is-4">
-            <span class="icon"><i class="fas fa-clock"></i></span>
-            時間別パフォーマンスパターン
+    <div class="section" id="hourly-patterns">
+        <h2 class="title is-4 section-header">
+            <div class="permalink-container">
+                <span class="icon"><i class="fas fa-clock"></i></span>
+                時間別パフォーマンスパターン
+                <i class="fas fa-link permalink-icon" onclick="copyPermalink('hourly-patterns')"></i>
+            </div>
         </h2>
 
         <div class="columns">
             <div class="column is-half">
-                <div class="card metrics-card">
+                <div class="card metrics-card" id="draw-panel-hourly">
+                    <i class="fas fa-link card-permalink" onclick="copyPermalink('draw-panel-hourly')"></i>
                     <div class="card-header">
                         <p class="card-header-title">画像生成処理 - 時間別パフォーマンス</p>
                     </div>
@@ -479,16 +627,20 @@ def generate_hourly_patterns_section(hourly_patterns):  # noqa: ARG001
 def generate_trends_section(trends):  # noqa: ARG001
     """パフォーマンス推移セクションのHTML生成。"""
     return """
-    <div class="section">
-        <h2 class="title is-4">
-            <span class="icon"><i class="fas fa-chart-area"></i></span>
-            パフォーマンス推移（箱ヒゲ図）
+    <div class="section" id="performance-trends">
+        <h2 class="title is-4 section-header">
+            <div class="permalink-container">
+                <span class="icon"><i class="fas fa-chart-area"></i></span>
+                パフォーマンス推移（箱ヒゲ図）
+                <i class="fas fa-link permalink-icon" onclick="copyPermalink('performance-trends')"></i>
+            </div>
         </h2>
         <p class="subtitle is-6">平均処理時間の箱ヒゲ図（実行回数は非表示）</p>
 
         <div class="columns">
             <div class="column is-6">
-                <div class="card metrics-card">
+                <div class="card metrics-card" id="draw-panel-trends">
+                    <i class="fas fa-link card-permalink" onclick="copyPermalink('draw-panel-trends')"></i>
                     <div class="card-header">
                         <p class="card-header-title">画像生成処理 - 日別推移</p>
                     </div>
@@ -500,7 +652,8 @@ def generate_trends_section(trends):  # noqa: ARG001
                 </div>
             </div>
             <div class="column is-6">
-                <div class="card metrics-card">
+                <div class="card metrics-card" id="display-image-trends">
+                    <i class="fas fa-link card-permalink" onclick="copyPermalink('display-image-trends')"></i>
                     <div class="card-header">
                         <p class="card-header-title">表示実行処理 - 日別推移</p>
                     </div>
@@ -515,7 +668,8 @@ def generate_trends_section(trends):  # noqa: ARG001
 
         <div class="columns">
             <div class="column is-6">
-                <div class="card metrics-card">
+                <div class="card metrics-card" id="diff-sec-trends">
+                    <i class="fas fa-link card-permalink" onclick="copyPermalink('diff-sec-trends')"></i>
                     <div class="card-header">
                         <p class="card-header-title">表示タイミング - 日別推移</p>
                     </div>
@@ -543,8 +697,13 @@ def generate_anomalies_section(anomalies, performance_stats):  # noqa: C901, PLR
     di_anomaly_rate = display_image_anomalies.get("anomaly_rate", 0) * 100
 
     anomalies_html = f"""
-    <div class="section">
-        <h2 class="title is-4"><span class="icon"><i class="fas fa-search"></i></span> 異常検知</h2>
+    <div class="section" id="anomaly-detection">
+        <h2 class="title is-4 section-header">
+            <div class="permalink-container">
+                <span class="icon"><i class="fas fa-search"></i></span> 異常検知
+                <i class="fas fa-link permalink-icon" onclick="copyPermalink('anomaly-detection')"></i>
+            </div>
+        </h2>
 
         <div class="notification is-info is-light">
             <p><strong>異常検知について：</strong></p>
@@ -799,8 +958,13 @@ def generate_anomalies_section(anomalies, performance_stats):  # noqa: C901, PLR
 def generate_diff_sec_section():
     """表示タイミングセクションのHTML生成。"""
     return """
-    <div class="section">
-        <h2 class="title is-4"><span class="icon"><i class="fas fa-clock"></i></span> 表示タイミング</h2>
+    <div class="section" id="display-timing">
+        <h2 class="title is-4 section-header">
+            <div class="permalink-container">
+                <span class="icon"><i class="fas fa-clock"></i></span> 表示タイミング
+                <i class="fas fa-link permalink-icon" onclick="copyPermalink('display-timing')"></i>
+            </div>
+        </h2>
         <p class="subtitle is-6">表示実行時の分単位での秒数の偏差（0秒が理想的なタイミング）</p>
 
         <div class="columns">
@@ -836,10 +1000,13 @@ def generate_diff_sec_section():
 def generate_panel_trends_section(panel_trends):  # noqa: ARG001
     """パネル別処理時間推移セクションのHTML生成。"""
     return """
-    <div class="section">
-        <h2 class="title is-4">
-            <span class="icon"><i class="fas fa-puzzle-piece"></i></span>
-            パネル別処理時間ヒストグラム
+    <div class="section" id="panel-trends">
+        <h2 class="title is-4 section-header">
+            <div class="permalink-container">
+                <span class="icon"><i class="fas fa-puzzle-piece"></i></span>
+                パネル別処理時間ヒストグラム
+                <i class="fas fa-link permalink-icon" onclick="copyPermalink('panel-trends')"></i>
+            </div>
         </h2>
         <p class="subtitle is-6">各パネルの処理時間分布をヒストグラムで表示（横軸：時間、縦軸：割合）</p>
 
@@ -849,10 +1016,13 @@ def generate_panel_trends_section(panel_trends):  # noqa: ARG001
         </div>
     </div>
 
-    <div class="section">
-        <h2 class="title is-4">
-            <span class="icon"><i class="fas fa-chart-line"></i></span>
-            パネル別処理時間推移
+    <div class="section" id="panel-timeseries">
+        <h2 class="title is-4 section-header">
+            <div class="permalink-container">
+                <span class="icon"><i class="fas fa-chart-line"></i></span>
+                パネル別処理時間推移
+                <i class="fas fa-link permalink-icon" onclick="copyPermalink('panel-timeseries')"></i>
+            </div>
         </h2>
         <p class="subtitle is-6">各パネルの処理時間の時系列推移グラフ（時間軸での処理時間変化）</p>
 
