@@ -482,11 +482,12 @@ def generate_trends_section(trends):  # noqa: ARG001
     <div class="section">
         <h2 class="title is-4">
             <span class="icon"><i class="fas fa-trending-up"></i></span>
-            パフォーマンス推移
+            パフォーマンス推移（箱ヒゲ図）
         </h2>
+        <p class="subtitle is-6">平均処理時間の箱ヒゲ図（実行回数は非表示）</p>
 
         <div class="columns">
-            <div class="column">
+            <div class="column is-4">
                 <div class="card metrics-card">
                     <div class="card-header">
                         <p class="card-header-title">画像生成処理 - 日別推移</p>
@@ -498,10 +499,7 @@ def generate_trends_section(trends):  # noqa: ARG001
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="columns">
-            <div class="column">
+            <div class="column is-4">
                 <div class="card metrics-card">
                     <div class="card-header">
                         <p class="card-header-title">表示実行処理 - 日別推移</p>
@@ -509,6 +507,18 @@ def generate_trends_section(trends):  # noqa: ARG001
                     <div class="card-content">
                         <div class="chart-container">
                             <canvas id="displayImageTrendsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="column is-4">
+                <div class="card metrics-card">
+                    <div class="card-header">
+                        <p class="card-header-title">表示タイミング - 日別推移</p>
+                    </div>
+                    <div class="card-content">
+                        <div class="chart-container">
+                            <canvas id="diffSecTrendsChart"></canvas>
                         </div>
                     </div>
                 </div>

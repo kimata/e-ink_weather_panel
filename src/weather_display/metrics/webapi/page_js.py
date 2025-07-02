@@ -711,7 +711,7 @@ def generate_chart_javascript():
                         maintainAspectRatio: false,
                         plugins: {
                             legend: {
-                                position: 'top'
+                                display: false
                             },
                             tooltip: {
                                 backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -730,15 +730,6 @@ def generate_chart_javascript():
                                             '第3四分位: ' + stats.q3.toFixed(2) + '秒',
                                             '最大値: ' + stats.max.toFixed(2) + '秒'
                                         ];
-                                    },
-                                    afterBody: function(context) {
-                                        if (context.length > 0) {
-                                            const outliers = context[0].parsed.outliers || [];
-                                            if (outliers.length > 0) {
-                                                return '外れ値: ' + outliers.length + '個';
-                                            }
-                                        }
-                                        return '';
                                     }
                                 }
                             }
@@ -750,7 +741,7 @@ def generate_chart_javascript():
                                     display: true,
                                     text: '日付',
                                     font: {
-                                        size: 14,
+                                        size: 12,
                                         weight: 'bold'
                                     }
                                 },
@@ -763,9 +754,9 @@ def generate_chart_javascript():
                                 display: true,
                                 title: {
                                     display: true,
-                                    text: '処理時間（秒）',
+                                    text: '時間（秒）',
                                     font: {
-                                        size: 14,
+                                        size: 12,
                                         weight: 'bold'
                                     }
                                 }
@@ -802,7 +793,7 @@ def generate_chart_javascript():
                         maintainAspectRatio: false,
                         plugins: {
                             legend: {
-                                position: 'top'
+                                display: false
                             },
                             tooltip: {
                                 backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -821,15 +812,6 @@ def generate_chart_javascript():
                                             '第3四分位: ' + stats.q3.toFixed(2) + '秒',
                                             '最大値: ' + stats.max.toFixed(2) + '秒'
                                         ];
-                                    },
-                                    afterBody: function(context) {
-                                        if (context.length > 0) {
-                                            const outliers = context[0].parsed.outliers || [];
-                                            if (outliers.length > 0) {
-                                                return '外れ値: ' + outliers.length + '個';
-                                            }
-                                        }
-                                        return '';
                                     }
                                 }
                             }
@@ -841,7 +823,7 @@ def generate_chart_javascript():
                                     display: true,
                                     text: '日付',
                                     font: {
-                                        size: 14,
+                                        size: 12,
                                         weight: 'bold'
                                     }
                                 },
@@ -854,9 +836,91 @@ def generate_chart_javascript():
                                 display: true,
                                 title: {
                                     display: true,
-                                    text: '処理時間（秒）',
+                                    text: '時間（秒）',
                                     font: {
-                                        size: 14,
+                                        size: 12,
+                                        weight: 'bold'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 表示タイミング 推移（箱ヒゲ図）
+            const diffSecTrendsCtx = document.getElementById('diffSecTrendsChart');
+            if (diffSecTrendsCtx && trendsData.diff_sec_boxplot) {
+                const boxplotData = trendsData.diff_sec_boxplot.map(d => ({
+                    x: d.date,
+                    y: d.diff_secs
+                }));
+
+                new Chart(diffSecTrendsCtx, {
+                    type: 'boxplot',
+                    data: {
+                        labels: boxplotData.map(d => d.x),
+                        datasets: [{
+                            label: 'タイミング差分布（秒）',
+                            data: boxplotData.map(d => d.y),
+                            backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                            borderColor: 'rgb(255, 159, 64)',
+                            borderWidth: 2,
+                            outlierColor: 'rgb(239, 68, 68)',
+                            medianColor: 'rgb(255, 193, 7)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleColor: 'white',
+                                bodyColor: 'white',
+                                callbacks: {
+                                    title: function(context) {
+                                        return '日付: ' + context[0].label;
+                                    },
+                                    label: function(context) {
+                                        const stats = context.parsed;
+                                        return [
+                                            '最小値: ' + stats.min.toFixed(1) + '秒',
+                                            '第1四分位: ' + stats.q1.toFixed(1) + '秒',
+                                            '中央値: ' + stats.median.toFixed(1) + '秒',
+                                            '第3四分位: ' + stats.q3.toFixed(1) + '秒',
+                                            '最大値: ' + stats.max.toFixed(1) + '秒'
+                                        ];
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: '日付',
+                                    font: {
+                                        size: 12,
+                                        weight: 'bold'
+                                    }
+                                },
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                }
+                            },
+                            y: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'タイミング差（秒）',
+                                    font: {
+                                        size: 12,
                                         weight: 'bold'
                                     }
                                 }
