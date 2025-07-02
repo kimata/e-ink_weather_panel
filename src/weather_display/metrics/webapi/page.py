@@ -581,7 +581,8 @@ def generate_hourly_patterns_section(hourly_patterns):  # noqa: ARG001
                 </div>
             </div>
             <div class="column is-half">
-                <div class="card metrics-card">
+                <div class="card metrics-card" id="draw-panel-boxplot">
+                    <i class="fas fa-link card-permalink" onclick="copyPermalink('draw-panel-boxplot')"></i>
                     <div class="card-header">
                         <p class="card-header-title">画像生成処理 - 時間別分布（箱ひげ図）</p>
                     </div>
@@ -596,7 +597,8 @@ def generate_hourly_patterns_section(hourly_patterns):  # noqa: ARG001
 
         <div class="columns">
             <div class="column is-half">
-                <div class="card metrics-card">
+                <div class="card metrics-card" id="display-image-hourly">
+                    <i class="fas fa-link card-permalink" onclick="copyPermalink('display-image-hourly')"></i>
                     <div class="card-header">
                         <p class="card-header-title">表示実行処理 - 時間別パフォーマンス</p>
                     </div>
@@ -608,7 +610,8 @@ def generate_hourly_patterns_section(hourly_patterns):  # noqa: ARG001
                 </div>
             </div>
             <div class="column is-half">
-                <div class="card metrics-card">
+                <div class="card metrics-card" id="display-image-box">
+                    <i class="fas fa-link card-permalink" onclick="copyPermalink('display-image-box')"></i>
                     <div class="card-header">
                         <p class="card-header-title">表示実行処理 - 時間別分布（箱ひげ図）</p>
                     </div>
@@ -718,7 +721,8 @@ def generate_anomalies_section(anomalies, performance_stats):  # noqa: C901, PLR
 
         <div class="columns">
             <div class="column">
-                <div class="card metrics-card">
+                <div class="card metrics-card" id="draw-panel-anomalies">
+                    <i class="fas fa-link card-permalink" onclick="copyPermalink('draw-panel-anomalies')"></i>
                     <div class="card-header">
                         <p class="card-header-title">画像生成処理の異常</p>
                     </div>
@@ -834,7 +838,8 @@ def generate_anomalies_section(anomalies, performance_stats):  # noqa: C901, PLR
             </div>
 
             <div class="column">
-                <div class="card metrics-card">
+                <div class="card metrics-card" id="display-anomalies">
+                    <i class="fas fa-link card-permalink" onclick="copyPermalink('display-anomalies')"></i>
                     <div class="card-header">
                         <p class="card-header-title">表示実行処理の異常</p>
                     </div>
@@ -969,7 +974,8 @@ def generate_diff_sec_section():
 
         <div class="columns">
             <div class="column is-half">
-                <div class="card metrics-card">
+                <div class="card metrics-card" id="diff-sec-hourly">
+                    <i class="fas fa-link card-permalink" onclick="copyPermalink('diff-sec-hourly')"></i>
                     <div class="card-header">
                         <p class="card-header-title">表示タイミング - 時間別パフォーマンス</p>
                     </div>
@@ -981,7 +987,8 @@ def generate_diff_sec_section():
                 </div>
             </div>
             <div class="column is-half">
-                <div class="card metrics-card">
+                <div class="card metrics-card" id="diff-sec-boxplot">
+                    <i class="fas fa-link card-permalink" onclick="copyPermalink('diff-sec-boxplot')"></i>
                     <div class="card-header">
                         <p class="card-header-title">表示タイミング - 時間別分布（箱ひげ図）</p>
                     </div>
@@ -1028,7 +1035,8 @@ def generate_panel_trends_section(panel_trends):  # noqa: ARG001
 
         <div class="columns">
             <div class="column">
-                <div class="card metrics-card">
+                <div class="card metrics-card" id="panel-time-series">
+                    <i class="fas fa-link card-permalink" onclick="copyPermalink('panel-time-series')"></i>
                     <div class="card-header">
                         <p class="card-header-title">パネル別処理時間推移</p>
                     </div>
