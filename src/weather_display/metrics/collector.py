@@ -638,9 +638,57 @@ class MetricsAnalyzer:
             )
             display_image_trends = [dict(row) for row in cursor.fetchall()]
 
+            # Get raw elapsed times for boxplot by day
+            cursor.execute(
+                """
+                SELECT DATE(timestamp) as date, total_elapsed_time
+                FROM draw_panel_metrics
+                WHERE timestamp >= ?
+                ORDER BY date
+            """,
+                (since,),
+            )
+            draw_panel_raw = cursor.fetchall()
+
+            cursor.execute(
+                """
+                SELECT DATE(timestamp) as date, elapsed_time
+                FROM display_image_metrics
+                WHERE timestamp >= ?
+                ORDER BY date
+            """,
+                (since,),
+            )
+            display_image_raw = cursor.fetchall()
+
+            # Group by date for boxplot data
+            draw_panel_boxplot = {}
+            for row in draw_panel_raw:
+                date = row[0]
+                if date not in draw_panel_boxplot:
+                    draw_panel_boxplot[date] = []
+                draw_panel_boxplot[date].append(row[1])
+
+            display_image_boxplot = {}
+            for row in display_image_raw:
+                date = row[0]
+                if date not in display_image_boxplot:
+                    display_image_boxplot[date] = []
+                display_image_boxplot[date].append(row[1])
+
+            # Convert to list format for JavaScript
+            draw_panel_boxplot_list = [
+                {"date": date, "elapsed_times": times} for date, times in draw_panel_boxplot.items()
+            ]
+            display_image_boxplot_list = [
+                {"date": date, "elapsed_times": times} for date, times in display_image_boxplot.items()
+            ]
+
             return {
                 "draw_panel": draw_panel_trends,
                 "display_image": display_image_trends,
+                "draw_panel_boxplot": draw_panel_boxplot_list,
+                "display_image_boxplot": display_image_boxplot_list,
             }
 
     def check_performance_alerts(self, thresholds: dict | None = None) -> list[dict]:

@@ -684,65 +684,58 @@ def generate_chart_javascript():
         }
 
         function generateTrendsCharts() {
-            // 画像生成パネル 推移
+            // 画像生成パネル 推移（箱ヒゲ図）
             const drawPanelTrendsCtx = document.getElementById('drawPanelTrendsChart');
-            if (drawPanelTrendsCtx && trendsData.draw_panel) {
+            if (drawPanelTrendsCtx && trendsData.draw_panel_boxplot) {
+                const boxplotData = trendsData.draw_panel_boxplot.map(d => ({
+                    x: d.date,
+                    y: d.elapsed_times
+                }));
+
                 new Chart(drawPanelTrendsCtx, {
-                    type: 'line',
+                    type: 'boxplot',
                     data: {
-                        labels: trendsData.draw_panel.map(d => d.date),
+                        labels: boxplotData.map(d => d.x),
                         datasets: [{
-                            label: '実行回数',
-                            data: trendsData.draw_panel.map(d => d.operations),
-                            borderColor: 'rgb(153, 102, 255)',
-                            backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                            tension: 0.1,
-                            yAxisID: 'y'
-                        }, {
-                            label: '平均処理時間（秒）',
-                            data: trendsData.draw_panel.map(d => d.avg_elapsed_time),
+                            label: '処理時間分布（秒）',
+                            data: boxplotData.map(d => d.y),
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
                             borderColor: 'rgb(75, 192, 192)',
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                            tension: 0.1,
-                            yAxisID: 'y1'
+                            borderWidth: 2,
+                            outlierColor: 'rgb(239, 68, 68)',
+                            medianColor: 'rgb(255, 193, 7)'
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
+                            legend: {
+                                position: 'top'
+                            },
                             tooltip: {
-                                mode: 'index',
-                                intersect: false,
                                 backgroundColor: 'rgba(0, 0, 0, 0.8)',
                                 titleColor: 'white',
                                 bodyColor: 'white',
-                                borderColor: 'rgba(255, 255, 255, 0.3)',
-                                borderWidth: 1,
                                 callbacks: {
                                     title: function(context) {
                                         return '日付: ' + context[0].label;
                                     },
                                     label: function(context) {
-                                        let label = context.dataset.label || '';
-                                        if (label) {
-                                            label += ': ';
-                                        }
-                                        if (context.parsed.y !== null) {
-                                            if (context.dataset.yAxisID === 'y1') {
-                                                label += context.parsed.y.toFixed(2) + '秒';
-                                            } else {
-                                                label += context.parsed.y + '回';
-                                            }
-                                        }
-                                        return label;
+                                        const stats = context.parsed;
+                                        return [
+                                            '最小値: ' + stats.min.toFixed(2) + '秒',
+                                            '第1四分位: ' + stats.q1.toFixed(2) + '秒',
+                                            '中央値: ' + stats.median.toFixed(2) + '秒',
+                                            '第3四分位: ' + stats.q3.toFixed(2) + '秒',
+                                            '最大値: ' + stats.max.toFixed(2) + '秒'
+                                        ];
                                     },
                                     afterBody: function(context) {
                                         if (context.length > 0) {
-                                            const dataIndex = context[0].dataIndex;
-                                            const dayData = trendsData.draw_panel[dataIndex];
-                                            if (dayData && dayData.error_rate !== undefined) {
-                                                return 'エラー率: ' + dayData.error_rate.toFixed(1) + '%';
+                                            const outliers = context[0].parsed.outliers || [];
+                                            if (outliers.length > 0) {
+                                                return '外れ値: ' + outliers.length + '個';
                                             }
                                         }
                                         return '';
@@ -751,83 +744,89 @@ def generate_chart_javascript():
                             }
                         },
                         scales: {
-                            y: {
-                                type: 'linear',
+                            x: {
                                 display: true,
-                                position: 'left',
-                                title: { display: true, text: '実行回数' }
+                                title: {
+                                    display: true,
+                                    text: '日付',
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    }
+                                },
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                }
                             },
-                            y1: {
-                                type: 'linear',
+                            y: {
                                 display: true,
-                                position: 'right',
-                                title: { display: true, text: '処理時間（秒）' },
-                                grid: { drawOnChartArea: false }
+                                title: {
+                                    display: true,
+                                    text: '処理時間（秒）',
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    }
+                                }
                             }
                         }
                     }
                 });
             }
 
-            // 表示実行 推移
+            // 表示実行 推移（箱ヒゲ図）
             const displayImageTrendsCtx = document.getElementById('displayImageTrendsChart');
-            if (displayImageTrendsCtx && trendsData.display_image) {
+            if (displayImageTrendsCtx && trendsData.display_image_boxplot) {
+                const boxplotData = trendsData.display_image_boxplot.map(d => ({
+                    x: d.date,
+                    y: d.elapsed_times
+                }));
+
                 new Chart(displayImageTrendsCtx, {
-                    type: 'line',
+                    type: 'boxplot',
                     data: {
-                        labels: trendsData.display_image.map(d => d.date),
+                        labels: boxplotData.map(d => d.x),
                         datasets: [{
-                            label: '実行回数',
-                            data: trendsData.display_image.map(d => d.operations),
-                            borderColor: 'rgb(255, 205, 86)',
-                            backgroundColor: 'rgba(255, 205, 86, 0.2)',
-                            tension: 0.1,
-                            yAxisID: 'y'
-                        }, {
-                            label: '平均処理時間（秒）',
-                            data: trendsData.display_image.map(d => d.avg_elapsed_time),
+                            label: '処理時間分布（秒）',
+                            data: boxplotData.map(d => d.y),
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
                             borderColor: 'rgb(54, 162, 235)',
-                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                            tension: 0.1,
-                            yAxisID: 'y1'
+                            borderWidth: 2,
+                            outlierColor: 'rgb(239, 68, 68)',
+                            medianColor: 'rgb(255, 193, 7)'
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
+                            legend: {
+                                position: 'top'
+                            },
                             tooltip: {
-                                mode: 'index',
-                                intersect: false,
                                 backgroundColor: 'rgba(0, 0, 0, 0.8)',
                                 titleColor: 'white',
                                 bodyColor: 'white',
-                                borderColor: 'rgba(255, 255, 255, 0.3)',
-                                borderWidth: 1,
                                 callbacks: {
                                     title: function(context) {
                                         return '日付: ' + context[0].label;
                                     },
                                     label: function(context) {
-                                        let label = context.dataset.label || '';
-                                        if (label) {
-                                            label += ': ';
-                                        }
-                                        if (context.parsed.y !== null) {
-                                            if (context.dataset.yAxisID === 'y1') {
-                                                label += context.parsed.y.toFixed(2) + '秒';
-                                            } else {
-                                                label += context.parsed.y + '回';
-                                            }
-                                        }
-                                        return label;
+                                        const stats = context.parsed;
+                                        return [
+                                            '最小値: ' + stats.min.toFixed(2) + '秒',
+                                            '第1四分位: ' + stats.q1.toFixed(2) + '秒',
+                                            '中央値: ' + stats.median.toFixed(2) + '秒',
+                                            '第3四分位: ' + stats.q3.toFixed(2) + '秒',
+                                            '最大値: ' + stats.max.toFixed(2) + '秒'
+                                        ];
                                     },
                                     afterBody: function(context) {
                                         if (context.length > 0) {
-                                            const dataIndex = context[0].dataIndex;
-                                            const dayData = trendsData.display_image[dataIndex];
-                                            if (dayData && dayData.error_rate !== undefined) {
-                                                return 'エラー率: ' + dayData.error_rate.toFixed(1) + '%';
+                                            const outliers = context[0].parsed.outliers || [];
+                                            if (outliers.length > 0) {
+                                                return '外れ値: ' + outliers.length + '個';
                                             }
                                         }
                                         return '';
@@ -836,18 +835,31 @@ def generate_chart_javascript():
                             }
                         },
                         scales: {
-                            y: {
-                                type: 'linear',
+                            x: {
                                 display: true,
-                                position: 'left',
-                                title: { display: true, text: '実行回数' }
+                                title: {
+                                    display: true,
+                                    text: '日付',
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    }
+                                },
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                }
                             },
-                            y1: {
-                                type: 'linear',
+                            y: {
                                 display: true,
-                                position: 'right',
-                                title: { display: true, text: '処理時間（秒）' },
-                                grid: { drawOnChartArea: false }
+                                title: {
+                                    display: true,
+                                    text: '処理時間（秒）',
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    }
+                                }
                             }
                         }
                     }
