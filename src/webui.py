@@ -21,6 +21,10 @@ import flask
 import flask_cors
 import my_lib.config
 import my_lib.logger
+import my_lib.webapp.base
+
+import weather_display.metrics.webapi.page
+import weather_display.runner.webapi.run
 
 SCHEMA_CONFIG = "config.schema"
 
@@ -33,11 +37,6 @@ def create_app(config_file_normal, config_file_small, dummy_mode=False):
 
     my_lib.webapp.config.URL_PREFIX = "/weather_panel"
     my_lib.webapp.config.init(my_lib.config.load(config_file_normal, pathlib.Path(SCHEMA_CONFIG)))
-
-    import my_lib.webapp.base
-
-    import weather_display.metrics.webapi.page
-    import weather_display.runner.webapi.run
 
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
         # NOTE: オプションでダミーモードが指定された場合、環境変数もそれに揃えておく
@@ -64,10 +63,14 @@ def create_app(config_file_normal, config_file_small, dummy_mode=False):
     app.config["CONFIG_FILE_SMALL"] = config_file_small
     app.config["DUMMY_MODE"] = dummy_mode
 
-    app.register_blueprint(my_lib.webapp.base.blueprint)
+    app.register_blueprint(my_lib.webapp.base.blueprint, url_prefix=my_lib.webapp.config.URL_PREFIX)
     app.register_blueprint(my_lib.webapp.base.blueprint_default)
-    app.register_blueprint(weather_display.runner.webapi.run.blueprint)
-    app.register_blueprint(weather_display.metrics.webapi.page.blueprint)
+    app.register_blueprint(
+        weather_display.runner.webapi.run.blueprint, url_prefix=my_lib.webapp.config.URL_PREFIX
+    )
+    app.register_blueprint(
+        weather_display.metrics.webapi.page.blueprint, url_prefix=my_lib.webapp.config.URL_PREFIX
+    )
 
     my_lib.webapp.config.show_handler_list(app)
 
