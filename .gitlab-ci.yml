@@ -431,7 +431,7 @@ renovate:
     stage: renovate
     dependencies: []
     image:
-        name: registry.green-rabbit.net:5000/kimata/local_renovate:38
+        name: gitlab.green-rabbit.net:5050/kimata/local-renovate:250706_ba282ca1
         entrypoint: [""]
     script:
         - renovate --platform gitlab --token ${RENOVATE_TOKEN} --endpoint ${CI_SERVER_URL}/api/v4 ${CI_PROJECT_PATH}
