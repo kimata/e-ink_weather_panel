@@ -321,16 +321,30 @@ test-webapp:
             docker ps  --filter "label=job=${CI_JOB_NAME}" | grep hours |
             cut -d " " -f1 |
             while read id; do docker stop -t 5 $id; done || true
-        # NOTE: 「-D」をつけると一週間前のデータを取得するので、センサーデータがしばらく欠損していた場合、
+        # NOTE: 「-d」をつけると一週間前のデータを取得するので、センサーデータがしばらく欠損していた場合、
         # センサーが復活しても一週間程度はこのテストは失敗するので注意
         - >
             docker run --rm --detach=true --tty=true
             --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME}
-            ${CI_REGISTRY_IMAGE}:${TAG} ./src/webui.py -c config-demo.yaml -D
+            ${CI_REGISTRY_IMAGE}:${TAG} ./src/webui.py -c config-demo.yaml -d
 
         - uv run playwright install --with-deps chromium
 
-        - docker logs ${CI_JOB_NAME}-${CI_JOB_ID} > flask_log_1.txt
+        - >
+            APP_IP=$(docker inspect --format
+            '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
+        - APP_URL="http://${APP_IP}:5000/weather_panel"
+        - 'echo "APP_URL: ${APP_URL}"'
+        - >
+            timeout 60 bash -c "until curl --fail \"${APP_URL}/\" 2>/dev/null;
+            do sleep 5; done" || ACCESS_FAILED=1
+        - |
+            if [ "$ACCESS_FAILED" = "1" ]; then
+                echo "Failed to access App"
+                docker logs ${CI_JOB_NAME}-${CI_JOB_ID} > flask_log.txt
+                docker stop ${CI_JOB_NAME}-${CI_JOB_ID}
+                exit 1
+            fi
 
         - >
             uv run pytest tests/test_playwright.py
@@ -338,7 +352,7 @@ test-webapp:
             ${CI_JOB_NAME}-${CI_JOB_ID})
             --junit-xml=tests/evidence/playwright-junit.xml
 
-        - docker logs ${CI_JOB_NAME}-${CI_JOB_ID} > flask_log_2.txt
+        - docker logs ${CI_JOB_NAME}-${CI_JOB_ID} > flask_log.txt
         - docker stop ${CI_JOB_NAME}-${CI_JOB_ID}
     cache:
         key: ${CI_JOB_NAME}
@@ -347,7 +361,7 @@ test-webapp:
     artifacts:
         when: always
         paths:
-            - flask_log_*.txt
+            - flask_log.txt
             - tests/evidence/**
         reports:
             junit: tests/evidence/playwright-junit.xml
