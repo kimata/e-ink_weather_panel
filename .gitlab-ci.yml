@@ -328,12 +328,17 @@ test-webapp:
             --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME}
             ${CI_REGISTRY_IMAGE}:${TAG} ./src/webui.py -c config-demo.yaml -d
 
+        - sleep 10
+        - docker ps | grep ${CI_JOB_NAME}-${CI_JOB_ID}
+        - docker logs ${CI_JOB_NAME}-${CI_JOB_ID}
+
         - uv run playwright install --with-deps chromium
 
         - >
             APP_IP=$(docker inspect --format
             '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
-        - APP_URL="http://${APP_IP}:5000/weather_panel/"
+
+        - APP_URL="http://${APP_IP}:5000/weather_panel"
         - 'echo "APP_URL: ${APP_URL}"'
         - >
             timeout 60 bash -c "until curl --fail --verbose \"${APP_URL}\" 2>&1;
@@ -348,8 +353,7 @@ test-webapp:
 
         - >
             uv run pytest tests/test_playwright.py
-            --host $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'
-            ${CI_JOB_NAME}-${CI_JOB_ID})
+            --host ${APP_IP}
             --junit-xml=tests/evidence/playwright-junit.xml
 
         - docker logs ${CI_JOB_NAME}-${CI_JOB_ID} > flask_log.txt
