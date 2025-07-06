@@ -68,7 +68,7 @@ build-image:
         - docker buildx use ${BUILDER}
         - docker buildx inspect --bootstrap
         - >
-            docker buildx build --provenance=false --progress=plain --platform linux/amd64,linux/arm64/v8
+            docker buildx build --provenance=false --progress=plain --platform linux/amd64
             --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:cache
             --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:latest
             --cache-to type=inline --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}:cache,mode=max
