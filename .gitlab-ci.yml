@@ -357,7 +357,8 @@ pages:
         paths:
             - public
     only:
-        - master
+        - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 tag-latest:
     stage: tag-latest
     needs:
