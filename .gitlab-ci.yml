@@ -336,8 +336,9 @@ test-webapp:
         - >
             APP_IP=$(docker inspect --format
             '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
-        - >
-            APP_PORT=$(docker port "${CI_JOB_NAME}-${CI_JOB_ID}" 5000 | cut -d: -f2)
+        # - >
+        #     APP_PORT=$(docker port "${CI_JOB_NAME}-${CI_JOB_ID}" 5000 | cut -d: -f2)
+        - APP_PORT=5000
         - APP_URL="http://${APP_IP}:${APP_PORT}/weather_panel/"
         - 'echo "APP_URL: ${APP_URL}"'
         - >
