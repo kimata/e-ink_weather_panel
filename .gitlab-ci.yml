@@ -326,6 +326,7 @@ test-webapp:
         - >
             docker run --rm --detach=true --tty=true
             --name ${CI_JOB_NAME}-${CI_JOB_ID} --label job=${CI_JOB_NAME}
+            --publish :5000
             ${CI_REGISTRY_IMAGE}:${TAG} ./src/webui.py -c config-demo.yaml -d
 
         - docker ps | grep ${CI_JOB_NAME}-${CI_JOB_ID}
@@ -336,7 +337,9 @@ test-webapp:
             APP_IP=$(docker inspect --format
             '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
 
-        - APP_URL="http://${APP_IP}:5000/weather_panel/"
+        - APP_PORT=$(docker port ${CI_JOB_NAME}-${CI_JOB_ID} 5000 | cut -d: -f2)
+
+        - APP_URL="http://${APP_IP}:${APP_PORT}/weather_panel/"
         - 'echo "APP_URL: ${APP_URL}"'
         - >
             timeout 60 bash -c "until curl --fail --connect-timeout 10 --max-time 15 --verbose \"${APP_URL}\" 2>&1;
