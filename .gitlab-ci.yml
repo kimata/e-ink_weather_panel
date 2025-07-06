@@ -330,7 +330,7 @@ test-webapp:
 
         - uv run playwright install --with-deps chromium
 
-        - docker logs ${CI_JOB_NAME}-${CI_JOB_ID} > flask_log_2.txt
+        - docker logs ${CI_JOB_NAME}-${CI_JOB_ID} > flask_log_1.txt
 
         - >
             uv run pytest tests/test_playwright.py
