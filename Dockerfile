@@ -35,7 +35,8 @@ COPY font /usr/share/fonts/
 USER ubuntu
 
 ENV PATH="/home/ubuntu/.local/bin:$PATH"
-ENV UV_LINK_MODE=copy
+ENV UV_LINK_MODE=copy \
+    UV_NO_SYNC=1
 
 # ubuntu ユーザーで uv をインストール
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
