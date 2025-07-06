@@ -333,9 +333,9 @@ test-webapp:
 
         - uv run playwright install --with-deps chromium
 
-        - APP_PORT=$(docker port "${CI_JOB_NAME}-${CI_JOB_ID}" 5000 | cut -d: -f2)
-        - DOCKER_GATEWAY=$(docker network inspect bridge --format='{{range .IPAM.Config}}{{.Gateway}}{{end}}')
-        - APP_URL="http://${DOCKER_GATEWAY}:${APP_PORT}/weather_panel/"
+        - 'APP_PORT=$(docker port "${CI_JOB_NAME}-${CI_JOB_ID}" 5000 | cut -d: -f2)'
+        - 'DOCKER_GATEWAY=$(docker network inspect bridge --format="{{range .IPAM.Config}}{{.Gateway}}{{end}}")'
+        - 'APP_URL="http://${DOCKER_GATEWAY}:${APP_PORT}/weather_panel/"'
         - 'echo "APP_URL: ${APP_URL}"'
         - >
             timeout 60 bash -c "until curl --fail --connect-timeout 10 --max-time 15 --verbose \"${APP_URL}\" 2>&1;
