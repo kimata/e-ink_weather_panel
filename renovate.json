@@ -8,7 +8,7 @@
     "packageRules": [
         {
             "matchPaths": [".gitlab-ci.yml"],
-            "matchPackagePatterns": ["local_playwright"],
+            "matchPackagePatterns": ["local-playwright"],
             "enabled": false
         }
     ]

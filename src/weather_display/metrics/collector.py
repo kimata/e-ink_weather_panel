@@ -25,7 +25,7 @@ DEFAULT_DB_PATH = pathlib.Path("data/metrics.db")
 
 
 class MetricsCollector:
-    """Collects and stores performance metrics for weather panel operations."""  # noqa: D203
+    """Collects and stores performance metrics for weather panel operations."""
 
     def __init__(self, db_path: str | pathlib.Path = DEFAULT_DB_PATH):
         """Initialize MetricsCollector with database path."""
@@ -284,7 +284,7 @@ class MetricsCollector:
 
 
 class MetricsAnalyzer:
-    """Analyzes metrics data for patterns and anomalies."""  # noqa: D203
+    """Analyzes metrics data for patterns and anomalies."""
 
     def __init__(self, db_path: str | pathlib.Path = DEFAULT_DB_PATH):
         """Initialize MetricsAnalyzer with database path."""

@@ -42,7 +42,6 @@ SCHEMA_CONFIG_SMALL = "config-small.schema"
 NOTIFY_THRESHOLD = 2
 
 elapsed_list = []
-timing_controller = None
 
 
 def execute(  # noqa: PLR0913
@@ -54,6 +53,7 @@ def execute(  # noqa: PLR0913
     test_mode,
     is_one_time,
     prev_ssh=None,
+    timing_controller=None,
 ):
     start_time = datetime.datetime.now(TIMEZONE)
     start = time.perf_counter()
@@ -79,7 +79,6 @@ def execute(  # noqa: PLR0913
             elapsed = time.perf_counter() - start
 
             # カルマンフィルタを使用したタイミング制御
-            global timing_controller
             if timing_controller is None:
                 timing_controller = weather_display.timing_filter.TimingController(
                     update_interval=config["panel"]["update"]["interval"], target_second=0
@@ -129,7 +128,7 @@ def execute(  # noqa: PLR0913
         except Exception as e:
             logging.warning("Failed to log execute metrics: %s", e)
 
-    return ssh, sleep_time
+    return ssh, sleep_time, timing_controller
 
 
 if __name__ == "__main__":
@@ -167,9 +166,10 @@ if __name__ == "__main__":
 
     fail_count = 0
     prev_ssh = None
+    timing_controller = None
     while True:
         try:
-            prev_ssh, sleep_time = execute(
+            prev_ssh, sleep_time, timing_controller = execute(
                 config,
                 rasp_hostname,
                 key_file_path,
@@ -178,6 +178,7 @@ if __name__ == "__main__":
                 test_mode,
                 is_one_time,
                 prev_ssh,
+                timing_controller,
             )
             fail_count = 0
 

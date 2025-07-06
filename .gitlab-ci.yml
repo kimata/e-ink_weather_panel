@@ -1,4 +1,5 @@
-image: registry.green-rabbit.net:5000/kimata/local_ubuntu:250615_38f4fdb9
+image: gitlab.green-rabbit.net:5050/kimata/local-ubuntu:250706_30e7c62e
+
 variables:
     UV_LINK_MODE: copy
     UV_PYTHON_INSTALL_DIR: ${CI_PROJECT_DIR}/.uv_python
@@ -37,31 +38,38 @@ build-image:
     needs:
         - generate-tag
         - build-react
+
     variables:
         BUILDER: builder
+        BUILD_KIT_IMAGE: gitlab.green-rabbit.net:5050/kimata/local-buildkit:250705_7cc0d1c
+
+    before_script:
+        - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+
     script:
         - 'echo "Building: ${CI_REGISTRY_IMAGE}:${TAG}"'
+
         - export GIT_SSL_NO_VERIFY=1
-        - git clone https://gitlab.green-rabbit.net/kimata/panel_config.git
-        - mv panel_config/e-ink_weather.yaml config.yaml
-        - mv panel_config/e-ink_weather-demo.yaml config-demo.yaml
-        - mv panel_config/e-ink_weather-small.yaml config-small.yaml
-        - mkdir key
-        - mv panel_config/panel.id_rsa key
-        - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
-        - mv private_font/* font
-        - docker buildx create --driver docker-container --name ${BUILDER} --use --config /etc/buildkitd.toml
+        - git clone https://gitlab.green-rabbit.net/kimata/hems-config.git
+        - mv hems-config/rasp-shutter.yaml config.yaml
+
+        - |
+            docker buildx create \
+                --name ${BUILDER} \
+                --driver-opt image=${BUILD_KIT_IMAGE} \
+                --use \
+                --config /etc/buildkitd.toml
+
         - docker buildx use ${BUILDER}
         - docker buildx inspect --bootstrap
         - >
-            docker buildx build
-            --provenance=false --progress=plain --platform linux/amd64
+            docker buildx build --provenance=false --progress=plain --platform linux/amd64,linux/arm64/v8
             --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:cache
             --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:latest
-            --cache-to type=inline
-            --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}:cache,mode=max
+            --cache-to type=inline --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}:cache,mode=max
             --build-arg IMAGE_BUILD_DATE=$(date --iso-8601=seconds)
             --tag ${CI_REGISTRY_IMAGE}:${TAG} --push .
+
 test-prepare:
     stage: build
     needs: []
