@@ -134,6 +134,8 @@ test-walk-through:
         - build-image
     variables:
         PANEL_SCRIPT: "" # 各ジョブで上書き
+    before_script:
+        - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
     script:
         # NOTE: テストに失敗するとテスト用のコンテナが残るので削除する
         - >
@@ -181,6 +183,8 @@ test-rain-cloud-panel:
     stage: test
     variables:
         CREATE_IMAGE_ARGS: "" # 各ジョブで上書き
+    before_script:
+        - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
     script:
         - >
             docker run --tty=true --name ${CI_JOB_NAME}-${CI_JOB_ID}
