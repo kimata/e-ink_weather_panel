@@ -106,7 +106,6 @@ test-walk-through:
         - build-react
         - test-prepare
     script:
-        - export PYTHONDONTWRITEBYTECODE=1
         - uv run pytest --numprocesses=auto --junit-xml=tests/evidence/junit-report.xml tests/test_basic.py
     cache:
         - key:
@@ -337,7 +336,8 @@ test-webapp:
         - >
             APP_IP=$(docker inspect --format
             '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
-        - APP_PORT="$(docker port ${CI_JOB_NAME}-${CI_JOB_ID} 5000 | cut -d: -f2)"
+        - >
+            APP_PORT=$(docker port "${CI_JOB_NAME}-${CI_JOB_ID}" 5000 | cut -d: -f2)
         - APP_URL="http://${APP_IP}:${APP_PORT}/weather_panel/"
         - 'echo "APP_URL: ${APP_URL}"'
         - >
