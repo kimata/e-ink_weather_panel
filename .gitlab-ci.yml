@@ -29,8 +29,6 @@ build-react:
     artifacts:
         paths:
             - react/dist
-        archive:
-            format: tar.bz2
 
     cache:
         key: ${CI_JOB_NAME}
@@ -89,8 +87,6 @@ test-prepare:
         paths:
             - .venv
             - .uv_python
-        archive:
-            format: tar.bz2
         expire_in: 1 hour
 
     cache:
