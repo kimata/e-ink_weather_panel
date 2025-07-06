@@ -336,7 +336,7 @@ test-webapp:
             APP_IP=$(docker inspect --format
             '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CI_JOB_NAME}-${CI_JOB_ID})
 
-        - APP_URL="http://${APP_IP}:5000/weather_panel"
+        - APP_URL="http://${APP_IP}:5000/weather_panel/"
         - 'echo "APP_URL: ${APP_URL}"'
         - >
             timeout 60 bash -c "until curl --fail --verbose \"${APP_URL}\" 2>&1;
