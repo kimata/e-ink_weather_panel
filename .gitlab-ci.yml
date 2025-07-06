@@ -56,7 +56,7 @@ build-image:
         - mv panel-config/eink-weather-small.yaml config-small.yaml
         - mkdir key
         - mv panel-config/panel.id_rsa key
-        - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
+        - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.green-rabbit.net/kimata/font.git private_font
         - mv private_font/* font
 
         - |
