@@ -50,7 +50,7 @@ build-image:
         - 'echo "Building: ${CI_REGISTRY_IMAGE}:${TAG}"'
 
         - export GIT_SSL_NO_VERIFY=1
-        - git clone https://gitlab.green-rabbit.net/kimata/panel-config.git
+        - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.green-rabbit.net/kimata/panel-config.git
         - mv panel-config/eink-weather.yaml config.yaml
         - mv panel-config/eink-weather-demo.yaml config-demo.yaml
         - mv panel-config/eink-weather-small.yaml config-small.yaml
