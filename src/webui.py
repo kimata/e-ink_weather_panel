@@ -3,11 +3,12 @@
 電子ペーパ表示用の画像を表示する簡易的な Web サーバです。
 
 Usage:
-  webapp.py [-c CONFIG] [-s CONFIG] [-d] [-D]
+  webapp.py [-c CONFIG] [-s CONFIG] [-p PORT] [-d] [-D]
 
 Options:
   -c CONFIG         : 通常モードで使う設定ファイルを指定します。[default: config.yaml]
   -s CONFIG         : 小型ディスプレイモード使う設定ファイルを指定します。[default: config-small.yaml]
+  -p PORT           : WEB サーバのポートを指定します。[default: 5000]
   -d                : ダミーモードで実行します。
   -D                : デバッグモードで動作します。
 """
@@ -16,6 +17,7 @@ import atexit
 import logging
 import os
 import pathlib
+import signal
 
 import flask
 import flask_cors
@@ -27,6 +29,26 @@ import weather_display.metrics.webapi.page
 import weather_display.runner.webapi.run
 
 SCHEMA_CONFIG = "config.schema"
+
+
+def term():
+    weather_display.runner.webapi.run.term()
+
+    # 子プロセスを終了
+    my_lib.proc_util.kill_child()
+
+    # プロセス終了
+    logging.info("Graceful shutdown completed")
+    os._exit(0)
+
+
+def sig_handler(num, frame):  # noqa: ARG001
+    global should_terminate
+
+    logging.warning("receive signal %d", num)
+
+    if num == signal.SIGTERM:
+        term()
 
 
 def create_app(config_file_normal, config_file_small, dummy_mode=False):
@@ -84,6 +106,7 @@ if __name__ == "__main__":
 
     config_file_normal = args["-c"]
     config_file_small = args["-s"]
+    port = args["-p"]
     dummy_mode = args["-d"]
     debug_mode = args["-D"]
 
@@ -91,5 +114,12 @@ if __name__ == "__main__":
 
     app = create_app(config_file_normal, config_file_small, dummy_mode)
 
-    # NOTE: スクリプトの自動リロード停止したい場合は use_reloader=False にする
-    app.run(host="0.0.0.0", threaded=True, use_reloader=True, debug=debug_mode)  # noqa: S104
+    signal.signal(signal.SIGTERM, sig_handler)
+
+    # Flaskアプリケーションを実行
+    try:
+        # NOTE: スクリプトの自動リロード停止したい場合は use_reloader=False にする
+        app.run(host="0.0.0.0", port=port, threaded=True, use_reloader=True, debug=debug_mode)  # noqa: S104
+    except KeyboardInterrupt:
+        logging.info("Received KeyboardInterrupt, shutting down...")
+        sig_handler(signal.SIGINT, None)
