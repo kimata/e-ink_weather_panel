@@ -106,7 +106,6 @@ test-walk-through:
         - build-react
         - test-prepare
     script:
-        - export PYTHONDONTWRITEBYTECODE=1
         - uv run pytest --numprocesses=auto --junit-xml=tests/evidence/junit-report.xml tests/test_basic.py
     cache:
         - key:
@@ -340,7 +339,7 @@ test-webapp:
         - APP_URL="http://${APP_IP}:5000/weather_panel/"
         - 'echo "APP_URL: ${APP_URL}"'
         - >
-            timeout 60 bash -c "until curl --fail --verbose \"${APP_URL}\" 2>&1;
+            timeout 60 bash -c "until curl --fail --connect-timeout 10 --max-time 15 --verbose \"${APP_URL}\" 2>&1;
             do echo 'Retrying in 5 seconds...'; sleep 5; done" || ACCESS_FAILED=1
         - |
             if [ "$ACCESS_FAILED" = "1" ]; then
