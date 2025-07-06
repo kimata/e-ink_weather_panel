@@ -1,4 +1,4 @@
-image: gitlab.green-rabbit.net:5050/kimata/local-ubuntu:250706_30e7c62e
+image: gitlab.green-rabbit.net:5050/kimata/local-ubuntu:250706_043ea01d
 
 variables:
     UV_LINK_MODE: copy
@@ -78,6 +78,7 @@ build-image:
 test-prepare:
     stage: build
     needs: []
+
     script:
         - uv sync --locked --no-editable
     artifacts:
