@@ -106,6 +106,7 @@ test-walk-through:
         - build-react
         - test-prepare
     script:
+        - export PYTHONDONTWRITEBYTECODE=1
         - uv run pytest --numprocesses=auto --junit-xml=tests/evidence/junit-report.xml tests/test_basic.py
     cache:
         - key:
