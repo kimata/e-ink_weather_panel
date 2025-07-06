@@ -56,5 +56,9 @@ COPY --chown=ubuntu:ubuntu . .
 
 RUN mkdir -p data
 
+# プロジェクトをインストール
+RUN --mount=type=cache,target=/home/ubuntu/.cache/uv,uid=1000,gid=1000 \
+    uv sync --no-group dev --compile-bytecode
+
 ENTRYPOINT ["uv", "run"]
 CMD ["src/display_image.py"]
