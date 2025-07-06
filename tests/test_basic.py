@@ -663,10 +663,10 @@ def test_create_rain_cloud_panel_cache_and_error(mocker, request, config):
 
     import weather_display.panel.rain_cloud
 
-    # NOTE: 4回だけエラーにする
+    # NOTE: 6回だけエラーにする
     def click_xpath_mock(driver, xpath, wait=None, is_warn=True):
         click_xpath_mock.i += 1
-        if click_xpath_mock.i <= 4:
+        if click_xpath_mock.i <= 6:
             raise RuntimeError
 
         return click_xpath_orig(driver, xpath, wait, is_warn)
