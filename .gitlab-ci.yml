@@ -394,6 +394,10 @@ tag-latest:
           artifacts: false
         - job: test-webapp
           artifacts: false
+
+    before_script:
+        - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+
     script:
         - 'echo "Tagging multi-arch image ${CI_REGISTRY_IMAGE}:${TAG} as latest"'
         - >
@@ -403,6 +407,7 @@ tag-latest:
         - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
           when: never
         - when: on_success
+
 deploy:
     stage: deploy
     needs:
@@ -416,13 +421,14 @@ deploy:
     image:
         name: bitnami/kubectl:latest
         entrypoint: [""]
+
     script:
         - 'IMAGE="${CI_REGISTRY_IMAGE}:${TAG}"'
         - 'echo "Deploying image: $IMAGE"'
         - kubectl config get-contexts
         - >
             kubectl config use-context
-            kimata/e-ink_weather_panel:pod-rollout
+            kimata/eink-weather-panel:pod-rollout
         # イメージの更新
         - 'echo "Updating deployment images to $TAG..."'
         - >
@@ -445,6 +451,7 @@ deploy:
         - >
             kubectl --insecure-skip-tls-verify=true -n panel rollout status
             deployment/e-ink-weather-webapp-deployment --timeout=120s
+
         - 'echo "✓ All deployments updated successfully to $TAG"'
     rules:
         # NOTE: 自動実行ではデプロイしない
@@ -453,6 +460,7 @@ deploy:
         - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
           when: never
         - when: on_success
+
 renovate:
     stage: renovate
     dependencies: []
