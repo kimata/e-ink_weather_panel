@@ -50,8 +50,14 @@ build-image:
         - 'echo "Building: ${CI_REGISTRY_IMAGE}:${TAG}"'
 
         - export GIT_SSL_NO_VERIFY=1
-        - git clone https://gitlab.green-rabbit.net/kimata/hems-config.git
-        - mv hems-config/rasp-shutter.yaml config.yaml
+        - git clone https://gitlab.green-rabbit.net/kimata/panel-config.git
+        - mv panel-config/eink-weather.yaml config.yaml
+        - mv panel-config/eink-weather-demo.yaml config-demo.yaml
+        - mv panel-config/eink-weather-small.yaml config-small.yaml
+        - mkdir key
+        - mv panel-config/panel.id_rsa key
+        - git clone https://gitlab.green-rabbit.net/kimata/font.git private_font
+        - mv private_font/* font
 
         - |
             docker buildx create \
@@ -59,7 +65,6 @@ build-image:
                 --driver-opt image=${BUILD_KIT_IMAGE} \
                 --use \
                 --config /etc/buildkitd.toml
-
         - docker buildx use ${BUILDER}
         - docker buildx inspect --bootstrap
         - >
