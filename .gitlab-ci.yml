@@ -59,7 +59,6 @@ build-image:
         - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.green-rabbit.net/kimata/font.git private_font
         - mv private_font/* font
 
-        - docker buildx rm ${BUILDER} || true
         - |
             docker buildx create \
                 --name ${BUILDER} \
