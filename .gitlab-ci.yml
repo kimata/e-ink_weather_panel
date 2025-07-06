@@ -344,6 +344,7 @@ test-webapp:
         - >
             timeout 60 bash -c "until curl --fail --connect-timeout 10 --max-time 15 --verbose \"${APP_URL}\" 2>&1;
             do echo 'Retrying in 5 seconds...'; sleep 5; done" || ACCESS_FAILED=1
+        - sleep 3600
         - |
             if [ "$ACCESS_FAILED" = "1" ]; then
                 echo "Failed to access App"
