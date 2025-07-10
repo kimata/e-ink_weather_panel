@@ -21,7 +21,7 @@ generate-tag:
 build-react:
     stage: build
     needs: []
-    image: node:24.2
+    image: node:24.4
     script:
         - cd react
         - npm ci --cache .npm --prefer-offline
